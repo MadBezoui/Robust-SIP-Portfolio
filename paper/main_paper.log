@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  14 AUG 2026 22:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  14 AUG 2026 22:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -821,82 +821,82 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
  [4] [5]
-[6] [7] [8] [9] [10] [11] [12]
-<../figures/wealth_plot.pdf, id=342, 602.25pt x 401.5pt>
+[6] [7] [8] [9] [10] [11]
+<../figures/wealth_plot.pdf, id=301, 602.25pt x 401.5pt>
 File: ../figures/wealth_plot.pdf Graphic file (type pdf)
 <use ../figures/wealth_plot.pdf>
-Package pdftex.def Info: ../figures/wealth_plot.pdf  used on input line 408.
+Package pdftex.def Info: ../figures/wealth_plot.pdf  used on input line 353.
 (pdftex.def)             Requested size: 398.61395pt x 265.75047pt.
- [13] [14 <../figures/wealth_plot.pdf>]
-<../figures/drawdown_plot.pdf, id=361, 602.25pt x 401.5pt>
+ [12 <../figures/wealth_plot.pdf>]
+<../figures/drawdown_plot.pdf, id=310, 602.25pt x 401.5pt>
 File: ../figures/drawdown_plot.pdf Graphic file (type pdf)
 <use ../figures/drawdown_plot.pdf>
-Package pdftex.def Info: ../figures/drawdown_plot.pdf  used on input line 452.
+Package pdftex.def Info: ../figures/drawdown_plot.pdf  used on input line 394.
 (pdftex.def)             Requested size: 398.61395pt x 265.75047pt.
-<../figures/weights_rob_plot.pdf, id=364, 602.25pt x 401.5pt>
+ [13]
+<../figures/weights_rob_plot.pdf, id=322, 602.25pt x 401.5pt>
 File: ../figures/weights_rob_plot.pdf Graphic file (type pdf)
 <use ../figures/weights_rob_plot.pdf>
-Package pdftex.def Info: ../figures/weights_rob_plot.pdf  used on input line 50
-3.
+Package pdftex.def Info: ../figures/weights_rob_plot.pdf  used on input line 44
+5.
 (pdftex.def)             Requested size: 217.42265pt x 144.95035pt.
-<../figures/weights_mv_plot.pdf, id=365, 602.25pt x 401.5pt>
+<../figures/weights_mv_plot.pdf, id=323, 602.25pt x 401.5pt>
 File: ../figures/weights_mv_plot.pdf Graphic file (type pdf)
 <use ../figures/weights_mv_plot.pdf>
-Package pdftex.def Info: ../figures/weights_mv_plot.pdf  used on input line 510
+Package pdftex.def Info: ../figures/weights_mv_plot.pdf  used on input line 452
 .
 (pdftex.def)             Requested size: 217.42265pt x 144.95035pt.
- [15 <../figures/drawdown_plot.pdf>]
-<../figures/turnover_plot.pdf, id=377, 602.25pt x 401.5pt>
+ [14 <../figures/drawdown_plot.pdf>]
+<../figures/turnover_plot.pdf, id=333, 602.25pt x 401.5pt>
 File: ../figures/turnover_plot.pdf Graphic file (type pdf)
 <use ../figures/turnover_plot.pdf>
-Package pdftex.def Info: ../figures/turnover_plot.pdf  used on input line 521.
+Package pdftex.def Info: ../figures/turnover_plot.pdf  used on input line 462.
 (pdftex.def)             Requested size: 398.61395pt x 265.75047pt.
- [16 <../figures/weights_rob_plot.pdf> <../figures/weights_mv_plot.pdf>]
-<../figures/active_states_plot.pdf, id=387, 602.25pt x 401.5pt>
+ [15 <../figures/weights_rob_plot.pdf> <../figures/weights_mv_plot.pdf>] [16 <.
+./figures/turnover_plot.pdf>]
+<../figures/active_states_plot.pdf, id=353, 602.25pt x 401.5pt>
 File: ../figures/active_states_plot.pdf Graphic file (type pdf)
 <use ../figures/active_states_plot.pdf>
 Package pdftex.def Info: ../figures/active_states_plot.pdf  used on input line 
-559.
+503.
 (pdftex.def)             Requested size: 398.61395pt x 265.75047pt.
- [17 <../figures/turnover_plot.pdf>]
-<../figures/bounds_plot.pdf, id=397, 602.25pt x 401.5pt>
+<../figures/bounds_plot.pdf, id=354, 602.25pt x 401.5pt>
 File: ../figures/bounds_plot.pdf Graphic file (type pdf)
 <use ../figures/bounds_plot.pdf>
-Package pdftex.def Info: ../figures/bounds_plot.pdf  used on input line 569.
+Package pdftex.def Info: ../figures/bounds_plot.pdf  used on input line 510.
 (pdftex.def)             Requested size: 398.61395pt x 265.75047pt.
- [18 <../figures/active_states_plot.pdf>]
-<../figures/frontier_plot.pdf, id=406, 505.89pt x 375.804pt>
+ [17 <../figures/active_states_plot.pdf> <../figures/bounds_plot.pdf>]
+<../figures/frontier_plot.pdf, id=364, 505.89pt x 375.804pt>
 File: ../figures/frontier_plot.pdf Graphic file (type pdf)
 <use ../figures/frontier_plot.pdf>
-Package pdftex.def Info: ../figures/frontier_plot.pdf  used on input line 602.
+Package pdftex.def Info: ../figures/frontier_plot.pdf  used on input line 543.
 (pdftex.def)             Requested size: 217.42265pt x 161.51802pt.
-<../figures/kernel_map_plot.pdf, id=407, 505.89pt x 375.804pt>
+<../figures/kernel_map_plot.pdf, id=365, 505.89pt x 375.804pt>
 File: ../figures/kernel_map_plot.pdf Graphic file (type pdf)
 <use ../figures/kernel_map_plot.pdf>
-Package pdftex.def Info: ../figures/kernel_map_plot.pdf  used on input line 609
+Package pdftex.def Info: ../figures/kernel_map_plot.pdf  used on input line 550
 .
 (pdftex.def)             Requested size: 217.42265pt x 161.51802pt.
- [19 <../figures/bounds_plot.pdf>]
-<../figures/bootstrap_plot.pdf, id=418, 542.025pt x 346.89601pt>
+ [18 <../figures/frontier_plot.pdf> <../figures/kernel_map_plot.pdf>]
+<../figures/bootstrap_plot.pdf, id=437, 542.025pt x 346.89601pt>
 File: ../figures/bootstrap_plot.pdf Graphic file (type pdf)
 <use ../figures/bootstrap_plot.pdf>
-Package pdftex.def Info: ../figures/bootstrap_plot.pdf  used on input line 621.
+Package pdftex.def Info: ../figures/bootstrap_plot.pdf  used on input line 562.
 
 (pdftex.def)             Requested size: 398.61395pt x 255.12164pt.
- [20 <../figures/frontier_plot.pdf> <../figures/kernel_map_plot.pdf>] [21 <../f
-igures/bootstrap_plot.pdf>]
-[22] [23] (./main_paper.bbl [24]) [25] (./main_paper.aux)
+ [19 <../figures/bootstrap_plot.pdf>] [20]
+[21] (./main_paper.bbl [22]) [23] (./main_paper.aux)
 Package rerunfilecheck Info: File `main_paper.out' has not changed.
-(rerunfilecheck)             Checksum: B42F1705094899381D8BB66676332606;8553.
+(rerunfilecheck)             Checksum: 3FF7C3AAC6F6D0D92546C528FD0424B0;5631.
  ) 
 Here is how much of TeX's memory you used:
- 23691 strings out of 478994
- 446005 string characters out of 5858183
- 720875 words of memory out of 5000000
- 40610 multiletter control sequences out of 15000+600000
- 417931 words of font info for 81 fonts, out of 8000000 for 9000
+ 23689 strings out of 478994
+ 446492 string characters out of 5858183
+ 723368 words of memory out of 5000000
+ 40629 multiletter control sequences out of 15000+600000
+ 418267 words of font info for 83 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 87i,14n,89p,2086b,906s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 87i,14n,89p,2298b,906s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
 }</usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb>
 </usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><
@@ -921,13 +921,14 @@ xmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2021/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2021/texmf-
 dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2021/texmf-d
 ist/fonts/type1/public/amsfonts/cm/cmti8.pfb></usr/local/texlive/2021/texmf-dis
-t/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2021/texmf
--dist/fonts/type1/public/cm-super/sfbx1095.pfb></usr/local/texlive/2021/texmf-d
-ist/fonts/type1/public/cm-super/sfrm1095.pfb>
-Output written on main_paper.pdf (25 pages, 807609 bytes).
+t/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2021/texmf-dist
+/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2021/texmf-
+dist/fonts/type1/public/cm-super/sfbx1095.pfb></usr/local/texlive/2021/texmf-di
+st/fonts/type1/public/cm-super/sfrm1095.pfb>
+Output written on main_paper.pdf (23 pages, 817726 bytes).
 PDF statistics:
- 666 PDF objects out of 1000 (max. 8388607)
- 558 compressed objects within 6 object streams
- 147 named destinations out of 1000 (max. 500000)
- 319 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 612 PDF objects out of 1000 (max. 8388607)
+ 505 compressed objects within 6 object streams
+ 125 named destinations out of 1000 (max. 500000)
+ 207 words of extra memory for PDF output out of 10000 (max. 10000000)
 

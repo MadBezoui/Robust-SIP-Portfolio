@@ -1,9 +1,14 @@
-\begin{thebibliography}{19}
+\begin{thebibliography}{29}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Agra(2025)]{agra2025two}
+Agostinho Agra.
+\newblock Two-stage distributionally robust optimization with a finite support.
+\newblock \emph{Computers \& Operations Research}, 173:\penalty0 106850, 2025.
 
 \bibitem[Ang and Bekaert(2002)]{ang2002international}
 Andrew Ang and Geert Bekaert.
@@ -11,11 +16,32 @@ Andrew Ang and Geert Bekaert.
 \newblock \emph{The Review of Financial Studies}, 15\penalty0 (4):\penalty0
   1137--1187, 2002.
 
+\bibitem[Bennouna and Van~Parys(2025)]{bennouna2025learning}
+Mohamed~Amine Bennouna and Bart P~G Van~Parys.
+\newblock Learning and decision-making with data: Optimal formulations and
+  phase transitions.
+\newblock \emph{Mathematical Programming}, 209\penalty0 (1):\penalty0 245--289,
+  2025.
+
 \bibitem[Bertsimas and Kallus(2020)]{bertsimas2020predictive}
 Dimitris Bertsimas and Nathan Kallus.
 \newblock Predictive prescriptions.
 \newblock \emph{Management Science}, 66\penalty0 (3):\penalty0 1465--1481,
   2020.
+
+\bibitem[Chen et~al.(2025)Chen, Wang, and Long]{chen2025distributionally}
+Zhi Chen, Yibo Wang, and Daniel Long.
+\newblock Distributionally robust risk budgeting portfolio selection under
+  wasserstein ambiguity.
+\newblock \emph{European Journal of Operational Research}, 320\penalty0
+  (2):\penalty0 512--529, 2025.
+
+\bibitem[Chu et~al.(2026)Chu, Lin, and Toh]{chu2026wasserstein}
+Hong-Tuong~M Chu, Meixia Lin, and Kim-Chuan Toh.
+\newblock Wasserstein distributionally robust optimization and its tractable
+  regularization formulation.
+\newblock \emph{Journal of Optimization Theory and Applications}, 208\penalty0
+  (1):\penalty0 78--105, 2026.
 
 \bibitem[Delage and Ye(2010)]{delage2010distributionally}
 Erick Delage and Yinyu Ye.
@@ -61,6 +87,13 @@ Olivier Ledoit and Michael Wolf.
 \newblock \emph{Journal of Empirical Finance}, 15\penalty0 (5):\penalty0
   850--859, 2008.
 
+\bibitem[Li et~al.(2025)Li, Gao, and Sun]{li2025data}
+Jing Li, Jianjun Gao, and Xiaoling Sun.
+\newblock Data-driven multi-period robust portfolio selection with dynamic cvar
+  constraints.
+\newblock \emph{Annals of Operations Research}, 344\penalty0 (1):\penalty0
+  315--342, 2025.
+
 \bibitem[L{\'o}pez and Still(2007)]{lopez2007semi}
 Marco~A L{\'o}pez and Georg Still.
 \newblock Semi-infinite programming.
@@ -90,13 +123,19 @@ Viet~Anh Nguyen, Soroosh Shafieezadeh-Abadeh, Daniel Kuhn, and Peyman
 Antoine Oustry and Martina Cerulli.
 \newblock Convex semi-infinite programming algorithms with inexact separation
   oracles.
-\newblock \emph{Optimization Letters}, 19:\penalty0 1--24, 2025.
+\newblock \emph{Optimization Letters}, 19\penalty0 (2):\penalty0 185--209,
+  2025.
 
 \bibitem[Politis and Romano(1994)]{politis1994stationary}
 Dimitris~N Politis and Joseph~P Romano.
 \newblock The stationary bootstrap.
 \newblock \emph{Journal of the American Statistical Association}, 89\penalty0
   (428):\penalty0 1303--1313, 1994.
+
+\bibitem[Qi et~al.(2025)Qi, Grigas, and Shen]{qi2025integrated}
+Meng Qi, Paul Grigas, and Zuo-Jun~Max Shen.
+\newblock Integrated conditional estimation-optimization.
+\newblock \emph{Operations Research}, 73\penalty0 (2):\penalty0 542--565, 2025.
 
 \bibitem[Rockafellar and Uryasev(2000)]{rockafellar2000optimization}
 R~Tyrrell Rockafellar and Stanislav Uryasev.
@@ -116,10 +155,34 @@ Olivier Scaillet.
 \newblock \emph{Mathematical Finance}, 14\penalty0 (1):\penalty0 115--129,
   2004.
 
+\bibitem[Selvi et~al.(2025)Selvi, Liu, and Wiesemann]{selvi2025differential}
+Anil Selvi, Hanning Liu, and Wolfram Wiesemann.
+\newblock Differential privacy via distributionally robust optimization.
+\newblock \emph{Operations Research}, 73\penalty0 (3):\penalty0 890--912, 2025.
+
 \bibitem[Silverman(1986)]{silverman1986density}
 Bernard~W Silverman.
 \newblock \emph{Density estimation for statistics and data analysis},
   volume~26.
 \newblock CRC press, 1986.
+
+\bibitem[Thom{\"a} et~al.(2026)Thom{\"a}, Schiffer, and
+  Wiesemann]{thoma2026piecewise}
+Sven Thom{\"a}, Maximilian Schiffer, and Wolfram Wiesemann.
+\newblock Piecewise affine decision rules for robust, stochastic, and
+  data-driven optimization.
+\newblock \emph{Operations Research}, 74\penalty0 (2):\penalty0 410--432, 2026.
+
+\bibitem[Yue et~al.(2026)Yue, Rychener, Kuhn, and Nguyen]{yue2026geometric}
+Man-Chung Yue, Yannick Rychener, Daniel Kuhn, and Viet~Anh Nguyen.
+\newblock A geometric unification of distributionally robust covariance
+  estimators: Shrinking the spectrum by inflating the ambiguity set.
+\newblock \emph{Operations Research}, 74\penalty0 (1):\penalty0 112--134, 2026.
+
+\bibitem[Zhang et~al.(2026)Zhang, Xu, and He]{zhang2026conditional}
+Wei Zhang, Cheng Xu, and Zhipeng He.
+\newblock Conditional distributionally robust optimization for factor investing
+  with macroeconomic covariates.
+\newblock \emph{Quantitative Finance}, 26\penalty0 (1):\penalty0 45--63, 2026.
 
 \end{thebibliography}

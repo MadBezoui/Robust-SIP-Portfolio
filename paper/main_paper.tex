@@ -37,7 +37,7 @@ Madani Bezoui$^{*,1}$ and Thiziri Sifaoui$^{2,3}$ \\
 \begin{NoHyper}\def\thefootnote{*}\footnotetext{Corresponding author. Email: madani.bezoui@cesi.fr}\end{NoHyper}
 
 \begin{abstract}
-Portfolio risk depends heavily on prevailing macroeconomic conditions, yet standard robust portfolio optimization models frequently represent those conditions through a rigid, discrete set of regimes or an unconditional ambiguity set. We introduce a data-driven semi-infinite portfolio optimization framework in which each point of a continuous market-state space induces a conditional empirical return distribution. Market states are characterized by observable financial indicators, specifically the implied volatility index (VIX) and the equity market drawdown. Non-parametric multivariate kernel weights connect historical observations to any continuous target state, avoiding arbitrary discrete regime segmentation. Portfolio risk is measured by the worst-case conditional value-at-risk (CVaR) over a compact continuous state space. To solve the resulting semi-infinite program efficiently, we develop an adaptive exchange algorithm that alternates between a finite linear programming master problem and a continuous-state oracle, iteratively identifying binding stress states. We establish theoretical existence, continuity, and convergence properties of the model, and we analyze the approximation guarantees when using inexact continuous separation oracles. We conduct an extensive rolling-window empirical study over three decades of US industry portfolio data (1990 to 2026). The continuous robust model is systematically benchmarked against naive diversification (1/N), minimum variance, unconditional nominal CVaR, and a four-quadrant finite-regime CVaR model. The empirical evaluation rigorously examines realized downside risk, effective asset concentration, temporal turnover, transaction cost drag, pre-defined crisis periods, computational scalability relative to dense grids, and studentized circular block-bootstrap hypothesis testing on Sharpe ratio differences. The continuous-state robust framework provides enhanced capital preservation during acute market dislocations while maintaining computational tractability for practical asset management.
+Portfolio risk depends heavily on prevailing macroeconomic conditions, yet standard robust portfolio optimization models frequently represent those conditions through a rigid discrete set of regimes or an unconditional ambiguity set. We introduce a data-driven semi-infinite portfolio optimization framework in which each point of a continuous market-state space induces a conditional empirical return distribution. Market states are characterized by observable financial indicators, specifically the implied volatility index (VIX) and the equity market drawdown. Non-parametric multivariate kernel weights connect historical observations to any continuous target state, avoiding arbitrary discrete regime segmentation. Portfolio risk is measured by the worst-case conditional value-at-risk (CVaR) over a compact continuous state space. To solve the resulting semi-infinite program efficiently, we develop an adaptive exchange algorithm that alternates between a finite linear programming master problem and a continuous-state oracle, iteratively identifying binding stress states. We establish theoretical existence, continuity, and convergence properties of the model, and we analyze approximation guarantees when using inexact continuous separation oracles. We conduct an extensive rolling-window empirical study over three decades of US industry portfolio data (1990 to 2026). The continuous robust model is systematically benchmarked against naive diversification (1/N), minimum variance, unconditional nominal CVaR, and a four-quadrant finite-regime CVaR model. The empirical evaluation rigorously examines realized downside risk, effective asset concentration, temporal turnover, transaction cost drag, pre-defined crisis periods, computational scalability relative to dense grids, and studentized circular block-bootstrap hypothesis testing on Sharpe ratio differences. The continuous-state robust framework provides enhanced capital preservation during acute market dislocations while maintaining computational tractability for practical asset management. To ensure full reproducibility, the complete codebase, processed datasets, and figure generation routines are publicly available at \url{https://github.com/MadBezoui/Robust-SIP-Portfolio}.
 \end{abstract}
 
 \newpage
@@ -52,28 +52,28 @@ In this paper, we propose a continuous-state robust portfolio optimization frame
 
 The investor seeks an allocation that minimizes the worst-case Conditional Value-at-Risk (CVaR) over the entire continuous state space $\mathcal{U}$. Because the state space is uncountable, this formulation gives rise to a Semi-Infinite Program (SIP) with an infinite number of joint risk constraints. Direct solution via dense spatial discretization becomes computationally prohibitive and scales poorly in high dimensions. To solve the continuous-state SIP efficiently, we design an adaptive exchange algorithm. The method alternates between solving a finite master linear program over a sparse active subset of stress states and executing a continuous global oracle that searches for the most adverse state for the current candidate portfolio.
 
-This study makes several methodological, theoretical, and empirical contributions to the literature on robust asset allocation:
+This study makes several methodological, theoretical, and empirical contributions to the literature on robust asset allocation. First, we formalize the continuous-state robust CVaR problem with a mathematically complete master epigraph formulation and a rigorously defined compact state space. Second, we provide theoretical foundations for the continuous-state framework, establishing the compactness of the decision and state spaces, the continuity of the kernel weighting mapping, the joint continuity and convexity of the conditional CVaR objective, and the existence of an optimal robust allocation. We also formalize the theoretical properties of the exchange algorithm under exact and inexact continuous separation oracles, characterizing the empirical optimality gap when global search heuristics are employed \citep{oustry2025convex}. Third, we implement a full experimental backtest over a 30-year span (1990 to 2026) using daily returns from the Kenneth French 30 Industry Portfolios alongside contemporaneous VIX and drawdown data. We compare the continuous robust portfolio against four benchmarks: the naive 1/N allocation \citep{demiguel2009optimal}, the global minimum variance portfolio, the unconditional nominal CVaR portfolio, and a four-quadrant finite-regime CVaR model. Fourth, we conduct a comprehensive empirical evaluation reporting 14 distinct performance metrics, gross and net of transaction costs. We analyze pre-defined historical crisis windows (the Dot-Com crash, the 2008 Global Financial Crisis, the COVID-19 shock, and the 2022 inflation tightening), perform sensitivity sweeps over transaction costs and kernel bandwidths, evaluate computational convergence against dense grid solutions, and conduct studentized circular block-bootstrap hypothesis testing following \citet{ledoit2008robust}.
 
-First, we formalize the continuous-state robust CVaR problem with a mathematically complete master epigraph formulation and a rigorously defined compact state space. We position this approach relative to recent advances in conditional stochastic optimization and distributionally robust optimization with side information \citep{bertsimas2020predictive, esteban2022distributionally, nguyen2021robustifying}.
+To facilitate open science and full reproducibility of all empirical findings, the complete Julia and Python codebase, the cleaned financial datasets, and all figure generation routines are maintained in an open-source repository at \href{https://github.com/MadBezoui/Robust-SIP-Portfolio}{GitHub (\texttt{MadBezoui/Robust-SIP-Portfolio})}.
 
-Second, we provide theoretical foundations for the continuous-state framework, establishing the compactness of the decision and state spaces, the continuity of the kernel weighting mapping, the joint continuity and convexity of the conditional CVaR objective, and the existence of an optimal robust allocation. We also formalize the theoretical properties of the exchange algorithm under exact and inexact continuous separation oracles, characterizing the empirical optimality gap when global search heuristics are employed \citep{oustry2025convex}.
+The remainder of this manuscript is structured into six comprehensive sections. Section 2 reviews related literature across robust optimization, conditional stochastic programming, and semi-infinite algorithms. Section 3 develops the continuous-state modeling framework, kernel weighting mechanics, and theoretical existence theorems. Section 4 presents the adaptive exchange algorithm and convergence analysis under exact and inexact separation. Section 5 details the institutional backtesting protocol and reports empirical results across the 30-year sample. Section 6 provides discussion, practical limitations, and concluding remarks.
 
-Third, we implement a full experimental backtest over a 30-year span (1990 to 2026) using daily returns from the Kenneth French 30 Industry Portfolios alongside contemporaneous VIX and drawdown data. We compare the continuous robust portfolio against four benchmarks: the naive 1/N allocation \citep{demiguel2009optimal}, the global minimum variance portfolio, the unconditional nominal CVaR portfolio, and a four-quadrant finite-regime CVaR portfolio.
+\section{Related literature and research positioning}
+Our methodology intersects three active streams of quantitative operations research: robust portfolio selection, conditional stochastic programming with side information, and semi-infinite optimization algorithms.
 
-Fourth, we conduct a comprehensive empirical evaluation reporting 14 distinct performance metrics, gross and net of transaction costs. We analyze pre-defined historical crisis windows (the Dot-Com crash, the 2008 Global Financial Crisis, the COVID-19 shock, and the 2022 inflation tightening), perform sensitivity sweeps over transaction costs and kernel bandwidths, evaluate computational convergence against dense grid solutions, and conduct studentized circular block-bootstrap hypothesis testing following \citet{ledoit2008robust}.
-
-\section{Related work and literature positioning}
-Our methodology intersects three active streams of quantitative research: robust portfolio selection, conditional stochastic programming with side information, and semi-infinite optimization algorithms.
-
-\subsection{Robust and distributionally robust portfolio optimization}
+\subsection{Classical and distributionally robust portfolio selection}
 Classical robust portfolio selection addresses the sensitivity of Markowitz mean-variance optimization to estimation noise by assuming that expected return vectors and covariance matrices reside in deterministic uncertainty sets \citep{goldfarb2003robust, fabozzi2007robust}. These formulations yield second-order cone or semidefinite programs that provide worst-case guarantees. However, moment-based robust models frequently rely on implicit symmetry assumptions that fail to reflect the severe skewness, heavy tails, and asymmetric dependence structures inherent in financial return distributions.
 
-To capture tail risk directly, \citet{rockafellar2000optimization, rockafellar2002conditional} introduced the Conditional Value-at-Risk (CVaR) as a coherent risk measure that can be optimized efficiently via linear programming. Building on this foundation, distributionally robust optimization (DRO) seeks to minimize risk over an ambiguity set of probability distributions constructed around an empirical baseline. Modern DRO frameworks define ambiguity balls using moment constraints \citep{delage2010distributionally} or optimal transport metrics such as the Wasserstein distance \citep{esfahani2018data}. While DRO provides rigorous out-of-sample guarantees against statistical sample perturbations, standard DRO models remain unconditional, assuming a single stationary distribution across all market regimes.
+To capture tail risk directly, \citet{rockafellar2000optimization, rockafellar2002conditional} introduced the Conditional Value-at-Risk (CVaR) as a coherent risk measure that can be optimized efficiently via linear programming. Building on this foundation, distributionally robust optimization (DRO) seeks to minimize risk over an ambiguity set of probability distributions constructed around an empirical baseline. Modern DRO frameworks define ambiguity balls using moment constraints \citep{delage2010distributionally} or optimal transport metrics such as the Wasserstein distance \citep{esfahani2018data}.
 
-\subsection{Conditional stochastic optimization and side information}
+Recent theoretical developments in DRO have substantially expanded algorithmic boundaries. \citet{yue2026geometric} establish a geometric unification of distributionally robust covariance estimators by demonstrating how inflating the ambiguity set shrinks the empirical covariance spectrum toward robust shrinkage targets. \citet{selvi2025differential} examine privacy preservation mechanisms in distributionally robust optimization. \citet{thoma2026piecewise} investigate piecewise affine decision rules for robust, stochastic, and data-driven optimization, proving tight performance bounds in multi-stage settings. \citet{chu2026wasserstein} propose tractable regularized reformulations of Wasserstein DRO problems that achieve global convergence with standard convex solvers. \citet{chen2025distributionally} develop a distributionally robust risk budgeting model under Wasserstein ambiguity, demonstrating superior out-of-sample risk parity allocations. Furthermore, \citet{li2025data} formulate multi-period robust portfolio selection models with dynamic CVaR constraints, while \citet{agra2025two} analyzes two-stage distributionally robust programs with finite scenario supports.
+
+\subsection{Conditional stochastic optimization and covariate side information}
 A rapidly expanding body of literature investigates how observable side information (covariates) can be integrated into data-driven decision-making. \citet{bertsimas2020predictive} established a general framework for predictive prescriptions, demonstrating that non-parametric kernel regression, $k$-nearest neighbors, and tree-based weights can effectively condition decision problems on prevailing covariates. In the context of risk management, \citet{scaillet2004nonparametric} examined non-parametric kernel estimation of conditional expected shortfall.
 
-More recently, researchers have unified side information with robust optimization. \citet{esteban2022distributionally} developed distributionally robust stochastic programs with side information based on trimmed Wasserstein balls, applying their method to conditional energy and portfolio problems. \citet{nguyen2021robustifying} formulated robust conditional portfolio decisions via optimal transport metrics centered on covariate-conditioned empirical distributions. 
+In recent contributions, \citet{qi2025integrated} introduce an integrated conditional estimation-optimization methodology that directly couples regression trees with downstream optimization tasks, minimizing decision error rather than prediction loss. \citet{bennouna2025learning} explore phase transitions in data-driven decision-making, providing optimal sample complexity bounds for prescriptive models with side information. \citet{zhang2026conditional} develop conditional distributionally robust optimization models for equity factor investing, incorporating macroeconomic covariates into Wasserstein ambiguity sets.
+
+Earlier foundational frameworks in conditional DRO include \citet{esteban2022distributionally}, who developed distributionally robust stochastic programs with side information based on trimmed Wasserstein balls, applying their method to conditional energy and portfolio problems. \citet{nguyen2021robustifying} formulated robust conditional portfolio decisions via optimal transport metrics centered on covariate-conditioned empirical distributions.
 
 Our framework differs from conditional DRO in its specific mathematical construction. In conditional DRO, the decision-maker constructs an ambiguity set around the conditional distribution corresponding to the currently observed state $y_t$. In our continuous-state robust model, we do not restrict attention to a single observed state. Instead, we seek a portfolio that remains robust across the entire family of conditional distributions induced by any plausible state $\theta \in \mathcal{U}$. We refer to this approach as continuous-state robust optimization over kernel-weighted empirical conditional distributions.
 
@@ -82,30 +82,25 @@ Semi-infinite programming (SIP) considers optimization problems with a finite nu
 
 The standard solution paradigm for convex SIPs is the cutting-plane or exchange algorithm. At each iteration, the master problem solves a relaxed subproblem over a finite subset of constraints, while a separation oracle identifies the most violated constraint across the continuous index set. When the oracle can be solved to certified global optimality, the exchange algorithm generates monotonically non-decreasing lower bounds and certified upper bounds that converge to the true global optimum. In practical high-dimensional settings where the oracle is non-convex, exact separation is challenging. \citet{oustry2025convex} formalized the convergence and error propagation of convex SIP algorithms equipped with inexact separation oracles, establishing explicit bounds on infeasibility and suboptimality. We build upon these principles to provide theoretical grounding for our adaptive exchange method.
 
-\section{Continuous market-state modeling}
+\section{Continuous-state robust CVaR framework}
 We consider an investment universe consisting of $N$ risky financial assets over a discrete time horizon $t = 1, \dots, T$. Let $x_t = (x_{1,t}, \dots, x_{N,t})^\top \in \mathbb{R}^N$ denote the vector of realized asset returns from trading day $t-1$ to day $t$. We hypothesize that the joint conditional distribution of asset returns is modulated by prevailing macroeconomic and market state variables observable at time $t-1$, denoted by the vector $y_{t-1} \in \mathbb{R}^M$.
 
 \subsection{State variable selection and normalization}
-In this study, we focus on two primary financial indicators that capture distinct dimensions of market risk ($M = 2$):
-\begin{enumerate}
-    \item \textbf{Implied Market Volatility ($V_t$)}: The Chicago Board Options Exchange (CBOE) Volatility Index (VIX), which reflects forward-looking market uncertainty and implied option volatility.
-    \item \textbf{Market Drawdown ($D_t$)}: The peak-to-trough decline of the broad equity market index over a trailing quarterly lookback window of $L = 63$ trading days, defined as:
-    \begin{equation}
-        D_t = 1 - \frac{P_t}{\max_{s \in [t-L, t]} P_s}
-    \end{equation}
-    where $P_t$ is the cumulative total return index of the broad market.
-\end{enumerate}
+In this study, we focus on two primary financial indicators that capture distinct dimensions of market risk ($M = 2$): the Implied Market Volatility ($V_t$) from the CBOE Volatility Index (VIX), and the Market Drawdown ($D_t$) representing the peak-to-trough decline of the broad equity market index over a trailing quarterly lookback window of $L = 63$ trading days:
+\begin{equation}
+    D_t = 1 - \frac{P_t}{\max_{s \in [t-L, t]} P_s}
+\end{equation}
+where $P_t$ is the cumulative total return index of the broad market.
 
 The state vector at time $t-1$ is $y_{t-1} = (V_{t-1}, D_{t-1})^\top$. Because implied volatility and percentage drawdowns have different numerical scales and variance structures, we standardize the state variables over the historical estimation window. Let $\bar{y} \in \mathbb{R}^2$ and $\hat{\Sigma}_y \in \mathbb{R}^{2 \times 2}$ denote the sample mean vector and sample covariance matrix of the state variables over the training sample. The standardized historical state vectors are given by $\tilde{y}_{t-1} = \hat{\Sigma}_y^{-1/2} (y_{t-1} - \bar{y})$.
 
-\subsection{Definition of the continuous state space}
 We define the continuous state space $\mathcal{U} \subset \mathbb{R}^2$ as a compact bounding rectangle containing all historically observed market states, augmented by an outer safety margin $\delta > 0$ to account for potential unobserved stress levels:
 \begin{equation}
     \mathcal{U} = [v_{\min} - \delta_v, v_{\max} + \delta_v] \times [d_{\min} - \delta_d, d_{\max} + \delta_d]
 \end{equation}
 where $v_{\min} = \min_{t} V_{t-1}$, $v_{\max} = \max_{t} V_{t-1}$, $d_{\min} = \min_{t} D_{t-1} = 0$, and $d_{\max} = \max_{t} D_{t-1}$. In our implementation, we set $\delta_v = 0.10 (v_{\max} - v_{\min})$ and $\delta_d = 0.10 (d_{\max} - d_{\min})$. By construction, $\mathcal{U}$ is a closed and bounded subset of $\mathbb{R}^2$, ensuring compactness.
 
-\subsection{Kernel-weighted conditional empirical distributions}
+\subsection{Kernel-weighted conditional distributions and effective sample size}
 For any continuous state query $\theta = (v_\theta, d_\theta)^\top \in \mathcal{U}$, we construct a state-dependent empirical probability distribution over the historical return realizations $\{x_1, \dots, x_T\}$. Each historical return observation $x_t$ is assigned a Nadaraya-Watson kernel weight based on the proximity of its preceding state $y_{t-1}$ to the target state $\theta$:
 \begin{equation}
     p_t(\theta) = \frac{K_H(y_{t-1} - \theta)}{\sum_{s=1}^{T} K_H(y_{s-1} - \theta)}
@@ -118,11 +113,13 @@ We specify the bandwidth matrix using the multivariate rule-of-thumb \citep{silv
 \end{equation}
 for $M = 2$. This choice balances bias and variance while naturally adapting to the empirical covariance structure of the state variables.
 
-Because the Gaussian kernel is strictly positive everywhere on $\mathbb{R}^2$, the normalization denominator is strictly positive for all $\theta \in \mathcal{U}$. Consequently, the kernel weights satisfy $p_t(\theta) > 0$ and $\sum_{t=1}^T p_t(\theta) = 1$ for every $\theta \in \mathcal{U}$. Each continuous state $\theta$ thus induces a well-defined conditional empirical distribution:
+Because the Gaussian kernel is strictly positive everywhere on $\mathbb{R}^2$, the normalization denominator is strictly positive for all $\theta \in \mathcal{U}$. Consequently, the kernel weights satisfy $p_t(\theta) > 0$ and $\sum_{t=1}^T p_t(\theta) = 1$ for every $\theta \in \mathcal{U}$. Each continuous state $\theta$ thus induces a well-defined conditional empirical distribution $\mathbb{P}(X | \theta) = \sum_{t=1}^{T} p_t(\theta) \delta_{x_t}$, where $\delta_{x_t}$ denotes the Dirac delta mass at historical return vector $x_t$.
+
+To monitor local data support across the continuous domain, we compute the Effective Sample Size (ESS) for any state $\theta \in \mathcal{U}$:
 \begin{equation}
-    \mathbb{P}(X | \theta) = \sum_{t=1}^{T} p_t(\theta) \delta_{x_t}
+    \text{ESS}(\theta) = \frac{1}{\sum_{t=1}^T p_t(\theta)^2}
 \end{equation}
-where $\delta_{x_t}$ denotes the Dirac delta mass at historical return vector $x_t$.
+When weights are uniformly distributed ($p_t(\theta) = 1/T$), the ESS reaches its theoretical maximum $\text{ESS}(\theta) = T$. Conversely, if all weight concentrates on a single historical observation, $\text{ESS}(\theta) = 1$. In our empirical analysis, we track the ESS of all active stress states identified by the optimization algorithm to ensure that the robust solutions do not degenerate into single-scenario overfits.
 
 \begin{figure}[htbp]
 \centering
@@ -171,28 +168,19 @@ where $\delta_{x_t}$ denotes the Dirac delta mass at historical return vector $x
 \label{fig:schema1}
 \end{figure}
 
-\subsection{Effective sample size diagnostics}
-When evaluating conditional risk in regions of the state space with low historical data density, the kernel estimator concentrates probability mass on a small subset of observations. To quantify local data richness, we compute the Effective Sample Size (ESS) for any state $\theta \in \mathcal{U}$:
-\begin{equation}
-    \text{ESS}(\theta) = \frac{1}{\sum_{t=1}^T p_t(\theta)^2}
-\end{equation}
-When weights are uniformly distributed ($p_t(\theta) = 1/T$), the ESS reaches its theoretical maximum $\text{ESS}(\theta) = T$. Conversely, if all weight concentrates on a single historical observation, $\text{ESS}(\theta) = 1$. In our empirical analysis, we track the ESS of all active stress states identified by the optimization algorithm to ensure that the robust solutions do not degenerate into single-scenario overfits.
-
-\section{Continuous-state robust CVaR optimization}
+\subsection{Semi-infinite programming formulation and theoretical properties}
 Let $w = (w_1, \dots, w_N)^\top \in \mathbb{R}^N$ denote the portfolio weight vector. The portfolio loss under realized return vector $x_t$ is $-x_t^\top w$. We define the feasible portfolio set $W \subset \mathbb{R}^N$ under standard institutional long-only constraints and a target expected return constraint:
 \begin{equation}
     W = \left\{ w \in \mathbb{R}^N : \sum_{i=1}^N w_i = 1, \quad w_i \ge 0 \quad \forall i=1,\dots,N, \quad \hat{\mu}^\top w \ge \mu_{\text{target}} \right\}
 \end{equation}
 where $\hat{\mu} = \frac{1}{T} \sum_{t=1}^T x_t$ is the unconditional sample mean return vector, and $\mu_{\text{target}}$ is the required expected return. The set $W$ is non-empty whenever $\mu_{\text{target}} \le \max_i \hat{\mu}_i$, and it is closed and bounded, hence compact.
 
-\subsection{Conditional value-at-risk formulation}
-For a given portfolio allocation $w \in W$ and a fixed state $\theta \in \mathcal{U}$, we measure portfolio downside risk using the Conditional Value-at-Risk at tail probability level $\tau \in (0, 1)$, corresponding to confidence level $\alpha = 1 - \tau$. We set $\tau = 0.05$ ($\alpha = 0.95$) throughout the empirical analysis. Following the variational representation of \citet{rockafellar2000optimization}, the conditional CVaR evaluated at state $\theta$ is:
+Following the variational representation of \citet{rockafellar2000optimization}, the conditional CVaR evaluated at state $\theta$ at confidence level $\alpha = 1 - \tau$ (with $\tau = 0.05$) is:
 \begin{equation}
     \Phi_\tau(w, \theta) = \min_{z \in \mathbb{R}} \left\{ z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w - z]_+ \right\}
 \end{equation}
 where $z \in \mathbb{R}$ represents the conditional Value-at-Risk (VaR) at level $\alpha$, and $[u]_+ = \max(0, u)$.
 
-\subsection{The semi-infinite programming formulation}
 The continuous-state robust portfolio optimization problem seeks an allocation $w \in W$ that minimizes the worst-case conditional CVaR across all market states in the compact domain $\mathcal{U}$:
 \begin{equation}
     v^* = \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta)
@@ -205,10 +193,6 @@ Introducing an auxiliary epigraph scalar $\eta \in \mathbb{R}$ representing the 
     & w_i \ge 0 \quad \forall i=1,\dots,N \\
     & \hat{\mu}^\top w \ge \mu_{\text{target}}
 \end{align}
-Because $\mathcal{U}$ is an uncountably infinite set, the problem contains an infinite family of continuous convex constraints $\Phi_\tau(w, \theta) \le \eta$.
-
-\subsection{Theoretical properties: existence, continuity, and convexity}
-We now establish the mathematical foundations ensuring the well-posedness of the continuous-state robust CVaR problem.
 
 \begin{proposition}[Compactness and continuity]
 Assume that the bandwidth matrix $H$ is symmetric positive-definite and the target expected return $\mu_{\text{target}}$ is feasible. Then:
@@ -221,25 +205,21 @@ Assume that the bandwidth matrix $H$ is symmetric positive-definite and the targ
 \end{proposition}
 
 \begin{proof}
-Item 1 follows directly from the definition of the standard unit simplex intersected with a half-space and the closed bounding box construction of $\mathcal{U}$. For Item 2, the Gaussian kernel $K_H(u)$ is smooth and strictly positive everywhere. The denominator $\sum_{s=1}^T K_H(y_{s-1} - \theta) \ge \min_{\theta \in \mathcal{U}} K_H(y_0 - \theta) > 0$ is bounded away from zero on compact $\mathcal{U}$. Thus $p_t(\theta)$ is a ratio of smooth, positive functions with a non-vanishing denominator, making it smooth and strictly positive. For Item 3, for each fixed $t$, the loss function $(w, z) \mapsto [-x_t^\top w - z]_+$ is jointly continuous and convex. Because $p_t(\theta)$ is continuous, the objective function $F(w, z, \theta) = z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w - z]_+$ is jointly continuous on $\mathbb{R}^N \times \mathbb{R} \times \mathcal{U}$. The minimization over $z$ occurs over a compact interval because the optimal $z$ is bounded by the minimum and maximum possible portfolio losses over the compact set $W$. By Berge's Maximum Theorem, the marginal function $\Phi_\tau(w, \theta) = \min_z F(w, z, \theta)$ is continuous on $W \times \mathcal{U}$. For Item 4, for fixed $\theta$, $\Phi_\tau(\cdot, \theta)$ is the partial minimization over $z$ of the jointly convex function $(w, z) \mapsto F(w, z, \theta)$, which preserves convexity in $w$.
+Item 1 follows directly from the definition of the standard unit simplex intersected with a half-space and the closed bounding box construction of $\mathcal{U}$. For Item 2, the Gaussian kernel $K_H(u)$ is smooth and strictly positive everywhere. The normalization denominator is strictly positive on compact $\mathcal{U}$. Thus $p_t(\theta)$ is a ratio of smooth, positive functions with a non-vanishing denominator, making it smooth and strictly positive. For Item 3, for each fixed $t$, the loss function $(w, z) \mapsto [-x_t^\top w - z]_+$ is jointly continuous and convex. Because $p_t(\theta)$ is continuous, the objective function $F(w, z, \theta) = z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w - z]_+$ is jointly continuous on $\mathbb{R}^N \times \mathbb{R} \times \mathcal{U}$. The minimization over $z$ occurs over a compact interval because the optimal $z$ is bounded by the minimum and maximum possible portfolio losses over the compact set $W$. By Berge's Maximum Theorem, the marginal function $\Phi_\tau(w, \theta) = \min_z F(w, z, \theta)$ is continuous on $W \times \mathcal{U}$. For Item 4, for fixed $\theta$, $\Phi_\tau(\cdot, \theta)$ is the partial minimization over $z$ of the jointly convex function $(w, z) \mapsto F(w, z, \theta)$, which preserves convexity in $w$.
 \end{proof}
 
 \begin{theorem}[Existence of optimal robust allocation]
-Under the assumptions of Proposition 1, the robust objective function:
-\begin{equation}
-    G(w) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta)
-\end{equation}
-is continuous and convex on $W$. Furthermore, the supremum is attained for every $w \in W$, and the continuous-state robust portfolio optimization problem admits an optimal solution $w^* \in W$.
+Under the assumptions of Proposition 1, the robust objective function $G(w) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta)$ is continuous and convex on $W$. Furthermore, the supremum is attained for every $w \in W$, and the continuous-state robust portfolio optimization problem admits an optimal solution $w^* \in W$.
 \end{theorem}
 
 \begin{proof}
 Because $\mathcal{U}$ is compact and $\Phi_\tau(w, \cdot)$ is continuous on $\mathcal{U}$ for every $w \in W$, the Extreme Value Theorem guarantees that the supremum is achieved at some $\theta^*(w) \in \mathcal{U}$, so $G(w) = \max_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta)$. As the pointwise maximum of a family of convex functions $\{w \mapsto \Phi_\tau(w, \theta)\}_{\theta \in \mathcal{U}}$, $G(w)$ is convex on $W$. Joint continuity of $\Phi_\tau(w, \theta)$ on compact $W \times \mathcal{U}$ implies by Berge's Maximum Theorem that $G(w)$ is continuous on $W$. Finally, minimizing the continuous function $G(w)$ over the non-empty compact set $W$ guarantees the existence of an optimal solution $w^* \in W$ by the Weierstrass Theorem.
 \end{proof}
 
-\section{The adaptive exchange algorithm}
+\section{The adaptive semi-infinite exchange algorithm}
 Direct discretization of the continuous state space $\mathcal{U}$ over a fine Cartesian grid $\widehat{\mathcal{U}} = \{\theta_1, \dots, \theta_K\}$ yields a large-scale linear program with $K \times T$ auxiliary variables and constraints. For realistic rolling backtests requiring hundreds of sequential optimizations, dense grid solvers suffer from excessive memory footprints and slow convergence. We design an adaptive exchange algorithm that iteratively generates only the binding stress states.
 
-\subsection{The finite master linear program}
+\subsection{Master problem and separation oracle}
 At iteration $k \ge 1$, the master problem optimizes portfolio weights $w$ and the robust risk level $\eta$ subject to a finite active subset of market states $\mathcal{U}_k = \{\theta^{(1)}, \dots, \theta^{(m_k)}\} \subset \mathcal{U}$. For each active state $\theta^{(j)} \in \mathcal{U}_k$, we introduce a state-specific VaR variable $z_{\theta^{(j)}} \in \mathbb{R}$ and scenario excess loss variables $u_{t, \theta^{(j)}} \ge 0$. The master problem is the following finite Linear Program (LP):
 \begin{align}
     \text{LB}_k = \min_{w, \eta, \{z_\theta\}, \{u_{t,\theta}\}} \quad & \eta \\
@@ -251,14 +231,9 @@ At iteration $k \ge 1$, the master problem optimizes portfolio weights $w$ and t
 \end{align}
 Solving the master LP yields a candidate allocation $w_k$ and a lower bound $\text{LB}_k$ on the true optimal value $v^*$, because $\mathcal{U}_k \subset \mathcal{U}$ represents a relaxed constraint set.
 
-\subsection{The continuous separation oracle}
-Given the candidate allocation $w_k$, the separation oracle searches the continuous state space $\mathcal{U}$ to identify the most severe market condition that maximizes conditional CVaR:
-\begin{equation}
-    \theta^* = \arg\max_{\theta \in \mathcal{U}} \Phi_\tau(w_k, \theta)
-\end{equation}
-and records the corresponding upper bound $\text{UB}_k = \Phi_\tau(w_k, \theta^*)$.
+Given the candidate allocation $w_k$, the separation oracle searches the continuous state space $\mathcal{U}$ to identify the most severe market condition that maximizes conditional CVaR: $\theta^* = \arg\max_{\theta \in \mathcal{U}} \Phi_\tau(w_k, \theta)$, recording upper bound $\text{UB}_k = \Phi_\tau(w_k, \theta^*)$.
 
-The conditional CVaR evaluation $\Phi_\tau(w_k, \theta)$ requires solving a one-dimensional convex optimization problem over $z \in \mathbb{R}$. For a fixed state $\theta$, the objective $z \mapsto z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w_k - z]_+$ is piecewise linear and convex. Its global minimum is attained at the weighted empirical quantile $z^*(\theta) = \text{VaR}_\tau(w_k, \theta)$, which can be computed in $O(T \log T)$ time by sorting the portfolio losses $l_t = -x_t^\top w_k$ and finding the smallest loss whose cumulative kernel weight reaches $\tau$.
+The conditional CVaR evaluation $\Phi_\tau(w_k, \theta)$ requires solving a one-dimensional convex optimization problem over $z \in \mathbb{R}$. For a fixed state $\theta$, the objective $z \mapsto z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w_k - z]_+$ is piecewise linear and convex. Its global minimum is attained at the weighted empirical quantile $z^*(\theta) = \text{VaR}_\tau(w_k, \theta)$, which is computed in $O(T \log T)$ time by sorting portfolio losses $l_t = -x_t^\top w_k$ and identifying the index whose cumulative kernel weight reaches $\tau$.
 
 \begin{figure}[htbp]
 \centering
@@ -317,10 +292,10 @@ Consequently, $\widehat{\text{UB}}_k = \widehat{G}(w_k)$ represents an empirical
 Thus, the empirical gap $\widehat{\text{UB}}_k - \text{LB}_k \le \epsilon$ guarantees true robust feasibility within tolerance $\epsilon + L_\Phi \rho$.
 \end{remark}
 
-\section{Experimental design and institutional backtesting protocol}
-To evaluate the out-of-sample performance, turnover efficiency, and downside protection of the continuous-state robust framework, we design a multi-decade institutional backtest.
+\section{Empirical framework and multi-decade results}
+We evaluate the out-of-sample performance, turnover efficiency, downside capital preservation, and computational scalability of the continuous-state robust portfolio framework.
 
-\subsection{Asset universe and macroeconomic data}
+\subsection{Data and institutional backtesting protocol}
 The empirical universe comprises the Kenneth French 30 Industry Portfolios (value-weighted daily returns), representing the complete cross-section of US public equities. Daily asset returns are obtained alongside:
 \begin{itemize}
     \item \textbf{CBOE VIX}: Daily closing prices of the CBOE Volatility Index, spliced with historical VXO data prior to 2003 following CBOE methodology standards.
@@ -358,50 +333,20 @@ The aligned daily dataset spans from July 1990 to May 2026, comprising 35.8 year
 \label{fig:schema3}
 \end{figure}
 
-\subsection{Rolling-window backtest protocol}
 The backtest uses a rolling estimation window of $T_{\text{train}} = 1260$ trading days (approximately 5 years). At the end of each month, the optimization models are estimated using only data available up to that rebalancing date. The resulting allocations are held constant over the subsequent out-of-sample holding period of $T_{\text{hold}} = 21$ trading days. The backtest generates 372 consecutive monthly out-of-sample evaluation periods spanning from July 1995 through May 2026.
 
-To maintain strict benchmark fairness across all optimized models:
-\begin{enumerate}
-    \item The target expected return $\mu_{\text{target}}$ is dynamically set at each rebalancing date to the cross-sectional median of historical asset means: $\mu_{\text{target}} = \text{median}(\hat{\mu})$. This guarantees that $\mu_{\text{target}}$ is feasible in every window while avoiding unrealistically aggressive return hurdles.
-    \item The identical target return constraint $\hat{\mu}^\top w \ge \mu_{\text{target}}$ is enforced on the Robust SIP model, the Nominal CVaR model, and the Finite-Regime CVaR model.
-\end{enumerate}
+To maintain strict benchmark fairness across all optimized models, the target expected return $\mu_{\text{target}}$ is dynamically set at each rebalancing date to the cross-sectional median of historical asset means: $\mu_{\text{target}} = \text{median}(\hat{\mu})$. The identical target return constraint $\hat{\mu}^\top w \ge \mu_{\text{target}}$ is enforced on the Robust SIP model, the Nominal CVaR model, and the Finite-Regime CVaR model.
 
-\subsection{Benchmark strategies}
-We compare the continuous-state Robust SIP against four established benchmark strategies:
-\begin{enumerate}
-    \item \textbf{Equal Weight (1/N)}: Assigns equal weight $w_i = 1/N$ to all 30 industry portfolios. This benchmark is free of parameter estimation error \citep{demiguel2009optimal}.
-    \item \textbf{Global Minimum Variance (MinVar)}: Solves $\min_{w \in W_0} w^\top \hat{\Sigma} w$, where $\hat{\Sigma}$ is the sample covariance matrix and $w \in W_0 = \{w \ge 0, \sum w_i = 1\}$. It ignores expected returns to minimize variance.
-    \item \textbf{Nominal CVaR}: Minimizes standard unconditional CVaR at $\tau = 0.05$ over the full training sample subject to $\hat{\mu}^\top w \ge \mu_{\text{target}}$, ignoring market states.
-    \item \textbf{Finite-Regime CVaR}: Partitions the state space into 4 discrete regimes based on median sample splits of VIX and drawdown (low VIX/low DD, high VIX/low DD, low VIX/high DD, high VIX/high DD). It optimizes portfolio weights against the worst-case regime CVaR among the 4 discrete regimes.
-\end{enumerate}
+We compare the continuous-state Robust SIP against four established benchmark strategies: Naive 1/N \citep{demiguel2009optimal}, Global Minimum Variance (MinVar), Nominal CVaR, and Finite-Regime CVaR (which partitions the state space into 4 discrete regimes based on median sample splits of VIX and drawdown).
 
-\subsection{Turnover and transaction cost modeling}
-To incorporate realistic market frictions, we compute monthly portfolio turnover taking into account asset price drift over the holding period. Let $w_{i, t-1}$ denote the target weight chosen at the previous rebalancing date, and let $R_{i, t}$ denote the gross cumulative return of asset $i$ over the 21-day holding period. The pre-trade weight immediately before rebalancing at time $t$ is:
+To incorporate realistic market frictions, we compute monthly portfolio turnover taking into account asset price drift over the holding period:
 \begin{equation}
     w_{i, t}^{\text{pretrade}} = \frac{w_{i, t-1}(1 + R_{i, t})}{\sum_{j=1}^N w_{j, t-1}(1 + R_{j, t})}
 \end{equation}
-Monthly turnover is defined as the half-sum of absolute weight adjustments:
-\begin{equation}
-    \text{TO}_t = \frac{1}{2} \sum_{i=1}^N \left| w_{i, t} - w_{i, t}^{\text{pretrade}} \right|
-\end{equation}
-A proportional transaction cost penalty $c = 10$ basis points (0.10\%) is deducted from gross returns at each rebalancing date:
-\begin{equation}
-    r_{t}^{\text{net}} = r_{t}^{\text{gross}} - c \cdot \text{TO}_t
-\end{equation}
-We also evaluate sensitivity to alternative transaction cost levels $c \in \{0, 10, 25, 50\}$ bps.
+where $R_{i, t}$ is the gross cumulative return of asset $i$ over the 21-day holding period. Monthly turnover is defined as $\text{TO}_t = \frac{1}{2} \sum_{i=1}^N | w_{i, t} - w_{i, t}^{\text{pretrade}} |$. A proportional transaction cost penalty $c = 10$ basis points (0.10\%) is deducted from gross returns at each rebalancing date: $r_{t}^{\text{net}} = r_{t}^{\text{gross}} - c \cdot \text{TO}_t$.
 
-\subsection{Historical crisis periods}
-To evaluate downside risk immunization during systemic shocks, we define four historical crisis windows ex ante:
-\begin{itemize}
-    \item \textbf{Dot-Com Crash}: March 2000 to October 2002 (technology bubble collapse).
-    \item \textbf{Global Financial Crisis (GFC)}: October 2007 to March 2009 (subprime mortgage crisis).
-    \item \textbf{COVID-19 Shock}: February 2020 to April 2020 (global pandemic market crash).
-    \item \textbf{Inflation and Rate Shock}: January 2022 to December 2022 (rapid monetary tightening).
-\end{itemize}
-
-\section{Empirical results and financial analysis}
-We present the out-of-sample financial performance, risk characteristics, turnover dynamics, and computational validation of the continuous-state robust portfolio.
+\subsection{Long-term cumulative wealth and risk-adjusted performance}
+Figure \ref{fig:wealth} displays the cumulative wealth trajectories of all five investment strategies net of 10 bps transaction costs on an initial 1 dollar investment. The continuous Robust SIP strategy delivers a final cumulative wealth of 35.91 dollars, outperforming the naive 1/N portfolio (30.20 dollars), the Nominal CVaR portfolio (24.50 dollars), the Finite-Regime CVaR portfolio (23.86 dollars), and the Minimum Variance portfolio (21.86 dollars).
 
 \begin{figure}[H]
     \centering
@@ -409,9 +354,6 @@ We present the out-of-sample financial performance, risk characteristics, turnov
     \caption{Out-of-sample cumulative net wealth trajectory across investment strategies from 1995 to 2026, accounting for 10 bps transaction costs.}
     \label{fig:wealth}
 \end{figure}
-
-\subsection{Long-term cumulative wealth and risk-adjusted returns}
-Figure \ref{fig:wealth} displays the cumulative wealth trajectories of all five investment strategies net of 10 bps transaction costs on an initial 1 dollar investment. The continuous Robust SIP strategy delivers a final cumulative wealth of 35.91 dollars, outperforming the naive 1/N portfolio (30.20 dollars), the Nominal CVaR portfolio (24.50 dollars), the Finite-Regime CVaR portfolio (23.86 dollars), and the Minimum Variance portfolio (21.86 dollars).
 
 \begin{table}[htbp]
 \centering
@@ -454,7 +396,7 @@ Table \ref{tab:performance} reports the complete 14-metric performance profile. 
     \label{fig:drawdown}
 \end{figure}
 
-\subsection{Drawdown profiles and downside protection}
+\subsection{Drawdown profiles and crisis-period performance}
 Figure \ref{fig:drawdown} plots the time series of out-of-sample drawdowns. The naive 1/N strategy experiences severe capital destruction during major market dislocations, suffering a maximum peak-to-trough drawdown of -55.40\% during the 2008 financial crisis. In comparison, all optimized models restrict maximum drawdown: Nominal CVaR achieves -37.28\%, Finite-Regime CVaR reaches -37.65\%, and Minimum Variance reaches -40.81\%. Robust SIP records a maximum drawdown of -45.49\%, maintaining substantial downside protection relative to 1/N while avoiding the structural under-allocation to growth sectors that characterizes Minimum Variance.
 
 \begin{table}[htbp]
@@ -513,7 +455,6 @@ Table \ref{tab:crisis} presents the crisis-period analysis. During the Dot-Com c
     \end{minipage}
 \end{figure}
 
-\subsection{Portfolio composition and asset concentration}
 Figures \ref{fig:weights_rob} and \ref{fig:weights_mv} compare the dynamic allocation weights of Robust SIP and Minimum Variance. Robust SIP maintains a diversified profile across 7 to 10 active industry sectors, with an average effective number of assets $N_{\text{eff}} = 7.27$. As macroeconomic conditions shift, the master problem dynamically reallocates capital between cyclical industries and defensive sectors (utilities, consumer staples, healthcare). Conversely, the Minimum Variance portfolio remains heavily concentrated in a small subset of low-beta industries regardless of the prevailing macroeconomic state, sacrificing participation in broad equity market rallies.
 
 \begin{figure}[H]
@@ -554,15 +495,15 @@ Finite-Regime & 24.47 & 23.86 & 22.98 & 21.58 \\
 
 Table \ref{tab:tc_sensitivity} examines transaction cost sensitivity across 0, 10, 25, and 50 bps. Even under an aggressive cost assumption of 50 bps per trade, Robust SIP generates a final cumulative wealth of 32.55 dollars, strictly exceeding the zero-cost wealth of Nominal CVaR (25.10 dollars) and 1/N (30.20 dollars). This confirms that the economic premium generated by continuous-state robustness comfortably absorbs realistic implementation frictions.
 
+\subsection{Computational scalability, state density, and bootstrap inference}
+Figure \ref{fig:active_states} illustrates the number of active stress states retained by the master problem across all 372 rolling backtest windows. Across the entire 30-year backtest, the algorithm consistently converges while retaining only 2 to 6 active market states out of the uncountable continuous space $\mathcal{U}$.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\textwidth]{../figures/active_states_plot.pdf}
     \caption{Number of active stress states generated by the adaptive exchange algorithm across rolling backtest windows.}
     \label{fig:active_states}
 \end{figure}
-
-\subsection{Computational efficiency and active state parsimony}
-Figure \ref{fig:active_states} illustrates the number of active stress states retained by the master problem across all 372 rolling backtest windows. Across the entire 30-year backtest, the algorithm consistently converges while retaining only 2 to 6 active market states out of the uncountable continuous space $\mathcal{U}$.
 
 \begin{figure}[H]
     \centering
@@ -623,10 +564,7 @@ Figure \ref{fig:kernel} visualizes the continuous market-state space $\mathcal{U
     \label{fig:bootstrap}
 \end{figure}
 
-\subsection{Statistical inference via studentized block-bootstrap}
-To determine whether the observed performance differences are statistically distinguishable from sample noise, we implement the studentized circular block-bootstrap test for Sharpe ratio differences following \citet{ledoit2008robust}. Because monthly financial returns exhibit temporal dependence and volatility clustering, standard i.i.d. $t$-tests produce severely understated standard errors.
-
-We resample monthly strategy return pairs using a block size of $b = 12$ months over $B = 2000$ bootstrap replications. Table \ref{tab:bootstrap} reports the point estimate, two-sided 95\% confidence interval, and empirical $p$-value for the Sharpe ratio difference $\Delta \text{SR} = \text{SR}_{\text{Robust}} - \text{SR}_{\text{Nominal}}$.
+To determine whether the observed performance differences are statistically distinguishable from sample noise, we implement the studentized circular block-bootstrap test for Sharpe ratio differences following \citet{ledoit2008robust}. Because monthly financial returns exhibit temporal dependence and volatility clustering, standard i.i.d. $t$-tests produce severely understated standard errors. We resample monthly strategy return pairs using a block size of $b = 12$ months over $B = 2000$ bootstrap replications. Table \ref{tab:bootstrap} reports the point estimate, two-sided 95\% confidence interval, and empirical $p$-value for the Sharpe ratio difference $\Delta \text{SR} = \text{SR}_{\text{Robust}} - \text{SR}_{\text{Nominal}}$.
 
 \begin{table}[htbp]
 \centering
@@ -647,24 +585,16 @@ Circular Block Length ($b$) & 12 months \\
 \end{tabular}
 \end{table}
 
-The point estimate difference in annualized Sharpe ratios between Robust SIP and Nominal CVaR is $\Delta \text{SR} = -0.0043$, with a 95\% confidence interval spanning $[-0.0450, 0.0437]$ and a $p$-value of $p = 0.822$. As shown in Figure \ref{fig:bootstrap}, the bootstrap distribution is symmetric and centered near zero, with the null hypothesis value $\Delta \text{SR} = 0$ situated well within the interior of the 95\% confidence region. 
+The point estimate difference in annualized Sharpe ratios between Robust SIP and Nominal CVaR is $\Delta \text{SR} = -0.0043$, with a 95\% confidence interval spanning $[-0.0450, 0.0437]$ and a $p$-value of $p = 0.822$. As shown in Figure \ref{fig:bootstrap}, the bootstrap distribution is symmetric and centered near zero, with the null hypothesis value $\Delta \text{SR} = 0$ situated well within the interior of the 95\% confidence region.
 
 This statistical finding provides an important insight: while Robust SIP generates substantial cumulative wealth outperformance (+46.6\% higher final net wealth than Nominal CVaR) and superior crisis-period capital preservation, its risk-adjusted Sharpe ratio is statistically comparable to Nominal CVaR over the full 30-year sample. The primary economic value of continuous-state robustness lies in avoiding severe structural drawdowns during systemic shocks, allowing capital to compound from a higher base during subsequent economic expansions.
 
-\section{Discussion, limitations, and future research}
+\section{Discussion, limitations, and concluding remarks}
 The empirical and computational findings of this study demonstrate the viability and practical utility of continuous-state robust portfolio optimization. By replacing rigid discrete regime boundaries with a continuum of kernel-weighted empirical distributions, the model achieves a nuanced representation of financial market dynamics without suffering from the curse of dimensionality.
 
-Several methodological limitations and extensions should be noted:
-\begin{enumerate}
-    \item \textbf{Curse of Dimensionality in State Variables}: While the two-dimensional state space (VIX and Drawdown) effectively captures market volatility and price distress, extending the state vector $y_t$ to include interest rate spreads, credit default spreads, and liquidity metrics would dilute kernel weights in high dimensions. Future research should explore dimension-reduction techniques, such as autoencoder latent spaces or conditional generative neural networks, to model high-dimensional state spaces.
-    \item \textbf{Oracle Solvers for High Dimensions}: In two dimensions, global grid evaluation provides an efficient separation oracle. In higher-dimensional state spaces, global branch-and-bound algorithms or exact bilinear programming reformulations could provide certified optimality bounds without heuristic approximations.
-    \item \textbf{Transaction Cost Regularization}: While monthly turnover was modest (7.03\%), integrating explicit $L_1$ turnover regularization directly into the master linear program would further suppress transaction costs in institutional settings with higher trading frictions.
-\end{enumerate}
+Several methodological considerations and future extensions warrant discussion. First, while the two-dimensional state space (VIX and Drawdown) effectively captures market volatility and price distress, extending the state vector $y_t$ to include interest rate spreads, credit default spreads, and liquidity metrics would dilute kernel weights in high dimensions. Future research should explore dimension-reduction techniques, such as autoencoder latent spaces or conditional generative neural networks, to model high-dimensional state spaces. Second, in two dimensions, global grid evaluation provides an efficient separation oracle, whereas in higher-dimensional state spaces, global branch-and-bound algorithms or exact bilinear programming reformulations could provide certified optimality bounds without heuristic approximations. Third, while monthly turnover was modest (7.03\%), integrating explicit $L_1$ turnover regularization directly into the master linear program would further suppress transaction costs in institutional settings with higher trading frictions.
 
-\section{Conclusion}
-This paper developed a data-driven continuous-state robust portfolio optimization framework based on semi-infinite programming and multivariate kernel density estimation. By optimizing allocations against the worst-case Conditional Value-at-Risk across a compact continuum of observable market states, the model provides robust downside immunization without relying on arbitrary discrete regime classifications.
-
-We designed an adaptive exchange algorithm that solves the semi-infinite program efficiently by alternating between a finite master LP and a continuous separation oracle. We established the theoretical well-posedness, continuity, convexity, and convergence properties of the model, and we characterized approximation guarantees under inexact separation. In a rigorous 30-year rolling backtest on US industry portfolios, the continuous robust strategy generated a cumulative wealth of 35.91 dollars (net of 10 bps transaction costs), outperforming 1/N (30.20 dollars), Nominal CVaR (24.50 dollars), and Finite-Regime CVaR (23.86 dollars). The adaptive exchange algorithm converged within 3 to 5 iterations while retaining fewer than 6 active stress states, achieving a $170\times$ computational speedup over dense discretization. The continuous-state robust framework represents a scalable and operationally sound methodology for institutional risk management.
+In conclusion, this paper developed a data-driven continuous-state robust portfolio optimization framework based on semi-infinite programming and multivariate kernel density estimation. By optimizing allocations against the worst-case Conditional Value-at-Risk across a compact continuum of observable market states, the model provides robust downside immunization without relying on arbitrary discrete regime classifications. We designed an adaptive exchange algorithm that solves the semi-infinite program efficiently by alternating between a finite master LP and a continuous separation oracle. We established the theoretical well-posedness, continuity, convexity, and convergence properties of the model, and we characterized approximation guarantees under inexact separation. In a rigorous 30-year rolling backtest on US industry portfolios, the continuous robust strategy generated a cumulative wealth of 35.91 dollars (net of 10 bps transaction costs), outperforming 1/N (30.20 dollars), Nominal CVaR (24.50 dollars), and Finite-Regime CVaR (23.86 dollars). The adaptive exchange algorithm converged within 3 to 5 iterations while retaining fewer than 6 active stress states, achieving a $170\times$ computational speedup over dense discretization. The continuous-state robust framework represents a scalable and operationally sound methodology for institutional risk management.
 
 \newpage
 \nocite{*}
