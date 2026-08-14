@@ -1,0 +1,27 @@
+\begin{thebibliography}{3}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Acerbi(2002)]{acerbi2002spectral}
+Carlo Acerbi.
+\newblock Spectral measures of risk: A coherent representation of subjective
+  risk aversion.
+\newblock \emph{Journal of Banking \& Finance}, 26\penalty0 (7):\penalty0
+  1505--1518, 2002.
+
+\bibitem[Goh and Sim(2010)]{goh2010distributionally}
+Joel Goh and Melvyn Sim.
+\newblock Distributionally robust optimization and its tractable
+  approximations.
+\newblock \emph{Operations research}, 58\penalty0 (4-part-1):\penalty0
+  902--917, 2010.
+
+\bibitem[Rockafellar and Uryasev(2000)]{rockafellar2000optimization}
+R~Tyrrell Rockafellar and Stanislav Uryasev.
+\newblock Optimization of conditional value-at-risk.
+\newblock \emph{Journal of risk}, 2:\penalty0 21--42, 2000.
+
+\end{thebibliography}
