@@ -1,6 +1,6 @@
 # Adaptive Exchange for Robust Multi-Objective Portfolio Selection
 
-This repository contains the complete, reproducible codebase, datasets, and generated results for the research paper: **"From Market States to Robust Portfolios: Adaptive Semi-Infinite CVaR Optimization with Real Financial Data"** by Thiziri Sifaoui and Madani Bezoui.
+This repository contains the complete, reproducible codebase, datasets, and generated results for the research paper: **"From Market States to Robust Portfolios: Adaptive Semi-Infinite CVaR Optimization with Real Financial Data"** by Madani Bezoui and Thiziri Sifaoui.
 
 ## Abstract
 Portfolio risk depends heavily on prevailing market conditions, yet robust models frequently represent those conditions through a rigid, finite set of regimes. We introduce a data-driven semi-infinite portfolio optimization model in which every point of a continuous market-state space defines a conditional empirical return distribution. Market states are described by observable macroeconomic indicators (VIX and market drawdown), and kernel weights connect each continuous state to subsequent realized returns. Portfolio risk is measured by the worst-case conditional value-at-risk (CVaR) over all empirically supported states. We solve the resulting semi-infinite program efficiently using an adaptive exchange algorithm.
@@ -27,7 +27,7 @@ julia main_exp.jl
 The script will execute the 30-year rolling backtest, solve the robust CVaR models at each step, and output the resulting PDFs directly into the `figures/` directory.
 
 ## Authors
-- Thiziri Sifaoui
 - Madani Bezoui
+- Thiziri Sifaoui
 
 *For correspondence, please refer to the contact details provided in the manuscript.*
