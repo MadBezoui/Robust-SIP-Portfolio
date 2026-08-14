@@ -1,27 +1,125 @@
-\begin{thebibliography}{3}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Acerbi(2002)]{acerbi2002spectral}
-Carlo Acerbi.
-\newblock Spectral measures of risk: A coherent representation of subjective
-  risk aversion.
-\newblock \emph{Journal of Banking \& Finance}, 26\penalty0 (7):\penalty0
-  1505--1518, 2002.
+\bibitem[Ang and Bekaert(2002)]{ang2002international}
+Andrew Ang and Geert Bekaert.
+\newblock International asset allocation with regime shifts.
+\newblock \emph{The Review of Financial Studies}, 15\penalty0 (4):\penalty0
+  1137--1187, 2002.
 
-\bibitem[Goh and Sim(2010)]{goh2010distributionally}
-Joel Goh and Melvyn Sim.
-\newblock Distributionally robust optimization and its tractable
-  approximations.
-\newblock \emph{Operations research}, 58\penalty0 (4-part-1):\penalty0
-  902--917, 2010.
+\bibitem[Bertsimas and Kallus(2020)]{bertsimas2020predictive}
+Dimitris Bertsimas and Nathan Kallus.
+\newblock Predictive prescriptions.
+\newblock \emph{Management Science}, 66\penalty0 (3):\penalty0 1465--1481,
+  2020.
+
+\bibitem[Delage and Ye(2010)]{delage2010distributionally}
+Erick Delage and Yinyu Ye.
+\newblock Distributionally robust optimization under moment uncertainty with
+  application to data-driven problems.
+\newblock \emph{Operations Research}, 58\penalty0 (3):\penalty0 595--612, 2010.
+
+\bibitem[DeMiguel et~al.(2009)DeMiguel, Garlappi, and
+  Uppal]{demiguel2009optimal}
+Victor DeMiguel, Lorenzo Garlappi, and Raman Uppal.
+\newblock Optimal versus naive diversification: How inefficient is the 1/n
+  portfolio strategy?
+\newblock \emph{The Review of Financial Studies}, 22\penalty0 (5):\penalty0
+  1915--1953, 2009.
+
+\bibitem[Esteban-P{\'e}rez and Morales(2022)]{esteban2022distributionally}
+Adri{\'a}n Esteban-P{\'e}rez and Juan~M Morales.
+\newblock Distributionally robust stochastic programs with side information
+  based on trimmings.
+\newblock \emph{Mathematical Programming}, 195\penalty0 (1):\penalty0
+  1069--1105, 2022.
+
+\bibitem[Fabozzi et~al.(2007)Fabozzi, Huang, and Zhou]{fabozzi2007robust}
+Frank~J Fabozzi, Dashan Huang, and Guofu Zhou.
+\newblock Robust portfolio optimization.
+\newblock \emph{The Journal of Portfolio Management}, 33\penalty0 (3):\penalty0
+  40--48, 2007.
+
+\bibitem[Goldfarb and Iyengar(2003)]{goldfarb2003robust}
+Donald Goldfarb and Garud Iyengar.
+\newblock Robust portfolio selection problems.
+\newblock \emph{Mathematics of Operations Research}, 28\penalty0 (1):\penalty0
+  1--38, 2003.
+
+\bibitem[Hettich and Kortanek(1993)]{hettich1993semi}
+Rainer Hettich and Kenneth~O Kortanek.
+\newblock Semi-infinite programming: theory, methods, and applications.
+\newblock \emph{SIAM Review}, 35\penalty0 (3):\penalty0 380--429, 1993.
+
+\bibitem[Ledoit and Wolf(2008)]{ledoit2008robust}
+Olivier Ledoit and Michael Wolf.
+\newblock Robust performance hypothesis testing with the sharpe ratio.
+\newblock \emph{Journal of Empirical Finance}, 15\penalty0 (5):\penalty0
+  850--859, 2008.
+
+\bibitem[L{\'o}pez and Still(2007)]{lopez2007semi}
+Marco~A L{\'o}pez and Georg Still.
+\newblock Semi-infinite programming.
+\newblock \emph{European Journal of Operational Research}, 180\penalty0
+  (2):\penalty0 491--518, 2007.
+
+\bibitem[Markowitz(1952)]{markowitz1952portfolio}
+Harry Markowitz.
+\newblock Portfolio selection.
+\newblock \emph{The Journal of Finance}, 7\penalty0 (1):\penalty0 77--91, 1952.
+
+\bibitem[Mohajerin~Esfahani and Kuhn(2018)]{esfahani2018data}
+Peyman Mohajerin~Esfahani and Daniel Kuhn.
+\newblock Data-driven distributionally robust optimization using the
+  wasserstein metric: Performance guarantees and tractable reformulations.
+\newblock \emph{Mathematical Programming}, 171\penalty0 (1):\penalty0 115--166,
+  2018.
+
+\bibitem[Nguyen et~al.(2021)Nguyen, Shafieezadeh-Abadeh, Kuhn, and
+  Mohajerin~Esfahani]{nguyen2021robustifying}
+Viet~Anh Nguyen, Soroosh Shafieezadeh-Abadeh, Daniel Kuhn, and Peyman
+  Mohajerin~Esfahani.
+\newblock Robustifying conditional portfolio decisions via optimal transport.
+\newblock \emph{Operations Research}, 69\penalty0 (1):\penalty0 1--22, 2021.
+
+\bibitem[Oustry and Cerulli(2025)]{oustry2025convex}
+Antoine Oustry and Martina Cerulli.
+\newblock Convex semi-infinite programming algorithms with inexact separation
+  oracles.
+\newblock \emph{Optimization Letters}, 19:\penalty0 1--24, 2025.
+
+\bibitem[Politis and Romano(1994)]{politis1994stationary}
+Dimitris~N Politis and Joseph~P Romano.
+\newblock The stationary bootstrap.
+\newblock \emph{Journal of the American Statistical Association}, 89\penalty0
+  (428):\penalty0 1303--1313, 1994.
 
 \bibitem[Rockafellar and Uryasev(2000)]{rockafellar2000optimization}
 R~Tyrrell Rockafellar and Stanislav Uryasev.
 \newblock Optimization of conditional value-at-risk.
-\newblock \emph{Journal of risk}, 2:\penalty0 21--42, 2000.
+\newblock \emph{Journal of Risk}, 2:\penalty0 21--42, 2000.
+
+\bibitem[Rockafellar and Uryasev(2002)]{rockafellar2002conditional}
+R~Tyrrell Rockafellar and Stanislav Uryasev.
+\newblock Conditional value-at-risk for general loss distributions.
+\newblock \emph{Journal of Banking \& Finance}, 26\penalty0 (7):\penalty0
+  1443--1471, 2002.
+
+\bibitem[Scaillet(2004)]{scaillet2004nonparametric}
+Olivier Scaillet.
+\newblock Nonparametric estimation and sensitivity analysis of expected
+  shortfall.
+\newblock \emph{Mathematical Finance}, 14\penalty0 (1):\penalty0 115--129,
+  2004.
+
+\bibitem[Silverman(1986)]{silverman1986density}
+Bernard~W Silverman.
+\newblock \emph{Density estimation for statistics and data analysis},
+  volume~26.
+\newblock CRC press, 1986.
 
 \end{thebibliography}

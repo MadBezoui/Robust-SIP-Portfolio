@@ -1,0 +1,3 @@
+Average L1 distance between Adaptive SIP and Dense Grid: 1.4661630747318612
+Max L1 distance: 1.5333333333333337
+Average ESS of active states: 18.544411202398017

@@ -6,7 +6,7 @@ using LinearAlgebra
 using Statistics
 using Distributions
 
-export get_kernel_weights, empirical_cvar, solve_master_cvar, solve_oracle, solve_robust_sip, solve_nominal_cvar, solve_min_variance
+export get_kernel_weights, effective_sample_size, empirical_cvar, solve_master_cvar, solve_oracle, solve_robust_sip, solve_nominal_cvar, solve_min_variance, solve_finite_regime_cvar
 
 """
 Gaussian Kernel Weight
@@ -26,6 +26,13 @@ function get_kernel_weights(Y::Matrix{Float64}, theta::Vector{Float64}, H::Matri
         weights .= 1.0 / T
     end
     return weights
+end
+
+"""
+Effective Sample Size
+"""
+function effective_sample_size(weights::Vector{Float64})
+    return 1.0 / sum(weights.^2)
 end
 
 """
@@ -80,6 +87,42 @@ function solve_nominal_cvar(X::Matrix{Float64}, mu::Vector{Float64}, tau::Float6
     optimize!(model)
     if termination_status(model) == MOI.OPTIMAL
         return value.(w), objective_value(model)
+    else
+        return fill(1.0/N, N), Inf
+    end
+end
+
+"""
+Solve Finite Regime CVaR (Benchmark)
+"""
+function solve_finite_regime_cvar(X::Matrix{Float64}, P_matrix::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64=1.0)
+    T, N = size(X)
+    K = size(P_matrix, 1) # K regimes
+    
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    set_attribute(model, "time_limit", 5.0)
+    
+    @variable(model, t_var)
+    @variable(model, 0 <= w[1:N] <= max_weight)
+    @variable(model, z[1:K])
+    @variable(model, u[1:K, 1:T] >= 0)
+    
+    @constraint(model, sum(w) == 1.0)
+    @constraint(model, dot(mu, w) >= target_return)
+    
+    for k in 1:K
+        @constraint(model, z[k] + (1.0/tau) * sum(P_matrix[k, i] * u[k, i] for i in 1:T) <= t_var)
+        for i in 1:T
+            @constraint(model, u[k, i] >= -dot(X[i, :], w) - z[k])
+        end
+    end
+    
+    @objective(model, Min, t_var)
+    
+    optimize!(model)
+    if termination_status(model) == MOI.OPTIMAL
+        return value.(w), value(t_var)
     else
         return fill(1.0/N, N), Inf
     end
