@@ -98,7 +98,7 @@ end
 
 function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.05, E_min::Float64=0.0)
     data_path = "../data/aligned_market_data.csv"
-    output_dir = "../figures"
+    output_dir = "../results"
     mkpath(output_dir)
 
     df = CSV.read(data_path, DataFrame)

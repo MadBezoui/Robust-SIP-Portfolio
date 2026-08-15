@@ -24,7 +24,7 @@ plt.rcParams.update({
 })
 
 data_path = "../data/aligned_market_data.csv"
-output_dir = "../figures"
+output_dir = "../results"
 os.makedirs(output_dir, exist_ok=True)
 
 # Color palette

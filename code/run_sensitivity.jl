@@ -7,7 +7,7 @@ include("main_exp.jl")
 function run_all_sensitivities()
     println("Starting Sensitivity Analyses...")
     data_path = "../data/aligned_market_data.csv"
-    output_dir = "../figures"
+    output_dir = "../results"
     mkpath(output_dir)
 
     df = CSV.read(data_path, DataFrame)

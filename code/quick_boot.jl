@@ -1,6 +1,6 @@
 using CSV, DataFrames, Statistics, Random
 
-output_dir = "../figures"
+output_dir = "../results"
 ts_df = CSV.read(joinpath(output_dir, "strategy_monthly_returns.csv"), DataFrame)
 rets_rob = ts_df.RobustSIP_Ret
 
