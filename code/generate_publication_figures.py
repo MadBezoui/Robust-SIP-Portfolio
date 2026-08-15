@@ -171,7 +171,7 @@ def plot_frontier():
     
     # MinVar minimum point
     min_idx = df_front['MV_CVaR'].idxmin()
-    ax.scatter(df_front.loc[min_idx, 'MV_CVaR'], df_front.loc[min_idx, 'MV_Return'] * 100.0, color='#0984e3', s=110, marker='D', edgecolors='black', linewidth=0.8, zorder=6, label='Global Minimum Variance')
+    ax.scatter(df_front.loc[min_idx, 'MV_CVaR'], df_front.loc[min_idx, 'MV_Return'] * 100.0, color='#0984e3', s=110, marker='D', edgecolors='black', linewidth=0.8, zorder=6, label='Target-Constrained Minimum Variance')
     
     ax.set_xlabel(r'Conditional Value-at-Risk (Daily $\mathrm{CVaR}_{0.95}$, %)', fontsize=11)
     ax.set_ylabel('Expected Return (Annualized %)', fontsize=11)
