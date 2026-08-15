@@ -23,6 +23,7 @@
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction and motivation}{3}{section.1}\protected@file@percent }
 \citation{oustry2025convex}
 \citation{demiguel2009optimal}
+\citation{politis1992circular}
 \citation{ledoit2008robust}
 \citation{goldfarb2003robust,fabozzi2007robust}
 \citation{rockafellar2000optimization,rockafellar2002conditional}
@@ -78,8 +79,8 @@
 \newlabel{tab:crisis}{{2}{17}{Realized out-of-sample returns and maximum drawdowns across historical crisis periods\relax }{table.caption.7}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Robust SIP asset allocations over time across the 30 industry portfolios (max 15\% cap).\relax }}{17}{figure.caption.8}\protected@file@percent }
 \newlabel{fig:weights_rob}{{6}{17}{Robust SIP asset allocations over time across the 30 industry portfolios (max 15\% cap).\relax }{figure.caption.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Minimum Variance asset allocations over time across the 30 industry portfolios (max 15\% cap).\relax }}{17}{figure.caption.8}\protected@file@percent }
-\newlabel{fig:weights_mv}{{7}{17}{Minimum Variance asset allocations over time across the 30 industry portfolios (max 15\% cap).\relax }{figure.caption.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces TC-MinVar asset allocations over time across the 30 industry portfolios (max 15\% cap).\relax }}{17}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:weights_mv}{{7}{17}{TC-MinVar asset allocations over time across the 30 industry portfolios (max 15\% cap).\relax }{figure.caption.8}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Distribution of monthly portfolio turnover for all dynamic investment strategies.\relax }}{18}{figure.caption.9}\protected@file@percent }
 \newlabel{fig:turnover}{{8}{18}{Distribution of monthly portfolio turnover for all dynamic investment strategies.\relax }{figure.caption.9}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Transaction cost sensitivity: out-of-sample performance under alternative cost levels\relax }}{18}{table.caption.10}\protected@file@percent }
@@ -91,18 +92,30 @@
 \newlabel{fig:bounds}{{10}{20}{Convergence of the Master LP Lower Bound ($\text {LB}_k$, royal blue line) and the Grid Separation Worst-Case Value ($\widehat {G}_k$, crimson red line) across adaptive exchange iterations.\relax }{figure.caption.12}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Computational benchmark: adaptive exchange algorithm vs. dense grid approximation\relax }}{20}{table.caption.13}\protected@file@percent }
 \newlabel{tab:computational}{{4}{20}{Computational benchmark: adaptive exchange algorithm vs. dense grid approximation\relax }{table.caption.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces In-sample risk-return efficient frontiers (15\% weight cap).\relax }}{21}{figure.caption.14}\protected@file@percent }
-\newlabel{fig:frontier}{{11}{21}{In-sample risk-return efficient frontiers (15\% weight cap).\relax }{figure.caption.14}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces State density and active stress states.\relax }}{21}{figure.caption.14}\protected@file@percent }
-\newlabel{fig:kernel}{{12}{21}{State density and active stress states.\relax }{figure.caption.14}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Effective Sample Size (ESS) distribution across active stress states\relax }}{21}{table.caption.14}\protected@file@percent }
+\newlabel{tab:ess_diagnostics}{{5}{21}{Effective Sample Size (ESS) distribution across active stress states\relax }{table.caption.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces In-sample risk-return efficient frontiers (15\% weight cap).\relax }}{21}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:frontier}{{11}{21}{In-sample risk-return efficient frontiers (15\% weight cap).\relax }{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces State density and active stress states. The grid nodes are generated in log-VIX coordinates, and the displayed density includes the Jacobian of the exponential transformation.\relax }}{21}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:kernel}{{12}{21}{State density and active stress states. The grid nodes are generated in log-VIX coordinates, and the displayed density includes the Jacobian of the exponential transformation.\relax }{figure.caption.15}{}}
 \citation{ledoit2008robust}
-\citation{politis1994stationary}
-\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Paired circular moving-block bootstrap distribution ($B = 5{,}000$ replications, block length $b = 12$ months) for the out-of-sample Sharpe ratio difference between Robust SIP and Nominal CVaR.\relax }}{22}{figure.caption.15}\protected@file@percent }
-\newlabel{fig:bootstrap}{{13}{22}{Paired circular moving-block bootstrap distribution ($B = 5{,}000$ replications, block length $b = 12$ months) for the out-of-sample Sharpe ratio difference between Robust SIP and Nominal CVaR.\relax }{figure.caption.15}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Paired circular moving-block bootstrap inference for out-of-sample Sharpe ratio differences\relax }}{23}{table.caption.16}\protected@file@percent }
-\newlabel{tab:bootstrap}{{5}{23}{Paired circular moving-block bootstrap inference for out-of-sample Sharpe ratio differences\relax }{table.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Paired circular moving-block bootstrap distribution ($B = 5{,}000$ replications, block length $b = 12$ months) for the Sharpe ratio difference between Robust SIP and Nominal CVaR.\relax }}{22}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:bootstrap}{{13}{22}{Paired circular moving-block bootstrap distribution ($B = 5{,}000$ replications, block length $b = 12$ months) for the Sharpe ratio difference between Robust SIP and Nominal CVaR.\relax }{figure.caption.16}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Paired circular moving-block bootstrap inference for out-of-sample Sharpe ratio differences\relax }}{23}{table.caption.17}\protected@file@percent }
+\newlabel{tab:bootstrap}{{6}{23}{Paired circular moving-block bootstrap inference for out-of-sample Sharpe ratio differences\relax }{table.caption.17}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Reproducibility, open science, and codebase}{23}{subsection.5.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion, limitations, and concluding remarks}{23}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Model-specification sensitivity}{24}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Grid resolution and bandwidth sensitivity}{24}{subsection.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Grid size sensitivity: impact on solve time, active states, and objective\relax }}{24}{table.caption.18}\protected@file@percent }
+\newlabel{tab:sens_grid}{{7}{24}{Grid size sensitivity: impact on solve time, active states, and objective\relax }{table.caption.18}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Bandwidth scalar sensitivity: impact on active states and objective\relax }}{24}{table.caption.19}\protected@file@percent }
+\newlabel{tab:sens_bw}{{8}{24}{Bandwidth scalar sensitivity: impact on active states and objective\relax }{table.caption.19}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}ESS regularization and bootstrap block length}{24}{subsection.6.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Effective Sample Size (ESS) regularizer sensitivity\relax }}{25}{table.caption.20}\protected@file@percent }
+\newlabel{tab:sens_ess}{{9}{25}{Effective Sample Size (ESS) regularizer sensitivity\relax }{table.caption.20}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Bootstrap block length sensitivity on inference\relax }}{25}{table.caption.21}\protected@file@percent }
+\newlabel{tab:sens_block}{{10}{25}{Bootstrap block length sensitivity on inference\relax }{table.caption.21}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion, limitations, and concluding remarks}{25}{section.7}\protected@file@percent }
 \bibstyle{plainnat}
 \bibdata{references}
 \bibcite{agra2025two}{{1}{2025}{{Agra}}{{}}}
@@ -122,7 +135,7 @@
 \bibcite{esfahani2018data}{{15}{2018}{{Mohajerin~Esfahani and Kuhn}}{{}}}
 \bibcite{nguyen2021robustifying}{{16}{2025}{{Nguyen et~al.}}{{Nguyen, Zhang, Wang, Blanchet, Delage, and Ye}}}
 \bibcite{oustry2025convex}{{17}{2025}{{Oustry and Cerulli}}{{}}}
-\bibcite{politis1994stationary}{{18}{1994}{{Politis and Romano}}{{}}}
+\bibcite{politis1992circular}{{18}{1992}{{Politis and Romano}}{{}}}
 \bibcite{qi2025integrated}{{19}{2026}{{Qi et~al.}}{{Qi, Grigas, and Shen}}}
 \bibcite{rockafellar2000optimization}{{20}{2000}{{Rockafellar and Uryasev}}{{}}}
 \bibcite{rockafellar2002conditional}{{21}{2002}{{Rockafellar and Uryasev}}{{}}}
@@ -131,4 +144,4 @@
 \bibcite{silverman1986density}{{24}{1986}{{Silverman}}{{}}}
 \bibcite{thoma2026piecewise}{{25}{2026}{{Thom{\"a} et~al.}}{{Thom{\"a}, Schiffer, and Wiesemann}}}
 \bibcite{yue2026geometric}{{26}{2026}{{Yue et~al.}}{{Yue, Rychener, Kuhn, and Nguyen}}}
-\gdef \@abspage@last{26}
+\gdef \@abspage@last{28}

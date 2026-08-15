@@ -84,7 +84,7 @@ function calculate_metrics(returns::Vector{Float64}, weights_matrix::AbstractMat
     return (ann_mean, ann_vol, sharpe, sortino, cvar_95_monthly, cvar_99_monthly, max_dd, cagr, calmar, avg_turnover, tc_drag, eff_n, worst_month, wealth[end])
 end
 
-function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.05)
+function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.05, E_min::Float64=0.0)
     data_path = "../data/aligned_market_data.csv"
     output_dir = "../figures"
     mkpath(output_dir)
@@ -125,6 +125,8 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     
     active_states_history = Int[]
     ess_history = Float64[]
+    min_ess_history = Float64[]
+    retained_frac_history = Float64[]
     active_states_sample = Vector{Vector{Float64}}()
     sample_convergence_history = []
 
@@ -215,8 +217,25 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         end
         w_fin, _ = solve_finite_regime_cvar(X_train, P_matrix, mu_train ./ 252.0, tau, target_return / 252.0, max_weight)
         
+        # Filter grid_thetas based on ESS if E_min > 0
+        valid_thetas = Vector{Vector{Float64}}()
+        if E_min > 0.0
+            for th in grid_thetas
+                w_th = get_kernel_weights(Y_train, th, H)
+                ess = 1.0 / sum(w_th.^2)
+                if ess >= E_min
+                    push!(valid_thetas, th)
+                end
+            end
+            if isempty(valid_thetas)
+                push!(valid_thetas, [mean(Y_train[:,1]), mean(Y_train[:,2])])
+            end
+        else
+            valid_thetas = grid_thetas
+        end
+        
         # 5. Proposed Continuous-State Robust SIP
-        w_rob, lb, ub, active_thetas, hist = solve_robust_sip(X_train, Y_train, grid_thetas, H, mu_train ./ 252.0, tau, target_return / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
+        w_rob, lb, ub, active_thetas, hist = solve_robust_sip(X_train, Y_train, valid_thetas, H, mu_train ./ 252.0, tau, target_return / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
         
         if step_count == 100 # Representative convergence trace
             sample_convergence_history = hist
@@ -225,9 +244,15 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
 
         push!(active_states_history, length(active_thetas))
         
-        # Average ESS of active states
-        avg_ess = mean([effective_sample_size(get_kernel_weights(Y_train, th, H)) for th in active_thetas])
+        # Average and Min ESS of active states
+        active_ess_vals = [effective_sample_size(get_kernel_weights(Y_train, th, H)) for th in active_thetas]
+        avg_ess = mean(active_ess_vals)
+        min_ess = minimum(active_ess_vals)
         push!(ess_history, avg_ess)
+        push!(min_ess_history, min_ess)
+        
+        retained_frac = length(valid_thetas) / length(grid_thetas)
+        push!(retained_frac_history, retained_frac)
         
         w_curr = Dict("1/N" => w_eq, "MinVar" => w_mv, "NominalCVaR" => w_nom, "FiniteRegime" => w_fin, "RobustSIP" => w_rob)
         
@@ -268,8 +293,24 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         prev_asset_growth = copy(curr_asset_growth)
     end
     
-    println("Backtest completed across $(step_count) rolling windows.")
+    println("\nBacktest Complete.")
+    println("Active States Stats (over $(step_count) windows):")
+    println("  Min:    ", minimum(active_states_history))
+    println("  Median: ", median(active_states_history))
+    println("  Mean:   ", round(mean(active_states_history), digits=2))
+    println("  Max:    ", maximum(active_states_history))
     
+    # Calculate final metrics for returning
+    r_rob = rets_gross_dict["RobustSIP"] .- turnover_dict["RobustSIP"] .* trans_cost
+    mat_w_rob = reduce(hcat, weights_dict["RobustSIP"])'
+    m_rob = calculate_metrics(r_rob, mat_w_rob, turnover_dict["RobustSIP"], trans_cost)
+    
+    # If running as sensitivity loop, return metrics early to avoid overwriting standard outputs
+    if E_min > 0.0
+        return (Ann_Ret=m_rob[1], Volatility=m_rob[2], Sharpe=m_rob[3], Max_DD=m_rob[7]*100, Wealth=m_rob[14], Turnover=m_rob[10]*100,
+                Avg_ESS=mean(ess_history), Min_ESS=mean(min_ess_history), Retained_Frac=mean(retained_frac_history)*100.0)
+    end
+
     # -------------------------------------------------------------------------
     # 0. EXPORT BACKTEST CALENDAR
     # -------------------------------------------------------------------------
@@ -542,7 +583,22 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     end
     println("Saved grid_validation.txt and grid_comparison.csv")
     println("All Julia pipeline tasks executed successfully.")
+    
+    rob_perf = results_df[results_df.Strategy .== "RobustSIP", :][1, :]
+    return (
+        Ann_Ret = rob_perf.Ann_Mean * 100.0,
+        Volatility = rob_perf.Ann_Vol * 100.0,
+        Sharpe = rob_perf.Sharpe,
+        Max_DD = rob_perf.Max_DD * 100.0,
+        Wealth = rob_perf.Final_Wealth,
+        Turnover = rob_perf.Avg_Turnover * 100.0,
+        Avg_ESS = mean(ess_history),
+        Min_ESS = minimum(ess_history),
+        Retained_Frac = mean(retained_frac_history) * 100.0
+    )
 end
 
-println("Executing comprehensive institutional pipeline...")
-run_institutional_backtest(0.0010, 0.05)
+if abspath(PROGRAM_FILE) == @__FILE__
+    println("Executing comprehensive institutional pipeline...")
+    run_institutional_backtest(0.0010, 0.05)
+end

@@ -2,8 +2,7 @@ using Pkg
 Pkg.activate(".")
 
 using CSV, DataFrames, Dates, Statistics, LinearAlgebra, StatsBase, Random, Printf
-include("RobustSIP.jl")
-using .RobustSIP
+include("main_exp.jl")
 
 function run_all_sensitivities()
     println("Starting Sensitivity Analyses...")
@@ -35,45 +34,62 @@ function run_all_sensitivities()
     end
 
     grid_sizes = [11, 21, 41, 81]
-    grid_res_df = DataFrame(Grid_Size=Int[], Avg_Runtime=Float64[], Avg_Active_States=Float64[], Avg_Worst_CVaR=Float64[])
+    grid_res_df = DataFrame(Grid_Size=Int[], Avg_Runtime=Float64[], Avg_Active_States=Float64[], Avg_Worst_CVaR=Float64[], L1_Distance=Float64[])
     
-    c_vals = [0.5, 0.75, 1.0, 1.5, 2.0]
-    bw_res_df = DataFrame(Multiplier=Float64[], Avg_Active_States=Float64[], Avg_Worst_CVaR=Float64[])
+    # Pre-allocate accumulators
+    rt_sums = Dict(g => 0.0 for g in grid_sizes)
+    act_sums = Dict(g => 0.0 for g in grid_sizes)
+    cvar_sums = Dict(g => 0.0 for g in grid_sizes)
+    l1_sums = Dict(g => 0.0 for g in grid_sizes)
     
-    for g in grid_sizes
-        rt_sum = 0.0
-        act_sum = 0.0
-        cvar_sum = 0.0
-        for t_start in subset_indices
-            t_end = t_start + window_size - 1
-            X_train = X_all[t_start:t_end, :]
-            Y_train = Y_all[t_start:t_end, :]
-            mu_train = mean(X_train, dims=1)[:] * 252.0
-            
-            sigma_vix, sigma_dd = std(Y_train[:, 1]), std(Y_train[:, 2])
-            n_train = size(Y_train, 1)
-            H = [(sigma_vix * n_train^(-1/6))^2 0.0; 0.0 (sigma_dd * n_train^(-1/6))^2]
-            
-            vix_min, vix_max = extrema(Y_train[:, 1])
-            dd_min, dd_max = extrema(Y_train[:, 2])
-            delta_v = 0.10 * (vix_max - vix_min)
-            delta_d = 0.10 * (dd_max - dd_min)
-            
+    println("Using $(length(subset_indices)) equally spaced windows for Grid/BW sensitivity: dates $(df.Date[subset_indices[1]+1]) to $(df.Date[subset_indices[end]+1])")
+    
+    for t_start in subset_indices
+        t_end = t_start + window_size - 1
+        X_train = X_all[t_start:t_end, :]
+        Y_train = Y_all[t_start:t_end, :]
+        mu_train = mean(X_train, dims=1)[:] * 252.0
+        
+        sigma_vix, sigma_dd = std(Y_train[:, 1]), std(Y_train[:, 2])
+        n_train = size(Y_train, 1)
+        H = [(sigma_vix * n_train^(-1/6))^2 0.0; 0.0 (sigma_dd * n_train^(-1/6))^2]
+        
+        vix_min, vix_max = extrema(Y_train[:, 1])
+        dd_min, dd_max = extrema(Y_train[:, 2])
+        delta_v = 0.10 * (vix_max - vix_min)
+        delta_d = 0.10 * (dd_max - dd_min)
+        
+        weights_cache = Dict{Int, Vector{Float64}}()
+        
+        for g in reverse(grid_sizes) # Do 81 first for baseline
             vix_grid = range(vix_min - delta_v, vix_max + delta_v, length=g)
             dd_grid  = range(max(0.0, dd_min - delta_d), min(1.0, dd_max + delta_d), length=g)
             grid_thetas = [[v, d] for v in vix_grid for d in dd_grid]
             
             t0 = time()
             w_rob, lb, ub, active_thetas, _ = solve_robust_sip(X_train, Y_train, grid_thetas, H, mu_train ./ 252.0, tau, median(mu_train) / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
-            rt_sum += (time() - t0)
-            act_sum += length(active_thetas)
-            cvar_sum += ub
+            rt_sums[g] += (time() - t0)
+            act_sums[g] += length(active_thetas)
+            cvar_sums[g] += ub
+            weights_cache[g] = w_rob
+            
+            if g == 81
+                l1_sums[g] += 0.0
+            else
+                l1_sums[g] += sum(abs.(w_rob - weights_cache[81]))
+            end
         end
-        n_sub = length(subset_indices)
-        push!(grid_res_df, (g, rt_sum / n_sub, act_sum / n_sub, (cvar_sum / n_sub) * 100.0))
+    end
+    
+    n_sub = length(subset_indices)
+    for g in grid_sizes
+        push!(grid_res_df, (g, rt_sums[g] / n_sub, act_sums[g] / n_sub, (cvar_sums[g] / n_sub) * 100.0, l1_sums[g] / n_sub))
         println("Finished grid size $g")
     end
     CSV.write(joinpath(output_dir, "grid_sensitivity.csv"), grid_res_df)
+    
+    c_vals = [0.5, 0.75, 1.0, 1.5, 2.0]
+    bw_res_df = DataFrame(Multiplier=Float64[], Avg_Active_States=Float64[], Avg_Worst_CVaR=Float64[])
 
     for c in c_vals
         act_sum = 0.0
@@ -117,7 +133,7 @@ function run_all_sensitivities()
         boot_res_df = DataFrame(Block_Length=Int[], P_Value=Float64[], SE=Float64[])
         
         function quick_boot(r1, r2, b_len)
-            Random.seed!(2026)
+            Random.seed!(20260814)
             T = length(r1)
             sr1 = (mean(r1) / std(r1)) * sqrt(12.0)
             sr2 = (mean(r2) / std(r2)) * sqrt(12.0)
@@ -147,55 +163,20 @@ function run_all_sensitivities()
         CSV.write(joinpath(output_dir, "block_length_sensitivity.csv"), boot_res_df)
     end
     
-    ess_thresholds = [0.0, 10.0, 20.0, 40.0, 60.0, 100.0]
-    ess_res_df = DataFrame(ESS_Min=Float64[], Avg_Retained_States=Float64[], Avg_Worst_CVaR=Float64[])
+    ess_thresholds = [0.0, 10.0, 20.0, 40.0]
+    ess_res_df = DataFrame(
+        ESS_Min=Float64[], Ann_Ret=Float64[], Volatility=Float64[], 
+        Sharpe=Float64[], Max_DD=Float64[], Wealth=Float64[], Turnover=Float64[],
+        Avg_ESS=Float64[], Min_ESS=Float64[], Retained_Frac=Float64[]
+    )
     
     for E_min in ess_thresholds
-        ret_states_sum = 0.0
-        cvar_sum = 0.0
-        for t_start in subset_indices
-            t_end = t_start + window_size - 1
-            X_train = X_all[t_start:t_end, :]
-            Y_train = Y_all[t_start:t_end, :]
-            mu_train = mean(X_train, dims=1)[:] * 252.0
-            
-            sigma_vix, sigma_dd = std(Y_train[:, 1]), std(Y_train[:, 2])
-            n_train = size(Y_train, 1)
-            H = [(sigma_vix * n_train^(-1/6))^2 0.0; 0.0 (sigma_dd * n_train^(-1/6))^2]
-            
-            vix_min, vix_max = extrema(Y_train[:, 1])
-            dd_min, dd_max = extrema(Y_train[:, 2])
-            delta_v = 0.10 * (vix_max - vix_min)
-            delta_d = 0.10 * (dd_max - dd_min)
-            
-            vix_grid = range(vix_min - delta_v, vix_max + delta_v, length=21)
-            dd_grid  = range(max(0.0, dd_min - delta_d), min(1.0, dd_max + delta_d), length=21)
-            
-            valid_thetas = Vector{Vector{Float64}}()
-            for v in vix_grid
-                for d in dd_grid
-                    th = [v, d]
-                    w = get_kernel_weights(Y_train, th, H)
-                    ess = 1.0 / sum(w.^2)
-                    if ess >= E_min
-                        push!(valid_thetas, th)
-                    end
-                end
-            end
-            
-            if isempty(valid_thetas)
-                push!(valid_thetas, [mean(Y_train[:, 1]), mean(Y_train[:, 2])])
-            end
-            
-            w_rob, lb, ub, active_thetas, _ = solve_robust_sip(X_train, Y_train, valid_thetas, H, mu_train ./ 252.0, tau, median(mu_train) / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
-            ret_states_sum += length(valid_thetas)
-            cvar_sum += ub
-        end
-        n_sub = length(subset_indices)
-        push!(ess_res_df, (E_min, ret_states_sum / n_sub, (cvar_sum / n_sub) * 100.0))
+        println("\nRunning full backtest for ESS Threshold E_min = $E_min...")
+        m = run_institutional_backtest(0.0010, 0.05, E_min)
+        push!(ess_res_df, (E_min, m.Ann_Ret, m.Volatility, m.Sharpe, m.Max_DD, m.Wealth, m.Turnover, m.Avg_ESS, m.Min_ESS, m.Retained_Frac))
         println("Finished ESS threshold $E_min")
     end
-    CSV.write(joinpath(output_dir, "ess_sensitivity.csv"), ess_res_df)
+    CSV.write(joinpath(output_dir, "ess_full_backtest.csv"), ess_res_df)
     println("All Sensitivity Analyses Completed!")
 end
 

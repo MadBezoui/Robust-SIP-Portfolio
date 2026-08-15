@@ -130,12 +130,11 @@ Antoine Oustry and Martina Cerulli.
   2025.
 \newblock \doi{10.1007/s11590-024-02148-3}.
 
-\bibitem[Politis and Romano(1994)]{politis1994stationary}
-Dimitris~N. Politis and Joseph~P. Romano.
-\newblock The stationary bootstrap.
-\newblock \emph{Journal of the American Statistical Association}, 89\penalty0
-  (428):\penalty0 1303--1313, 1994.
-\newblock \doi{10.1080/01621459.1994.10476870}.
+\bibitem[Politis and Romano(1992)]{politis1992circular}
+Dimitris~N Politis and Joseph~P Romano.
+\newblock A circular block-resampling procedure for stationary data.
+\newblock In \emph{Exploring the limits of bootstrap}, pages 263--270. Wiley,
+  1992.
 
 \bibitem[Qi et~al.(2026)Qi, Grigas, and Shen]{qi2025integrated}
 Meng Qi, Paul Grigas, and Zuo-Jun~Max Shen.

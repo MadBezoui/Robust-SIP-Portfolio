@@ -349,8 +349,18 @@ Adaptive Semi-Infinite Programming (SIP) Exchange Algorithm
 Alternates between finite Master LP over active subset U_k and Separation Oracle over candidate grid \\widehat{U}.
 """
 function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64; max_iter=15, tol=1e-4, max_weight=1.0)
-    # Initialize active set with the most recent observed state in training sample
-    active_thetas = [collect(Y[end, :])]
+    # Initialize active set with the nearest grid node to the most recent observed state
+    y_T = collect(Y[end, :])
+    best_dist = Inf
+    nearest_theta = grid_thetas[1]
+    for th in grid_thetas
+        d = norm(th - y_T)
+        if d < best_dist
+            best_dist = d
+            nearest_theta = copy(th)
+        end
+    end
+    active_thetas = [nearest_theta]
     
     w_best = fill(1.0/size(X, 2), size(X, 2))
     lb = -Inf

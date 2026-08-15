@@ -158,7 +158,7 @@ def plot_frontier():
     ax.plot(df_front['Nom_CVaR'], df_front['Nom_Return'] * 100.0, color='#00b894', linewidth=2.5, linestyle='--', label='Nominal CVaR Frontier (Unconditional)', zorder=5)
     
     # 3. Continuous-State Robust SIP Frontier
-    ax.plot(df_front['Rob_CVaR'], df_front['Rob_Return'] * 100.0, color='#d63031', linewidth=2.8, linestyle='-', label=r'Continuous-State Robust Frontier (Worst State $\widehat{G}$)', zorder=5)
+    ax.plot(df_front['Rob_CVaR'], df_front['Rob_Return'] * 100.0, color='#d63031', linewidth=2.8, linestyle='-', label=r'Grid-restricted robust frontier (Worst State $\widehat{G}$)', zorder=5)
     
     # Benchmark 1/N point
     w_eq = np.ones(N) / N
