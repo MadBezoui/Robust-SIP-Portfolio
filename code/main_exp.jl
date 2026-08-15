@@ -38,9 +38,9 @@ function paired_circular_block_bootstrap(rets1::Vector{Float64}, rets2::Vector{F
     ci_upper = percentile(boot_diffs, 97.5)
     boot_se = std(boot_diffs)
     
-    # Two-sided empirical p-value for H0: diff == 0
+    # Two-sided empirical p-value for H0: diff == 0 (with finite-sample correction)
     centered_boot = boot_diffs .- mean(boot_diffs)
-    p_val = mean(abs.(centered_boot) .>= abs(diff_sharpe_orig))
+    p_val = (1.0 + sum(abs.(centered_boot) .>= abs(diff_sharpe_orig))) / (n_reps + 1.0)
     
     return diff_sharpe_orig, boot_se, ci_lower, ci_upper, p_val, boot_diffs
 end

@@ -662,7 +662,7 @@ The repository provides the complete pipeline structured into four main componen
 \end{enumerate}
 
 \section{Model-specification sensitivity}
-To ensure the robustness of our findings to methodological hyperparameters, we conduct sensitivity analyses across key design choices: grid resolution, kernel bandwidth, Effective Sample Size (ESS) regularization, and bootstrap block length. These analyses are evaluated on a representative subset of rolling out-of-sample windows.
+To ensure the robustness of our findings to methodological hyperparameters, we conduct sensitivity analyses across key design choices: grid resolution, kernel bandwidth, Effective Sample Size (ESS) regularization, and bootstrap block length. The grid resolution and bandwidth analyses (Tables \ref{tab:sens_grid} and \ref{tab:sens_bw}) report averages over a representative subset of 20 evenly spaced rolling out-of-sample windows spanning the full evaluation period from January 1994 to May 2026. This uniform sampling guarantees that the analyses span multiple market regimes, including crisis periods, while remaining computationally tractable for the dense grid benchmarks. The ESS threshold and bootstrap block length sensitivities are evaluated over the entire sequence of 377 rolling windows.
 
 \subsection{Grid resolution and bandwidth sensitivity}
 Table \ref{tab:sens_grid} details the sensitivity of the adaptive exchange algorithm to the separation oracle's grid density. The standard implementation uses a $21 \times 21$ grid (441 candidate states). Increasing the grid resolution up to $81 \times 81$ (6561 states) marginally increases the worst-case CVaR bound (from 4.45\% to 4.46\%) but leaves the number of active states essentially unchanged (approx. 3.6 to 3.8). Solve time scales moderately but remains well under one second per window. 
@@ -703,7 +703,7 @@ Table \ref{tab:sens_bw} reports sensitivity to the kernel bandwidth scalar $c \i
 \end{table}
 
 \subsection{ESS regularization and bootstrap block length}
-To address concerns about boundary scenario overfitting in regions of the state space with low empirical support, we evaluate an ESS-thresholded uncertainty set $\mathcal{U}_{\text{supp}} = \{\theta \in \mathcal{U} : \text{ESS}(\theta) \ge E_{\min}\}$. Table \ref{tab:sens_ess} shows that enforcing $E_{\min} = 10$ filters out over half of the candidate states (retaining 172.5 out of 441) without materially altering the worst-case CVaR (4.45\%). However, aggressively filtering states requiring $E_{\min} \ge 40$ artificially truncates the state space, resulting in severe underestimation of tail risk (worst CVaR drops to 2.69\%). 
+To address concerns about boundary scenario overfitting in regions of the state space with low empirical support, we evaluate an ESS-thresholded uncertainty set $\mathcal{U}_{\text{supp}} = \{\theta \in \mathcal{U} : \text{ESS}(\theta) \ge E_{\min}\}$. Table \ref{tab:sens_ess} shows that enforcing $E_{\min} = 10$ filters out over half of the candidate states (retaining 172.5 out of 441) without materially altering the worst-case CVaR (4.45\%). However, aggressively filtering states requiring $E_{\min} \ge 40$ artificially truncates the state space, which materially reduces the estimated worst-case conditional CVaR by excluding low-support boundary states (worst CVaR drops to 2.69\%). 
 
 \begin{table}[htbp]
 \centering
@@ -723,6 +723,26 @@ To address concerns about boundary scenario overfitting in regions of the state 
 \end{tabular}
 \end{table}
 
+To understand whether this in-sample regularization translates to out-of-sample improvements, we run the complete rolling backtest pipeline across four selected ESS thresholds: $E_{\min} \in \{0, 10, 20, 40\}$. Table \ref{tab:ess_backtest} reports the out-of-sample performance and active state statistics for each case. While $E_{\min}=10$ successfully excludes over 60\% of the grid (retaining an average of 39.3\% of states) and strictly bounds the minimum active-state ESS away from isolated observations, its out-of-sample risk-adjusted performance remains statistically indistinguishable from the unrestricted baseline. Aggressive regularization ($E_{\min}=40$) slightly increases the in-sample Sharpe ratio but exposes the portfolio to a severe maximum drawdown ($-45.94\%$), confirming the danger of excluding valid tail events. Thus, $E_{\min}=0$ remains our primary empirical specification, though $E_{\min}=10$ provides a statistically defensible alternative with equivalent average performance.
+
+\begin{table}[htbp]
+\centering
+\caption{Out-of-sample performance across ESS thresholds ($E_{\min}$)}
+\label{tab:ess_backtest}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+\textbf{Threshold} & \textbf{Ann. Ret (\%)} & \textbf{Ann. Vol (\%)} & \textbf{Sharpe} & \textbf{Max DD (\%)} & \textbf{Wealth} & \textbf{Turnover (\%)} & \textbf{Avg ESS} & \textbf{Min ESS} & \textbf{Grid Retained (\%)} \\
+\midrule
+$E_{\min} = 0$ & 11.28 & 13.95 & 0.81 & --41.69 & 25.04 & 9.48 & 83.0 & 2.2 & 100.0 \\
+$E_{\min} = 10$ & 11.04 & 13.92 & 0.79 & --41.72 & 23.29 & 9.59 & 86.9 & 16.4 & 39.3 \\
+$E_{\min} = 20$ & 11.02 & 13.58 & 0.81 & --40.84 & 23.47 & 11.13 & 92.5 & 26.3 & 27.5 \\
+$E_{\min} = 40$ & 10.98 & 13.26 & 0.83 & --45.94 & 23.54 & 12.88 & 112.6 & 52.1 & 18.3 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
 Finally, Table \ref{tab:sens_block} verifies the robustness of our statistical inference to the chosen block length $b$ in the paired circular block bootstrap. Across all block lengths from 6 to 24 months, the standard error remains relatively stable, and the two-sided $p$-value for the Sharpe ratio difference against the Nominal CVaR benchmark never falls below the conventional 0.05 threshold, confirming our conclusion that performance differences are not statistically significant.
 
 \begin{table}[htbp]
@@ -733,11 +753,11 @@ Finally, Table \ref{tab:sens_block} verifies the robustness of our statistical i
 \toprule
 \textbf{Block Length ($b$ months)} & \textbf{Bootstrap SE} & \textbf{$p$-Value} \\
 \midrule
-6 & 0.065 & 0.268 \\
-9 & 0.065 & 0.270 \\
-12 & 0.065 & 0.275 \\
-18 & 0.061 & 0.239 \\
-24 & 0.053 & 0.183 \\
+6 & 0.066 & 0.270 \\
+9 & 0.066 & 0.275 \\
+12 & 0.066 & 0.281 \\
+18 & 0.062 & 0.243 \\
+24 & 0.054 & 0.183 \\
 \bottomrule
 \end{tabular}
 \end{table}

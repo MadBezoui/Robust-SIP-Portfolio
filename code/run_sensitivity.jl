@@ -152,7 +152,7 @@ function run_all_sensitivities()
                 s2 = r2[boot_idx]
                 push!(boot_diffs, sqrt(12.0) * ((mean(s1)/std(s1)) - (mean(s2)/std(s2))))
             end
-            p_val = mean(abs.(boot_diffs .- mean(boot_diffs)) .>= abs(diff_orig))
+            p_val = (1.0 + sum(abs.(boot_diffs .- mean(boot_diffs)) .>= abs(diff_orig))) / (5000 + 1.0)
             return p_val, std(boot_diffs)
         end
         

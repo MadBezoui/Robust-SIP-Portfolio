@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  15 AUG 2026 06:17
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  15 AUG 2026 06:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -890,10 +890,10 @@ Package rerunfilecheck Info: File `main_paper.out' has not changed.
 (rerunfilecheck)             Checksum: 095515182C7CD4BB393316A662C8A9DD;6727.
  ) 
 Here is how much of TeX's memory you used:
- 23730 strings out of 478994
- 446772 string characters out of 5858183
- 723870 words of memory out of 5000000
- 40636 multiletter control sequences out of 15000+600000
+ 23732 strings out of 478994
+ 446806 string characters out of 5858183
+ 723960 words of memory out of 5000000
+ 40637 multiletter control sequences out of 15000+600000
  419674 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  87i,14n,89p,2828b,906s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -927,10 +927,10 @@ onts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2021/texmf-di
 st/fonts/type1/public/cm-super/sfbx1095.pfb></usr/local/texlive/2021/texmf-dist
 /fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/2021/texmf-dist/f
 onts/type1/public/cm-super/sfrm1095.pfb>
-Output written on main_paper.pdf (28 pages, 899605 bytes).
+Output written on main_paper.pdf (28 pages, 901542 bytes).
 PDF statistics:
- 788 PDF objects out of 1000 (max. 8388607)
- 627 compressed objects within 7 object streams
- 154 named destinations out of 1000 (max. 500000)
+ 792 PDF objects out of 1000 (max. 8388607)
+ 631 compressed objects within 7 object streams
+ 155 named destinations out of 1000 (max. 500000)
  239 words of extra memory for PDF output out of 10000 (max. 10000000)
 
