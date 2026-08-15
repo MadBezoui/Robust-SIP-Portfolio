@@ -126,8 +126,8 @@ Status `~/Documents/Projects/Robust_Portfolio/Portfolio_Robust_SIP_RealData/code
   [8e850b90] libblastrampoline_jll v5.11.0+0
 Info Packages marked with ⌅ have new versions available but compatibility constraints restrict them from upgrading. To see why use `status --outdated -m`
 
-Release: v1.0.4
-Commit: 986739e169f957611b3b79eefc9b78c9dcc70186
-Date: Sat Aug 15 23:44:22 CEST 2026
+Release: v1.0.5
+Commit: f72da48b02fc9a435dca19ff686e4481c006d82e
+Date: Sun Aug 16 00:27:25 CEST 2026
 Seed: 20260814
 Command: julia --project=. main_exp.jl
