@@ -1,0 +1,23 @@
+=== Robust SIP Computational and Empirical Validation Summary ===
+
+Total Rolling Windows: 377
+Average Active State Constraints in Master LP: 3.66
+Max Active State Constraints: 9
+Min Active State Constraints: 1
+Average Exchange Iterations: 3.66
+Max Exchange Iterations: 9
+Min Exchange Iterations: 1
+ESS Distribution across Active States:
+  Min ESS: 2.18
+  5th Percentile ESS: 16.98
+  Median ESS: 72.75
+  Mean ESS: 83.02
+  Max ESS: 264.36
+  Average Tail Effective Sample Size (tau * ESS): 4.15
+
+Representative Window Benchmark:
+  Adaptive SIP solve time: 0.6048 s (Active States: 6)
+  Dense Grid 21x21 solve time: 22.4958 s, L1 dist to Adaptive: 1.4
+  Dense Grid 41x41 solve time: 46.9349 s, L1 dist to Adaptive: 1.4
+  Spatial Dispersion Radius rho (21x21): 0.0319
+  Lipschitz Inexact Oracle Certificate L_Phi * rho (21x21): 1342.0064
