@@ -71,4 +71,15 @@ grid_df = DataFrame(
     Lipschitz_Certificate_Lrho=[L_rho*rho*2, L_rho*rho*2, L_rho*rho]
 )
 CSV.write(joinpath(output_dir, "grid_comparison.csv"), grid_df)
+
+open(joinpath(output_dir, "grid_validation.txt"), "w") do f
+    write(f, "=== Robust SIP Computational and Empirical Validation Summary ===\n\n")
+    write(f, "Representative Window Benchmark:\n")
+    write(f, "  Adaptive SIP solve time: $(round(t_ad, digits=4)) s (Active States: $(length(act_ad)))\n")
+    write(f, "  Dense Grid 21x21 solve time: $(round(t_d21, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d21, digits=6))\n")
+    write(f, "  Dense Grid 41x41 solve time: $(round(t_d41, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d41, digits=6))\n")
+    write(f, "  Spatial Dispersion Radius rho (21x21): $(round(rho*2, digits=4))\n")
+    write(f, "  Lipschitz Inexact Oracle Certificate L_Phi * rho (21x21): $(round(L_rho*rho*2, digits=4))\n")
+end
+
 println("Done")

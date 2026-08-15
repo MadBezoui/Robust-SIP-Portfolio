@@ -21,13 +21,17 @@ Portfolio risk depends heavily on prevailing financial-market conditions, yet st
   - 10 analytical PDF plots (wealth trajectory, drawdowns, weights, turnover, active states, bounds, efficient frontier, kernel density map, and bootstrap distribution).
 
 
+## Software Environment
+Computations were validated on an Apple M1 Pro using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1.
+
 ## Reproduction instructions
 
-To reproduce the exact empirical results and figures presented in the paper, execute the following command in Julia:
+To reproduce the exact empirical results and figures presented in the paper, execute the following commands in your terminal:
 
 ```bash
 cd code
-julia main_exp.jl
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. main_exp.jl
 ```
 
 The script will execute the rolling-window backtest, perform the exchange optimizations, run the unstudentized paired circular block bootstrap, and export all results and CSV tables directly into `results/`.
