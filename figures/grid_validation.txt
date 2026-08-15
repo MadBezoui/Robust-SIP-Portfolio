@@ -1,3 +1,20 @@
-Average L1 distance between Adaptive SIP and Dense Grid: 1.4661630747318612
-Max L1 distance: 1.5333333333333337
-Average ESS of active states: 18.544411202398017
+=== Robust SIP Computational and Empirical Validation Summary ===
+
+Total Rolling Windows: 377
+Average Active State Constraints in Master LP: 3.68
+Max Active State Constraints: 9
+Min Active State Constraints: 1
+ESS Distribution across Active States:
+  Min ESS: 2.36
+  5th Percentile ESS: 15.83
+  Median ESS: 71.36
+  Mean ESS: 83.42
+  Max ESS: 280.19
+  Average Tail Effective Sample Size (tau * ESS): 4.17
+
+Representative Window Benchmark:
+  Adaptive SIP solve time: 0.6109 s (Active States: 5)
+  Dense Grid 21x21 solve time: 23.5805 s, L1 dist to Adaptive: 1.4
+  Dense Grid 41x41 solve time: 53.5666 s, L1 dist to Adaptive: 1.4
+  Spatial Dispersion Radius rho (21x21): 0.0319
+  Lipschitz Inexact Oracle Certificate L_Phi * rho (21x21): 1350.9782
