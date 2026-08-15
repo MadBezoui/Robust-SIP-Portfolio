@@ -129,7 +129,7 @@ function solve_nominal_cvar(X::Matrix{Float64}, mu::Vector{Float64}, tau::Float6
     
     model = Model(HiGHS.Optimizer)
     set_silent(model)
-    set_attribute(model, "time_limit", 120.0)
+    set_attribute(model, "time_limit", 600.0)
     
     @variable(model, 0.0 <= w[1:N] <= max_weight)
     @variable(model, z)
@@ -166,7 +166,7 @@ function solve_finite_regime_cvar(X::Matrix{Float64}, P_matrix::Matrix{Float64},
     
     model = Model(HiGHS.Optimizer)
     set_silent(model)
-    set_attribute(model, "time_limit", 120.0)
+    set_attribute(model, "time_limit", 600.0)
     
     @variable(model, t_var)
     @variable(model, 0.0 <= w[1:N] <= max_weight)
@@ -207,7 +207,7 @@ function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, targe
     
     model = Model(HiGHS.Optimizer)
     set_silent(model)
-    set_attribute(model, "time_limit", 120.0)
+    set_attribute(model, "time_limit", 600.0)
     
     @variable(model, 0.0 <= w[1:N] <= max_weight)
     @constraint(model, sum(w) == 1.0)
@@ -251,7 +251,7 @@ function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas
     
     model = Model(HiGHS.Optimizer)
     set_silent(model)
-    set_attribute(model, "time_limit", 120.0)
+    set_attribute(model, "time_limit", 600.0)
     
     @variable(model, t_var)
     @variable(model, 0.0 <= w[1:N] <= max_weight)
@@ -271,11 +271,14 @@ function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas
     @objective(model, Min, t_var)
     
     optimize!(model)
-    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED
-        return value.(w), value(t_var)
+    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED || (termination_status(model) == MOI.TIME_LIMIT && has_values(model))
+        if termination_status(model) == MOI.TIME_LIMIT
+            @warn "Master CVaR LP reached TIME_LIMIT but has primal values. Using sub-optimal solution."
+        end
+        return value.(w), value(t_var), termination_status(model)
     else
         @warn "Master CVaR LP did not reach optimal status ($(termination_status(model)))"
-        return fill(1.0/N, N), NaN
+        return fill(1.0/N, N), NaN, termination_status(model)
     end
 end
 
@@ -367,10 +370,12 @@ function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::V
     ub = Inf
     history = []
     
+    last_status = nothing
     for iter in 1:max_iter
-        w, lb_new = solve_master_cvar(X, Y, active_thetas, H, mu, tau, target_return, max_weight)
+        w, lb_new, status = solve_master_cvar(X, Y, active_thetas, H, mu, tau, target_return, max_weight)
         w_best = w
         lb = lb_new
+        last_status = status
         
         best_theta, ub_new = solve_oracle(w_best, X, Y, grid_thetas, H, tau)
         ub = ub_new
@@ -391,7 +396,7 @@ function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::V
         push!(active_thetas, copy(best_theta))
     end
     
-    return w_best, lb, ub, active_thetas, history
+    return w_best, lb, ub, active_thetas, history, last_status
 end
 
 """

@@ -35,12 +35,12 @@ dg21 = range(d_bnds[1], d_bnds[2], length=21)
 grid21 = [[v, d] for v in vg21 for d in dg21]
 
 t0_ad = time()
-w_ad, lb_ad, ub_ad, act_ad, hist_ad = solve_robust_sip(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0; max_iter=15, max_weight=max_weight)
+w_ad, lb_ad, ub_ad, act_ad, hist_ad, status_ad = solve_robust_sip(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0; max_iter=15, max_weight=max_weight)
 t_ad = time() - t0_ad
 
 # Dense LP on 21x21 (441 states)
 t0_d21 = time()
-w_d21, val_d21 = solve_master_cvar(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
+w_d21, val_d21, status_d21 = solve_master_cvar(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
 t_d21 = time() - t0_d21
 l1_ad_d21 = sum(abs.(w_ad - w_d21))
 
@@ -50,7 +50,7 @@ dg41 = range(d_bnds[1], d_bnds[2], length=41)
 grid41 = [[v, d] for v in vg41 for d in dg41]
 
 t0_d41 = time()
-w_d41, val_d41 = solve_master_cvar(X_sub, Y_sub, grid41, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
+w_d41, val_d41, status_d41 = solve_master_cvar(X_sub, Y_sub, grid41, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
 t_d41 = time() - t0_d41
 l1_ad_d41 = sum(abs.(w_ad - w_d41))
 
@@ -63,6 +63,7 @@ rho = sqrt(delta_v^2 + delta_d^2) / 2.0
 
 grid_df = DataFrame(
     Method=["Adaptive SIP (21x21 oracle)", "Dense Grid (21x21, 441 states)", "Dense Grid (41x41, 1681 states)"],
+    Solver_Status=[string(status_ad), string(status_d21), string(status_d41)],
     Active_States=[length(act_ad), length(grid21), length(grid41)],
     Runtime_sec=[t_ad, t_d21, t_d41],
     Worst_CVaR_Decimal=[ub_ad, val_d21, val_d41],
@@ -70,7 +71,7 @@ grid_df = DataFrame(
     Distance_to_Adaptive=[0.0, l1_ad_d21, l1_ad_d41],
     Distance_to_Dense41=[l1_ad_d41, sum(abs.(w_d21 - w_d41)), 0.0],
     Dispersion_Radius_rho=[rho*2, rho*2, rho],
-    Lipschitz_Certificate_Lrho=[L_rho*rho*2, L_rho*rho*2, L_rho*rho]
+    Heuristic_Diagnostic_Lrho=[L_rho*rho*2, L_rho*rho*2, L_rho*rho]
 )
 CSV.write(joinpath(output_dir, "grid_comparison.csv"), grid_df)
 
@@ -81,7 +82,7 @@ open(joinpath(output_dir, "grid_validation.txt"), "w") do f
     write(f, "  Dense Grid 21x21 solve time: $(round(t_d21, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d21, digits=6))\n")
     write(f, "  Dense Grid 41x41 solve time: $(round(t_d41, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d41, digits=6))\n")
     write(f, "  Spatial Dispersion Radius rho (21x21): $(round(rho*2, digits=4))\n")
-    write(f, "  Lipschitz Inexact Oracle Certificate L_Phi * rho (21x21): $(round(L_rho*rho*2, digits=4))\n")
+    write(f, "  Heuristic Spatial Dispersion Diagnostic L_Phi * rho (21x21): $(round(L_rho*rho*2, digits=4))\n")
 end
 
 println("Done")
