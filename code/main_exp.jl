@@ -357,7 +357,7 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     println("Saved tc_sensitivity.csv")
     
     # -------------------------------------------------------------------------
-    # 4. EXPORT STUDENTIZED CIRCULAR BLOCK-BOOTSTRAP INFERENCE
+    # 4. EXPORT UNSTUDENTIZED CIRCULAR BLOCK-BOOTSTRAP INFERENCE
     # -------------------------------------------------------------------------
     println("Computing circular moving-block bootstrap inference (B=5000)...")
     boot_res_df = DataFrame(
