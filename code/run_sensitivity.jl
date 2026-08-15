@@ -28,10 +28,8 @@ function run_all_sensitivities()
     tau = 0.05
 
     step_indices = 1:step_size:(T_total - window_size - step_size + 1)
-    subset_indices = step_indices[1:18:end]
-    if length(subset_indices) > 20
-        subset_indices = subset_indices[1:20]
-    end
+    # Select exactly 20 evenly spaced windows spanning the full backtest
+    subset_indices = [step_indices[round(Int, 1 + (s - 1) * (length(step_indices) - 1) / 19)] for s in 1:20]
 
     grid_sizes = [11, 21, 41, 81]
     grid_res_df = DataFrame(Grid_Size=Int[], Avg_Runtime=Float64[], Avg_Active_States=Float64[], Avg_Worst_CVaR=Float64[], L1_Distance=Float64[])
@@ -42,9 +40,15 @@ function run_all_sensitivities()
     cvar_sums = Dict(g => 0.0 for g in grid_sizes)
     l1_sums = Dict(g => 0.0 for g in grid_sizes)
     
-    println("Using $(length(subset_indices)) equally spaced windows for Grid/BW sensitivity: dates $(df.Date[subset_indices[1]+1]) to $(df.Date[subset_indices[end]+1])")
+    println("Using $(length(subset_indices)) equally spaced windows for Grid/BW sensitivity: holding dates $(df.Date[subset_indices[1]+window_size+1]) to $(df.Date[subset_indices[end]+window_size+step_size])")
     
-    for t_start in subset_indices
+    window_details_df = DataFrame(
+        Window_Idx=Int[], Train_Start=String[], Train_End=String[], 
+        Hold_Start=String[], Hold_End=String[],
+        Grid_Size=Int[], Runtime=Float64[], Active_States=Int[], Worst_CVaR=Float64[]
+    )
+    
+    for (s_idx, t_start) in enumerate(subset_indices)
         t_end = t_start + window_size - 1
         X_train = X_all[t_start:t_end, :]
         Y_train = Y_all[t_start:t_end, :]
@@ -68,10 +72,18 @@ function run_all_sensitivities()
             
             t0 = time()
             w_rob, lb, ub, active_thetas, _ = solve_robust_sip(X_train, Y_train, grid_thetas, H, mu_train ./ 252.0, tau, median(mu_train) / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
-            rt_sums[g] += (time() - t0)
+            rt = time() - t0
+            rt_sums[g] += rt
             act_sums[g] += length(active_thetas)
             cvar_sums[g] += ub
             weights_cache[g] = w_rob
+            
+            push!(window_details_df, (
+                s_idx, 
+                string(df.Date[t_start+1]), string(df.Date[t_end+1]),
+                string(df.Date[t_start+window_size+1]), string(df.Date[t_start+window_size+step_size]),
+                g, rt, length(active_thetas), ub * 100.0
+            ))
             
             if g == 81
                 l1_sums[g] += 0.0
@@ -87,14 +99,21 @@ function run_all_sensitivities()
         println("Finished grid size $g")
     end
     CSV.write(joinpath(output_dir, "grid_sensitivity.csv"), grid_res_df)
+    CSV.write(joinpath(output_dir, "grid_window_details.csv"), window_details_df)
     
     c_vals = [0.5, 0.75, 1.0, 1.5, 2.0]
     bw_res_df = DataFrame(Multiplier=Float64[], Avg_Active_States=Float64[], Avg_Worst_CVaR=Float64[])
+    
+    bw_window_details_df = DataFrame(
+        Window_Idx=Int[], Train_Start=String[], Train_End=String[], 
+        Hold_Start=String[], Hold_End=String[],
+        Multiplier=Float64[], Runtime=Float64[], Active_States=Int[], Worst_CVaR=Float64[]
+    )
 
     for c in c_vals
         act_sum = 0.0
         cvar_sum = 0.0
-        for t_start in subset_indices
+        for (s_idx, t_start) in enumerate(subset_indices)
             t_end = t_start + window_size - 1
             X_train = X_all[t_start:t_end, :]
             Y_train = Y_all[t_start:t_end, :]
@@ -113,15 +132,25 @@ function run_all_sensitivities()
             dd_grid  = range(max(0.0, dd_min - delta_d), min(1.0, dd_max + delta_d), length=21)
             grid_thetas = [[v, d] for v in vix_grid for d in dd_grid]
             
+            t0 = time()
             w_rob, lb, ub, active_thetas, _ = solve_robust_sip(X_train, Y_train, grid_thetas, H, mu_train ./ 252.0, tau, median(mu_train) / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
+            rt = time() - t0
             act_sum += length(active_thetas)
             cvar_sum += ub
+            
+            push!(bw_window_details_df, (
+                s_idx, 
+                string(df.Date[t_start+1]), string(df.Date[t_end+1]),
+                string(df.Date[t_start+window_size+1]), string(df.Date[t_start+window_size+step_size]),
+                c, rt, length(active_thetas), ub * 100.0
+            ))
         end
         n_sub = length(subset_indices)
         push!(bw_res_df, (c, act_sum / n_sub, (cvar_sum / n_sub) * 100.0))
         println("Finished bw multiplier $c")
     end
     CSV.write(joinpath(output_dir, "bandwidth_sensitivity.csv"), bw_res_df)
+    CSV.write(joinpath(output_dir, "bw_window_details.csv"), bw_window_details_df)
 
     ts_path = joinpath(output_dir, "strategy_monthly_returns.csv")
     if isfile(ts_path)
@@ -165,15 +194,15 @@ function run_all_sensitivities()
     
     ess_thresholds = [0.0, 10.0, 20.0, 40.0]
     ess_res_df = DataFrame(
-        ESS_Min=Float64[], Ann_Ret=Float64[], Volatility=Float64[], 
-        Sharpe=Float64[], Max_DD=Float64[], Wealth=Float64[], Turnover=Float64[],
-        Avg_ESS=Float64[], Min_ESS=Float64[], Retained_Frac=Float64[]
+        ESS_Min=Float64[], Ann_Return_Decimal=Float64[], Ann_Vol_Decimal=Float64[], 
+        Sharpe=Float64[], Max_DD_Decimal=Float64[], Wealth=Float64[], Turnover_Decimal=Float64[],
+        Avg_ESS=Float64[], Min_ESS=Float64[], Retained_Frac_Decimal=Float64[]
     )
     
     for E_min in ess_thresholds
         println("\nRunning full backtest for ESS Threshold E_min = $E_min...")
         m = run_institutional_backtest(0.0010, 0.05, E_min)
-        push!(ess_res_df, (E_min, m.Ann_Ret, m.Volatility, m.Sharpe, m.Max_DD, m.Wealth, m.Turnover, m.Avg_ESS, m.Min_ESS, m.Retained_Frac))
+        push!(ess_res_df, (E_min, m.Ann_Ret_Decimal, m.Vol_Decimal, m.Sharpe, m.Max_DD_Decimal, m.Wealth, m.Turnover_Decimal, m.Avg_ESS, m.Min_ESS, m.Retained_Frac_Decimal))
         println("Finished ESS threshold $E_min")
     end
     CSV.write(joinpath(output_dir, "ess_full_backtest.csv"), ess_res_df)

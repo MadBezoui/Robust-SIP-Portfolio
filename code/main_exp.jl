@@ -71,8 +71,20 @@ function calculate_metrics(returns::Vector{Float64}, weights_matrix::AbstractMat
     # Realized Monthly Expected Shortfall (CVaR on monthly losses)
     losses = -returns
     sorted_losses = sort(losses, rev=true) # worst losses first
-    cvar_95_monthly = mean(sorted_losses[1:max(1, floor(Int, 0.05 * T_out))])
-    cvar_99_monthly = mean(sorted_losses[1:max(1, floor(Int, 0.01 * T_out))])
+    function exact_cvar(losses, alpha)
+        T_out = length(losses)
+        k = floor(Int, alpha * T_out)
+        f = alpha * T_out - k
+        if k == 0
+            return losses[1]
+        elseif k == T_out
+            return mean(losses)
+        else
+            return (sum(losses[1:k]) + f * losses[k+1]) / (alpha * T_out)
+        end
+    end
+    cvar_95_monthly = exact_cvar(sorted_losses, 0.05)
+    cvar_99_monthly = exact_cvar(sorted_losses, 0.01)
     
     avg_turnover = mean(turnover)
     tc_drag = avg_turnover * tc * 12.0 # Annualized in decimal
@@ -124,6 +136,7 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     )
     
     active_states_history = Int[]
+    iterations_history = Int[]
     ess_history = Float64[]
     min_ess_history = Float64[]
     retained_frac_history = Float64[]
@@ -236,13 +249,13 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         
         # 5. Proposed Continuous-State Robust SIP
         w_rob, lb, ub, active_thetas, hist = solve_robust_sip(X_train, Y_train, valid_thetas, H, mu_train ./ 252.0, tau, target_return / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
-        
-        if step_count == 100 # Representative convergence trace
-            sample_convergence_history = hist
+        if E_min == 0.0 && length(sample_convergence_history) == 0 && (step_count == div(total_steps, 2) || step_count == total_steps)
+            sample_convergence_history = copy(hist)
             active_states_sample = copy(active_thetas)
         end
-
+        
         push!(active_states_history, length(active_thetas))
+        push!(iterations_history, length(hist))
         
         # Average and Min ESS of active states
         active_ess_vals = [effective_sample_size(get_kernel_weights(Y_train, th, H)) for th in active_thetas]
@@ -294,11 +307,8 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     end
     
     println("\nBacktest Complete.")
-    println("Active States Stats (over $(step_count) windows):")
-    println("  Min:    ", minimum(active_states_history))
-    println("  Median: ", median(active_states_history))
-    println("  Mean:   ", round(mean(active_states_history), digits=2))
-    println("  Max:    ", maximum(active_states_history))
+    println("Active States - Min: $(minimum(active_states_history)), Median: $(median(active_states_history)), Mean: $(round(mean(active_states_history), digits=2)), Max: $(maximum(active_states_history))")
+    println("Iterations - Min: $(minimum(iterations_history)), Median: $(median(iterations_history)), Mean: $(round(mean(iterations_history), digits=2)), Max: $(maximum(iterations_history))")
     
     # Calculate final metrics for returning
     r_rob = rets_gross_dict["RobustSIP"] .- turnover_dict["RobustSIP"] .* trans_cost
@@ -307,8 +317,8 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     
     # If running as sensitivity loop, return metrics early to avoid overwriting standard outputs
     if E_min > 0.0
-        return (Ann_Ret=m_rob[1], Volatility=m_rob[2], Sharpe=m_rob[3], Max_DD=m_rob[7]*100, Wealth=m_rob[14], Turnover=m_rob[10]*100,
-                Avg_ESS=mean(ess_history), Min_ESS=mean(min_ess_history), Retained_Frac=mean(retained_frac_history)*100.0)
+        return (Ann_Ret_Decimal=m_rob[1], Vol_Decimal=m_rob[2], Sharpe=m_rob[3], Max_DD_Decimal=m_rob[7], Wealth=m_rob[14], Turnover_Decimal=m_rob[10],
+                Avg_ESS=mean(ess_history), Min_ESS=minimum(min_ess_history), Retained_Frac_Decimal=mean(retained_frac_history))
     end
 
     # -------------------------------------------------------------------------
@@ -449,7 +459,7 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         println("Saved active_states_sample.csv")
     end
     
-    active_hist_df = DataFrame(Window=1:step_count, Active_States=active_states_history, ESS=ess_history)
+    active_hist_df = DataFrame(Window=1:step_count, Active_States=active_states_history, Iterations=iterations_history, ESS=ess_history)
     CSV.write(joinpath(output_dir, "active_states_history.csv"), active_hist_df)
     
     # -------------------------------------------------------------------------
@@ -567,6 +577,9 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         write(f, "Average Active State Constraints in Master LP: $(round(mean(active_states_history), digits=2))\n")
         write(f, "Max Active State Constraints: $(maximum(active_states_history))\n")
         write(f, "Min Active State Constraints: $(minimum(active_states_history))\n")
+        write(f, "Average Exchange Iterations: $(round(mean(iterations_history), digits=2))\n")
+        write(f, "Max Exchange Iterations: $(maximum(iterations_history))\n")
+        write(f, "Min Exchange Iterations: $(minimum(iterations_history))\n")
         write(f, "ESS Distribution across Active States:\n")
         write(f, "  Min ESS: $(round(minimum(ess_history), digits=2))\n")
         write(f, "  5th Percentile ESS: $(round(percentile(ess_history, 5), digits=2))\n")
@@ -586,15 +599,15 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     
     rob_perf = results_df[results_df.Strategy .== "RobustSIP", :][1, :]
     return (
-        Ann_Ret = rob_perf.Ann_Mean * 100.0,
-        Volatility = rob_perf.Ann_Vol * 100.0,
+        Ann_Ret_Decimal = rob_perf.Ann_Mean,
+        Vol_Decimal = rob_perf.Ann_Vol,
         Sharpe = rob_perf.Sharpe,
-        Max_DD = rob_perf.Max_DD * 100.0,
+        Max_DD_Decimal = rob_perf.Max_DD,
         Wealth = rob_perf.Final_Wealth,
-        Turnover = rob_perf.Avg_Turnover * 100.0,
+        Turnover_Decimal = rob_perf.Avg_Turnover,
         Avg_ESS = mean(ess_history),
         Min_ESS = minimum(ess_history),
-        Retained_Frac = mean(retained_frac_history) * 100.0
+        Retained_Frac_Decimal = mean(retained_frac_history)
     )
 end
 
