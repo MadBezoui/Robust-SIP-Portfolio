@@ -13,7 +13,7 @@ tau = 0.05
 max_weight = 0.15
 
 window_id = 100
-t_start = 2100
+t_start = 1 + (window_id - 1) * 21 # 2080
 X_sub = X_all[t_start : t_start + 1260 - 1, :]
 Y_sub = Y_all[t_start : t_start + 1260 - 1, :]
 mu_sub = mean(X_sub, dims=1)[:] * 252.0

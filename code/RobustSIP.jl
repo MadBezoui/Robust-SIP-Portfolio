@@ -145,10 +145,38 @@ function solve_nominal_cvar(X::Matrix{Float64}, mu::Vector{Float64}, tau::Float6
     @objective(model, Min, z + (1.0/tau) * sum(p[t] * u[t] for t in 1:T))
     
     optimize!(model)
-    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED || has_values(model)
-        return value.(w), objective_value(model)
+    has_primal = has_values(model)
+    is_optimal = termination_status(model) == MOI.OPTIMAL
+    if has_primal && !any(isnan.(value.(w)))
+        return (
+            weights = value.(w),
+            objective = objective_value(model),
+            termination_status = termination_status(model),
+            primal_status = primal_status(model),
+            dual_status = dual_status(model),
+            has_primal = true,
+            is_optimal = is_optimal,
+            objective_bound = try objective_bound(model) catch; missing end,
+            absolute_gap = try relative_gap(model) * abs(objective_value(model)) catch; missing end,
+            relative_gap = try relative_gap(model) catch; missing end,
+            target_req = target_return,
+            target_impl = t_ret
+        )
     else
-        return missing, missing
+        return (
+            weights = fill(missing, N),
+            objective = missing,
+            termination_status = termination_status(model),
+            primal_status = primal_status(model),
+            dual_status = dual_status(model),
+            has_primal = false,
+            is_optimal = false,
+            objective_bound = missing,
+            absolute_gap = missing,
+            relative_gap = missing,
+            target_req = target_return,
+            target_impl = t_ret
+        )
     end
 end
 
@@ -185,10 +213,38 @@ function solve_finite_regime_cvar(X::Matrix{Float64}, P_matrix::Matrix{Float64},
     @objective(model, Min, t_var)
     
     optimize!(model)
-    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED || has_values(model)
-        return value.(w), value(t_var)
+    has_primal = has_values(model)
+    is_optimal = termination_status(model) == MOI.OPTIMAL
+    if has_primal && !any(isnan.(value.(w)))
+        return (
+            weights = value.(w),
+            objective = value(t_var),
+            termination_status = termination_status(model),
+            primal_status = primal_status(model),
+            dual_status = dual_status(model),
+            has_primal = true,
+            is_optimal = is_optimal,
+            objective_bound = try objective_bound(model) catch; missing end,
+            absolute_gap = try relative_gap(model) * abs(objective_value(model)) catch; missing end,
+            relative_gap = try relative_gap(model) catch; missing end,
+            target_req = target_return,
+            target_impl = t_ret
+        )
     else
-        return missing, missing
+        return (
+            weights = fill(missing, N),
+            objective = missing,
+            termination_status = termination_status(model),
+            primal_status = primal_status(model),
+            dual_status = dual_status(model),
+            has_primal = false,
+            is_optimal = false,
+            objective_bound = missing,
+            absolute_gap = missing,
+            relative_gap = missing,
+            target_req = target_return,
+            target_impl = t_ret
+        )
     end
 end
 
@@ -213,21 +269,36 @@ function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, targe
     @objective(model, Min, dot(w, cov_psd * w))
     
     optimize!(model)
-    if (termination_status(model) == MOI.OPTIMAL || has_values(model)) && !any(isnan.(value.(w)))
-        return value.(w)
+    has_primal = has_values(model)
+    is_optimal = termination_status(model) == MOI.OPTIMAL
+    if has_primal && !any(isnan.(value.(w)))
+        return (
+            weights = value.(w),
+            objective = objective_value(model),
+            termination_status = termination_status(model),
+            primal_status = primal_status(model),
+            dual_status = dual_status(model),
+            has_primal = true,
+            is_optimal = is_optimal,
+            objective_bound = try objective_bound(model) catch; missing end,
+            target_req = target_return,
+            target_impl = t_ret,
+            gmv_fallback_used = false
+        )
     else
-        # Fallback to Global Minimum Variance (without target constraint)
-        model_gmv = Model(HiGHS.Optimizer)
-        set_silent(model_gmv)
-        @variable(model_gmv, 0.0 <= w2[1:N] <= max_weight)
-        @constraint(model_gmv, sum(w2) == 1.0)
-        @objective(model_gmv, Min, dot(w2, cov_psd * w2))
-        optimize!(model_gmv)
-        if (termination_status(model_gmv) == MOI.OPTIMAL || has_values(model_gmv)) && !any(isnan.(value.(w2)))
-            return value.(w2)
-        else
-            return missing
-        end
+        return (
+            weights = fill(missing, N),
+            objective = missing,
+            termination_status = termination_status(model),
+            primal_status = primal_status(model),
+            dual_status = dual_status(model),
+            has_primal = false,
+            is_optimal = false,
+            objective_bound = missing,
+            target_req = target_return,
+            target_impl = t_ret,
+            gmv_fallback_used = false
+        )
     end
 end
 
@@ -406,7 +477,7 @@ function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::V
     ub = Inf
     history = []
     
-    stop_reason = "Iteration_Limit"
+    stop_reason = "ITERATION_LIMIT"
     final_gap = Inf
     last_status = (term_status="NOT_STARTED", primal_status="UNKNOWN")
     
@@ -418,7 +489,7 @@ function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::V
         
         # If no valid primal solution from master LP, break early
         if ismissing(w_best)
-            stop_reason = "LP_Failure"
+            stop_reason = "FAILED_MASTER"
             break
         end
         
@@ -431,13 +502,13 @@ function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::V
         
         # Convergence check: grid-restricted residual <= tol
         if gap <= tol
-            stop_reason = "Tolerance"
+            stop_reason = "CONVERGED_TOLERANCE"
             break
         end
         
         # Avoid duplicate states
         if any(norm(best_theta - th) <= 1e-4 for th in active_thetas)
-            stop_reason = "Duplicate_State"
+            stop_reason = "FAILED_DUPLICATE_WITH_POSITIVE_GAP"
             break
         end
         

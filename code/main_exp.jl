@@ -9,12 +9,20 @@ using .RobustSIP
 """
 Paired Circular Moving-Block Bootstrap for Annualized Sharpe Ratio Differences.
 """
-function paired_circular_block_bootstrap(rets1::Vector{Float64}, rets2::Vector{Float64}, block_size::Int=12, n_reps::Int=5000; seed::Int=20260814)
+function paired_circular_block_bootstrap(rets1::AbstractVector, rets2::AbstractVector, block_size::Int=12, n_reps::Int=5000; seed::Int=20260814)
     Random.seed!(seed)
-    T = length(rets1)
     
-    sr1_ann = (mean(rets1) / std(rets1)) * sqrt(12.0)
-    sr2_ann = (mean(rets2) / std(rets2)) * sqrt(12.0)
+    valid_idx = findall(i -> !ismissing(rets1[i]) && !ismissing(rets2[i]), 1:length(rets1))
+    clean_rets1 = Float64.(rets1[valid_idx])
+    clean_rets2 = Float64.(rets2[valid_idx])
+    
+    T = length(clean_rets1)
+    if T == 0
+        return (missing, missing, missing, missing, missing, Float64[])
+    end
+    
+    sr1_ann = (mean(clean_rets1) / std(clean_rets1)) * sqrt(12.0)
+    sr2_ann = (mean(clean_rets2) / std(clean_rets2)) * sqrt(12.0)
     diff_sharpe_orig = sr1_ann - sr2_ann
     
     boot_diffs = Float64[]
@@ -27,10 +35,12 @@ function paired_circular_block_bootstrap(rets1::Vector{Float64}, rets2::Vector{F
         end
         boot_idx = boot_idx[1:T] # truncate to exact length T
         
-        samp1 = rets1[boot_idx]
-        samp2 = rets2[boot_idx]
+        samp1 = clean_rets1[boot_idx]
+        samp2 = clean_rets2[boot_idx]
         
-        ds_ann = sqrt(12.0) * ((mean(samp1) / std(samp1)) - (mean(samp2) / std(samp2)))
+        std1 = std(samp1)
+        std2 = std(samp2)
+        ds_ann = sqrt(12.0) * ((std1 > 0 ? mean(samp1)/std1 : 0.0) - (std2 > 0 ? mean(samp2)/std2 : 0.0))
         push!(boot_diffs, ds_ann)
     end
     
@@ -38,28 +48,30 @@ function paired_circular_block_bootstrap(rets1::Vector{Float64}, rets2::Vector{F
     ci_upper = percentile(boot_diffs, 97.5)
     boot_se = std(boot_diffs)
     
-    # Two-sided empirical p-value for H0: diff == 0 (with finite-sample correction)
-    centered_boot = boot_diffs .- mean(boot_diffs)
-    p_val = (1.0 + sum(abs.(centered_boot) .>= abs(diff_sharpe_orig))) / (n_reps + 1.0)
+    p_val = 2.0 * min(mean(boot_diffs .>= 0.0), mean(boot_diffs .<= 0.0))
     
-    return diff_sharpe_orig, boot_se, ci_lower, ci_upper, p_val, boot_diffs
+    return (diff_sharpe_orig, boot_se, ci_lower, ci_upper, p_val, boot_diffs)
 end
 
 """
 Calculate comprehensive 14 performance metrics.
 """
-function calculate_metrics(returns::Vector{Float64}, weights_matrix::AbstractMatrix{Float64}, turnover::Vector{Float64}, tc::Float64)
-    T_out = length(returns)
-    ann_mean = mean(returns) * 12.0
-    ann_vol = std(returns) * sqrt(12.0)
+function calculate_metrics(returns::AbstractVector, weights_matrix::AbstractMatrix, turnover::AbstractVector, tc::Float64)
+    valid_returns = collect(skipmissing(returns))
+    T_out = length(valid_returns)
+    if T_out == 0
+        return (missing, missing, missing, missing, missing, missing, missing, missing, missing, missing, missing, missing, missing, missing)
+    end
+    ann_mean = mean(valid_returns) * 12.0
+    ann_vol = std(valid_returns) * sqrt(12.0)
     sharpe = ann_vol > 0 ? (ann_mean / ann_vol) : 0.0
     
     # Downside deviation relative to MAR = 0
-    downside_dev = sqrt(mean(min.(returns, 0.0).^2)) * sqrt(12.0)
+    downside_dev = sqrt(mean(min.(valid_returns, 0.0).^2)) * sqrt(12.0)
     sortino = downside_dev > 0 ? (ann_mean / downside_dev) : Inf
     
     # Wealth including initial wealth 1.0
-    wealth = vcat(1.0, cumprod(1.0 .+ returns))
+    wealth = vcat(1.0, cumprod(1.0 .+ valid_returns))
     running_peak = accumulate(max, wealth)
     drawdowns = wealth ./ running_peak .- 1.0
     max_dd = minimum(drawdowns)
@@ -69,7 +81,7 @@ function calculate_metrics(returns::Vector{Float64}, weights_matrix::AbstractMat
     calmar = abs(max_dd) > 0 ? (cagr / abs(max_dd)) : Inf
     
     # Realized Holding-Period Expected Shortfall (CVaR on holding-period losses)
-    losses = -returns
+    losses = -valid_returns
     sorted_losses = sort(losses, rev=true) # worst losses first
     function exact_cvar(losses, alpha)
         T_out = length(losses)
@@ -86,12 +98,14 @@ function calculate_metrics(returns::Vector{Float64}, weights_matrix::AbstractMat
     cvar_95_holding = exact_cvar(sorted_losses, 0.05)
     cvar_99_holding = exact_cvar(sorted_losses, 0.01)
     
-    avg_turnover = mean(turnover)
+    valid_turnover = collect(skipmissing(turnover))
+    avg_turnover = isempty(valid_turnover) ? 0.0 : mean(valid_turnover)
     tc_drag = avg_turnover * tc * 12.0 # Annualized in decimal
     
     # Concentration (Effective N)
-    eff_n = mean([1.0 / sum(weights_matrix[i, :].^2) for i in 1:size(weights_matrix, 1)])
-    worst_period = minimum(returns)
+    eff_n_vals = [1.0 / sum(weights_matrix[i, :].^2) for i in 1:size(weights_matrix, 1) if !any(ismissing.(weights_matrix[i, :]))]
+    eff_n = isempty(eff_n_vals) ? missing : mean(eff_n_vals)
+    worst_period = minimum(valid_returns)
     
     return (ann_mean, ann_vol, sharpe, sortino, cvar_95_holding, cvar_99_holding, max_dd, cagr, calmar, avg_turnover, tc_drag, eff_n, worst_period, wealth[end])
 end
@@ -124,10 +138,17 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     max_weight = 0.15
 
     strat_names = ["1/N", "MinVar", "NominalCVaR", "FiniteRegime", "RobustSIP"]
-    rets_dict = Dict(s => Float64[] for s in strat_names)
-    rets_gross_dict = Dict(s => Float64[] for s in strat_names)
+    rets_dict = Dict(s => Union{Float64, Missing}[] for s in strat_names)
+    rets_gross_dict = Dict(s => Union{Float64, Missing}[] for s in strat_names)
     weights_dict = Dict(s => [] for s in strat_names)
-    turnover_dict = Dict(s => Float64[] for s in strat_names)
+    turnover_dict = Dict(s => Union{Float64, Missing}[] for s in strat_names)
+    
+    diagnostic_df = DataFrame(
+        Window=Int[], Date=Date[], Strategy=String[],
+        Termination_Status=String[], Primal_Status=String[], Dual_Status=String[],
+        Has_Primal=Bool[], Is_Optimal=Bool[], Objective=Union{Float64, Missing}[],
+        Objective_Bound=Union{Float64, Missing}[]
+    )
     
     calendar_df = DataFrame(
         Window=Int[], Train_Start_Date=Date[], Train_End_Date=Date[],
@@ -147,6 +168,8 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         Window=Int[], Date=Date[], Req_Target=Float64[], Impl_Target=Float64[],
         Mu_Min=Float64[], Mu_Max=Float64[], Clamped=Bool[], Adjustment=Float64[]
     )
+    
+    exchange_stop_reasons = Dict{String, Int}()
 
     # Calculate exact total number of rolling steps
     step_indices = 1:step_size:(T_total - window_size - step_size + 1)
@@ -205,10 +228,12 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         w_eq = fill(1.0/N, N)
         
         # 2. Benchmark MinVar (target-constrained, max_weight=0.15)
-        w_mv = solve_min_variance(cov_train, mu_train, target_return, max_weight)
+        res_mv = solve_min_variance(cov_train, mu_train, target_return, max_weight)
+        w_mv = res_mv.weights
         
         # 3. Benchmark Nominal CVaR
-        w_nom, _ = solve_nominal_cvar(X_train, mu_train ./ 252.0, tau, target_return / 252.0, max_weight)
+        res_nom = solve_nominal_cvar(X_train, mu_train ./ 252.0, tau, target_return / 252.0, max_weight)
+        w_nom = res_nom.weights
         
         # 4. Benchmark Finite-Regime CVaR (4 quadrants split at training medians)
         med_vix = median(Y_train[:, 1])
@@ -233,7 +258,8 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
                 P_matrix[k, :] .= 1.0 / n_train
             end
         end
-        w_fin, _ = solve_finite_regime_cvar(X_train, P_matrix, mu_train ./ 252.0, tau, target_return / 252.0, max_weight)
+        res_fin = solve_finite_regime_cvar(X_train, P_matrix, mu_train ./ 252.0, tau, target_return / 252.0, max_weight)
+        w_fin = res_fin.weights
         
         # Filter grid_thetas based on ESS if E_min > 0
         valid_thetas = Vector{Vector{Float64}}()
@@ -256,6 +282,13 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         w_rob, lb, ub, active_thetas, hist, stat, final_gap, stop_reason, clamp_audit = solve_robust_sip(X_train, Y_train, valid_thetas, H, mu_train ./ 252.0, tau, target_return / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
         
         push!(clamping_history_df, (step_count, train_end_d, clamp_audit.req_target * 252.0, clamp_audit.impl_target * 252.0, clamp_audit.mu_min * 252.0, clamp_audit.mu_max * 252.0, clamp_audit.clamp_ind, clamp_audit.adj * 252.0))
+        
+        push!(diagnostic_df, (step_count, train_end_d, "MinVar", string(res_mv.termination_status), string(res_mv.primal_status), string(res_mv.dual_status), res_mv.has_primal, res_mv.is_optimal, res_mv.objective, res_mv.objective_bound))
+        push!(diagnostic_df, (step_count, train_end_d, "NominalCVaR", string(res_nom.termination_status), string(res_nom.primal_status), string(res_nom.dual_status), res_nom.has_primal, res_nom.is_optimal, res_nom.objective, res_nom.objective_bound))
+        push!(diagnostic_df, (step_count, train_end_d, "FiniteRegime", string(res_fin.termination_status), string(res_fin.primal_status), string(res_fin.dual_status), res_fin.has_primal, res_fin.is_optimal, res_fin.objective, res_fin.objective_bound))
+        push!(diagnostic_df, (step_count, train_end_d, "RobustSIP", stat.Termination_Status, stat.Primal_Status, stat.Dual_Status, stat.Has_Primal_Solution, stat.Termination_Status == "OPTIMAL", stat.Objective_Value, stat.Objective_Bound))
+        
+        exchange_stop_reasons[stop_reason] = get(exchange_stop_reasons, stop_reason, 0) + 1
         
         if E_min == 0.0 && length(sample_convergence_history) == 0 && (step_count == div(total_steps, 2) || step_count == total_steps)
             sample_convergence_history = copy(hist)
@@ -284,14 +317,22 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         for s in strat_names
             w_new = copy(w_curr[s])
             
+            if any(ismissing.(w_new))
+                push!(weights_dict[s], w_new)
+                push!(turnover_dict[s], missing)
+                push!(rets_gross_dict[s], missing)
+                push!(rets_dict[s], missing)
+                continue
+            end
+            
             # Proper pre-trade drift using PRECEDING holding period growth
-            if length(weights_dict[s]) > 0 && prev_asset_growth !== nothing
+            if length(weights_dict[s]) > 0 && prev_asset_growth !== nothing && !any(ismissing.(weights_dict[s][end]))
                 w_prev = weights_dict[s][end]
                 drifted = w_prev .* prev_asset_growth
                 w_pre = drifted ./ sum(drifted)
                 to = 0.5 * sum(abs.(w_new - w_pre))
             else
-                # Initial period: 1/N has 0 turnover if starting from 1/N; optimized strategies trade from 1/N
+                # Initial period or after missing period: trade from 1/N
                 if s == "1/N"
                     to = 0.0
                 else
@@ -317,6 +358,10 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     println("\nBacktest Complete.")
     println("Active States - Min: $(minimum(active_states_history)), Median: $(median(active_states_history)), Mean: $(round(mean(active_states_history), digits=2)), Max: $(maximum(active_states_history))")
     println("Iterations - Min: $(minimum(iterations_history)), Median: $(median(iterations_history)), Mean: $(round(mean(iterations_history), digits=2)), Max: $(maximum(iterations_history))")
+    println("Exchange Stopping Reasons:")
+    for (k, v) in exchange_stop_reasons
+        println("  $k: $v")
+    end
     
     # Calculate final metrics for returning
     r_rob = rets_gross_dict["RobustSIP"] .- turnover_dict["RobustSIP"] .* trans_cost
@@ -339,6 +384,9 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     println("Saved target_clamping_audit.csv")
     clamped_count = sum(clamping_history_df.Clamped)
     println("Target return clamping occurred in $(clamped_count) out of $(nrow(clamping_history_df)) windows.")
+    
+    CSV.write(joinpath(output_dir, "benchmark_diagnostics.csv"), diagnostic_df)
+    println("Saved benchmark_diagnostics.csv")
     
     # -------------------------------------------------------------------------
     # 1. EXPORT 14-METRIC PERFORMANCE TABLE
