@@ -20,7 +20,10 @@ Portfolio risk depends heavily on prevailing financial-market conditions, yet st
   - `grid_sensitivity.csv`, `bandwidth_sensitivity.csv`, `ess_sensitivity.csv`, `ess_full_backtest.csv`, `block_length_sensitivity.csv`: Output data for all sensitivity experiments.
   - 10 analytical PDF plots (wealth trajectory, drawdowns, weights, turnover, active states, bounds, efficient frontier, kernel density map, and bootstrap distribution).
 
-
+## Release Information
+The final version of the code and results corresponding to the manuscript revisions is tagged as **v1.0.5**.
+- **GitHub Release:** [v1.0.5](https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.0.5)
+- **Archive SHA-256 Checksum:** `619f9d178bc65ac02879f3f73e0279c71e57e1c1b8eff416a3194d57cf18b2ce`
 ## Software Environment
 Computations were validated on an Apple M1 Pro using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1.
 
