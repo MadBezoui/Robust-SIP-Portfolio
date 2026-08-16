@@ -145,11 +145,10 @@ function solve_nominal_cvar(X::Matrix{Float64}, mu::Vector{Float64}, tau::Float6
     @objective(model, Min, z + (1.0/tau) * sum(p[t] * u[t] for t in 1:T))
     
     optimize!(model)
-    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED
+    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED || has_values(model)
         return value.(w), objective_value(model)
     else
-        @warn "Nominal CVaR optimization did not reach optimal status ($(termination_status(model))). Returning equal weights."
-        return fill(1.0/N, N), NaN
+        return missing, missing
     end
 end
 
@@ -186,11 +185,10 @@ function solve_finite_regime_cvar(X::Matrix{Float64}, P_matrix::Matrix{Float64},
     @objective(model, Min, t_var)
     
     optimize!(model)
-    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED
+    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED || has_values(model)
         return value.(w), value(t_var)
     else
-        @warn "Finite-regime CVaR optimization did not reach optimal status ($(termination_status(model))). Returning equal weights."
-        return fill(1.0/N, N), NaN
+        return missing, missing
     end
 end
 
@@ -228,7 +226,7 @@ function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, targe
         if (termination_status(model_gmv) == MOI.OPTIMAL || has_values(model_gmv)) && !any(isnan.(value.(w2)))
             return value.(w2)
         else
-            return fill(1.0/N, N)
+            return missing
         end
     end
 end
@@ -271,14 +269,36 @@ function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas
     @objective(model, Min, t_var)
     
     optimize!(model)
-    if termination_status(model) == MOI.OPTIMAL || termination_status(model) == MOI.LOCALLY_SOLVED || (termination_status(model) == MOI.TIME_LIMIT && has_values(model))
-        if termination_status(model) == MOI.TIME_LIMIT
-            @warn "Master CVaR LP reached TIME_LIMIT but has primal values. Using sub-optimal solution."
-        end
-        return value.(w), value(t_var), termination_status(model)
+    
+    has_primal = has_values(model)
+    term_status = termination_status(model)
+    prim_status = primal_status(model)
+    du_status = dual_status(model)
+    
+    obj_val = has_primal ? objective_value(model) : missing
+    obj_bound = missing
+    try
+        obj_bound = objective_bound(model)
+    catch
+    end
+    abs_gap = (obj_val !== missing && obj_bound !== missing) ? abs(obj_val - obj_bound) : missing
+    rel_gap = (obj_val !== missing && obj_bound !== missing && obj_val != 0) ? abs_gap / abs(obj_val) : missing
+    
+    diag = (
+        Termination_Status = string(term_status),
+        Primal_Status = string(prim_status),
+        Dual_Status = string(du_status),
+        Has_Primal_Solution = has_primal,
+        Objective_Value = obj_val,
+        Objective_Bound = obj_bound,
+        Absolute_Gap = abs_gap,
+        Relative_Gap = rel_gap
+    )
+    
+    if term_status == MOI.OPTIMAL || term_status == MOI.LOCALLY_SOLVED || (term_status == MOI.TIME_LIMIT && has_primal)
+        return value.(w), obj_val, diag
     else
-        @warn "Master CVaR LP did not reach optimal status ($(termination_status(model)))"
-        return fill(1.0/N, N), NaN, termination_status(model)
+        return missing, missing, diag
     end
 end
 
@@ -352,6 +372,22 @@ Adaptive Semi-Infinite Programming (SIP) Exchange Algorithm
 Alternates between finite Master LP over active subset U_k and Separation Oracle over candidate grid \\widehat{U}.
 """
 function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64; max_iter=15, tol=1e-4, max_weight=1.0)
+    mu_max = max_feasible_return(mu, max_weight)
+    mu_min = min_feasible_return(mu, max_weight)
+    impl_target = clamp(target_return, mu_min, mu_max - 1e-6)
+    
+    clamping_ind = (target_return != impl_target)
+    adj_amount = impl_target - target_return
+    
+    clamping_audit = (
+        req_target = target_return,
+        impl_target = impl_target,
+        mu_min = mu_min,
+        mu_max = mu_max,
+        clamp_ind = clamping_ind,
+        adj = adj_amount
+    )
+    
     # Initialize active set with the nearest grid node to the most recent observed state
     y_T = collect(Y[end, :])
     best_dist = Inf
@@ -370,33 +406,45 @@ function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::V
     ub = Inf
     history = []
     
-    last_status = nothing
+    stop_reason = "Iteration_Limit"
+    final_gap = Inf
+    last_status = (term_status="NOT_STARTED", primal_status="UNKNOWN")
+    
     for iter in 1:max_iter
         w, lb_new, status = solve_master_cvar(X, Y, active_thetas, H, mu, tau, target_return, max_weight)
         w_best = w
         lb = lb_new
         last_status = status
         
+        # If no valid primal solution from master LP, break early
+        if ismissing(w_best)
+            stop_reason = "LP_Failure"
+            break
+        end
+        
         best_theta, ub_new = solve_oracle(w_best, X, Y, grid_thetas, H, tau)
         ub = ub_new
         
         gap = ub - lb
+        final_gap = gap
         push!(history, (iteration=iter, lb=lb, ub=ub, gap=gap, active_count=length(active_thetas), worst_theta=copy(best_theta)))
         
         # Convergence check: grid-restricted residual <= tol
         if gap <= tol
+            stop_reason = "Tolerance"
             break
         end
         
         # Avoid duplicate states
         if any(norm(best_theta - th) <= 1e-4 for th in active_thetas)
+            stop_reason = "Duplicate_State"
             break
         end
         
         push!(active_thetas, copy(best_theta))
     end
     
-    return w_best, lb, ub, active_thetas, history, last_status
+    return w_best, lb, ub, active_thetas, history, last_status, final_gap, stop_reason, clamping_audit
 end
 
 """

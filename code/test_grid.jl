@@ -35,14 +35,14 @@ dg21 = range(d_bnds[1], d_bnds[2], length=21)
 grid21 = [[v, d] for v in vg21 for d in dg21]
 
 t0_ad = time()
-w_ad, lb_ad, ub_ad, act_ad, hist_ad, status_ad = solve_robust_sip(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0; max_iter=15, max_weight=max_weight)
+w_ad, lb_ad, ub_ad, act_ad, hist_ad, diag_ad, final_gap_ad, stop_reason_ad, clamping_ad = solve_robust_sip(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0; max_iter=15, max_weight=max_weight)
 t_ad = time() - t0_ad
 
 # Dense LP on 21x21 (441 states)
 t0_d21 = time()
-w_d21, val_d21, status_d21 = solve_master_cvar(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
+w_d21, val_d21, diag_d21 = solve_master_cvar(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
 t_d21 = time() - t0_d21
-l1_ad_d21 = sum(abs.(w_ad - w_d21))
+l1_ad_d21 = ismissing(w_d21) ? missing : sum(abs.(w_ad - w_d21))
 
 # Dense LP on 41x41 (1681 states)
 vg41 = range(v_bnds[1], v_bnds[2], length=41)
@@ -50,9 +50,9 @@ dg41 = range(d_bnds[1], d_bnds[2], length=41)
 grid41 = [[v, d] for v in vg41 for d in dg41]
 
 t0_d41 = time()
-w_d41, val_d41, status_d41 = solve_master_cvar(X_sub, Y_sub, grid41, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
+w_d41, val_d41, diag_d41 = solve_master_cvar(X_sub, Y_sub, grid41, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
 t_d41 = time() - t0_d41
-l1_ad_d41 = sum(abs.(w_ad - w_d41))
+l1_ad_d41 = ismissing(w_d41) ? missing : sum(abs.(w_ad - w_d41))
 
 # Dispersion calculation
 vol_cov = cov(X_sub)
@@ -63,15 +63,21 @@ rho = sqrt(delta_v^2 + delta_d^2) / 2.0
 
 grid_df = DataFrame(
     Method=["Adaptive SIP (21x21 oracle)", "Dense Grid (21x21, 441 states)", "Dense Grid (41x41, 1681 states)"],
-    Solver_Status=[string(status_ad), string(status_d21), string(status_d41)],
+    Termination_Status=[diag_ad.Termination_Status, diag_d21.Termination_Status, diag_d41.Termination_Status],
+    Primal_Status=[diag_ad.Primal_Status, diag_d21.Primal_Status, diag_d41.Primal_Status],
+    Dual_Status=[diag_ad.Dual_Status, diag_d21.Dual_Status, diag_d41.Dual_Status],
+    Has_Primal_Solution=[diag_ad.Has_Primal_Solution, diag_d21.Has_Primal_Solution, diag_d41.Has_Primal_Solution],
     Active_States=[length(act_ad), length(grid21), length(grid41)],
     Runtime_sec=[t_ad, t_d21, t_d41],
-    Worst_CVaR_Decimal=[ub_ad, val_d21, val_d41],
-    Objective_Gap_to_Adaptive=[0.0, val_d21 - ub_ad, val_d41 - ub_ad],
+    Objective_Value=[diag_ad.Objective_Value, diag_d21.Objective_Value, diag_d41.Objective_Value],
+    Objective_Bound=[diag_ad.Objective_Bound, diag_d21.Objective_Bound, diag_d41.Objective_Bound],
+    Absolute_Gap=[diag_ad.Absolute_Gap, diag_d21.Absolute_Gap, diag_d41.Absolute_Gap],
+    Relative_Gap=[diag_ad.Relative_Gap, diag_d21.Relative_Gap, diag_d41.Relative_Gap],
+    Exchange_Residual=[final_gap_ad, missing, missing],
+    Exchange_Stop_Reason=[stop_reason_ad, missing, missing],
     Distance_to_Adaptive=[0.0, l1_ad_d21, l1_ad_d41],
-    Distance_to_Dense41=[l1_ad_d41, sum(abs.(w_d21 - w_d41)), 0.0],
-    Dispersion_Radius_rho=[rho*2, rho*2, rho],
-    Heuristic_Diagnostic_Lrho=[L_rho*rho*2, L_rho*rho*2, L_rho*rho]
+    Distance_to_Dense21=[l1_ad_d21, 0.0, (ismissing(w_d21) || ismissing(w_d41)) ? missing : sum(abs.(w_d21 - w_d41))],
+    Dispersion_Radius_rho=[rho*2, rho*2, rho]
 )
 CSV.write(joinpath(output_dir, "grid_comparison.csv"), grid_df)
 
@@ -79,10 +85,9 @@ open(joinpath(output_dir, "grid_validation.txt"), "w") do f
     write(f, "=== Robust SIP Computational and Empirical Validation Summary ===\n\n")
     write(f, "Representative Window Benchmark:\n")
     write(f, "  Adaptive SIP solve time: $(round(t_ad, digits=4)) s (Active States: $(length(act_ad)))\n")
-    write(f, "  Dense Grid 21x21 solve time: $(round(t_d21, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d21, digits=6))\n")
-    write(f, "  Dense Grid 41x41 solve time: $(round(t_d41, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d41, digits=6))\n")
+    write(f, "  Dense Grid 21x21 solve time: $(round(t_d21, digits=4)) s, L1 dist to Adaptive: $(ismissing(l1_ad_d21) ? "missing" : round(l1_ad_d21, digits=6))\n")
+    write(f, "  Dense Grid 41x41 solve time: $(round(t_d41, digits=4)) s, L1 dist to Adaptive: $(ismissing(l1_ad_d41) ? "missing" : round(l1_ad_d41, digits=6))\n")
     write(f, "  Spatial Dispersion Radius rho (21x21): $(round(rho*2, digits=4))\n")
-    write(f, "  Heuristic Spatial Dispersion Diagnostic L_Phi * rho (21x21): $(round(L_rho*rho*2, digits=4))\n")
 end
 
 println("Done")

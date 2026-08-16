@@ -142,6 +142,11 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     retained_frac_history = Float64[]
     active_states_sample = Vector{Vector{Float64}}()
     sample_convergence_history = []
+    
+    clamping_history_df = DataFrame(
+        Window=Int[], Date=Date[], Req_Target=Float64[], Impl_Target=Float64[],
+        Mu_Min=Float64[], Mu_Max=Float64[], Clamped=Bool[], Adjustment=Float64[]
+    )
 
     # Calculate exact total number of rolling steps
     step_indices = 1:step_size:(T_total - window_size - step_size + 1)
@@ -248,7 +253,10 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         end
         
         # 5. Proposed Continuous-State Robust SIP
-        w_rob, lb, ub, active_thetas, hist = solve_robust_sip(X_train, Y_train, valid_thetas, H, mu_train ./ 252.0, tau, target_return / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
+        w_rob, lb, ub, active_thetas, hist, stat, final_gap, stop_reason, clamp_audit = solve_robust_sip(X_train, Y_train, valid_thetas, H, mu_train ./ 252.0, tau, target_return / 252.0; max_iter=15, tol=1e-4, max_weight=max_weight)
+        
+        push!(clamping_history_df, (step_count, train_end_d, clamp_audit.req_target * 252.0, clamp_audit.impl_target * 252.0, clamp_audit.mu_min * 252.0, clamp_audit.mu_max * 252.0, clamp_audit.clamp_ind, clamp_audit.adj * 252.0))
+        
         if E_min == 0.0 && length(sample_convergence_history) == 0 && (step_count == div(total_steps, 2) || step_count == total_steps)
             sample_convergence_history = copy(hist)
             active_states_sample = copy(active_thetas)
@@ -326,6 +334,11 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     # -------------------------------------------------------------------------
     CSV.write(joinpath(output_dir, "backtest_calendar.csv"), calendar_df)
     println("Saved backtest_calendar.csv ($(nrow(calendar_df)) windows)")
+    
+    CSV.write(joinpath(output_dir, "target_clamping_audit.csv"), clamping_history_df)
+    println("Saved target_clamping_audit.csv")
+    clamped_count = sum(clamping_history_df.Clamped)
+    println("Target return clamping occurred in $(clamped_count) out of $(nrow(clamping_history_df)) windows.")
     
     # -------------------------------------------------------------------------
     # 1. EXPORT 14-METRIC PERFORMANCE TABLE
@@ -512,92 +525,7 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     CSV.write(joinpath(output_dir, "frontier_data.csv"), frontier_df)
     println("Saved frontier_data.csv")
     
-    # -------------------------------------------------------------------------
-    # 7. GRID BENCHMARK VALIDATION & LIPSCHITZ CERTIFICATE
-    # -------------------------------------------------------------------------
-    println("Computing grid resolution benchmark and dispersion certificate...")
-    # Representative window (Window 100)
-    window_id = 100
-    t_start = 1 + (window_id - 1) * 21
-    X_sub = X_all[t_start : t_start + 1260 - 1, :]
-    Y_sub = Y_all[t_start : t_start + 1260 - 1, :]
-    mu_sub = mean(X_sub, dims=1)[:] * 252.0
-    t_ret_sub = median(mu_sub)
-    
-    v_min_s, v_max_s = extrema(Y_sub[:, 1])
-    d_min_s, d_max_s = extrema(Y_sub[:, 2])
-    dv_s = 0.10 * (v_max_s - v_min_s)
-    dd_s = 0.10 * (d_max_s - d_min_s)
-    v_bnds = (v_min_s - dv_s, v_max_s + dv_s)
-    d_bnds = (max(0.0, d_min_s - dd_s), min(1.0, d_max_s + dd_s))
-    
-    sig_v, sig_d = std(Y_sub[:, 1]), std(Y_sub[:, 2])
-    H_sub = [(sig_v * 1260^(-1/6))^2 0.0; 0.0 (sig_d * 1260^(-1/6))^2]
-    
-    # Adaptive SIP on 21x21 grid
-    vg21 = range(v_bnds[1], v_bnds[2], length=21)
-    dg21 = range(d_bnds[1], d_bnds[2], length=21)
-    grid21 = [[v, d] for v in vg21 for d in dg21]
-    
-    t0_ad = time()
-    w_ad, lb_ad, ub_ad, act_ad, hist_ad = solve_robust_sip(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0; max_iter=15, max_weight=max_weight)
-    t_ad = time() - t0_ad
-    
-    # Dense LP on 21x21 (441 states)
-    t0_d21 = time()
-    w_d21, val_d21 = solve_master_cvar(X_sub, Y_sub, grid21, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
-    t_d21 = time() - t0_d21
-    l1_ad_d21 = sum(abs.(w_ad - w_d21))
-    
-    # Dense LP on 41x41 (1681 states)
-    vg41 = range(v_bnds[1], v_bnds[2], length=41)
-    dg41 = range(d_bnds[1], d_bnds[2], length=41)
-    grid41 = [[v, d] for v in vg41 for d in dg41]
-    t0_d41 = time()
-    w_d41, val_d41 = solve_master_cvar(X_sub, Y_sub, grid41, H_sub, mu_sub ./ 252.0, tau, t_ret_sub / 252.0, max_weight)
-    t_d41 = time() - t0_d41
-    l1_ad_d41 = sum(abs.(w_ad - w_d41))
-    
-    # Compute dispersion certificate for 21x21 and 41x41
-    rho_21, L_Phi_21, cert_21 = compute_dispersion_certificate(v_bnds, d_bnds, 21, 21, H_sub, X_sub, tau)
-    rho_41, L_Phi_41, cert_41 = compute_dispersion_certificate(v_bnds, d_bnds, 41, 41, H_sub, X_sub, tau)
-    
-    grid_bench_df = DataFrame(
-        Method=["Adaptive SIP (21x21 oracle)", "Dense Grid (21x21, 441 states)", "Dense Grid (41x41, 1681 states)"],
-        Active_States=[length(act_ad), 441, 1681],
-        Runtime_sec=[t_ad, t_d21, t_d41],
-        Distance_to_Adaptive=[0.0, l1_ad_d21, l1_ad_d41],
-        Distance_to_Dense41=[l1_ad_d41, sum(abs.(w_d21 - w_d41)), 0.0],
-        Dispersion_Radius_rho=[rho_21, rho_21, rho_41],
-        Lipschitz_Certificate_Lrho=[cert_21, cert_21, cert_41]
-    )
-    CSV.write(joinpath(output_dir, "grid_comparison.csv"), grid_bench_df)
-    
-    # Export summary text
-    open(joinpath(output_dir, "grid_validation.txt"), "w") do f
-        write(f, "=== Robust SIP Computational and Empirical Validation Summary ===\n\n")
-        write(f, "Total Rolling Windows: $(step_count)\n")
-        write(f, "Average Active State Constraints in Master LP: $(round(mean(active_states_history), digits=2))\n")
-        write(f, "Max Active State Constraints: $(maximum(active_states_history))\n")
-        write(f, "Min Active State Constraints: $(minimum(active_states_history))\n")
-        write(f, "Average Exchange Iterations: $(round(mean(iterations_history), digits=2))\n")
-        write(f, "Max Exchange Iterations: $(maximum(iterations_history))\n")
-        write(f, "Min Exchange Iterations: $(minimum(iterations_history))\n")
-        write(f, "ESS Distribution across Active States:\n")
-        write(f, "  Min ESS: $(round(minimum(ess_history), digits=2))\n")
-        write(f, "  5th Percentile ESS: $(round(percentile(ess_history, 5), digits=2))\n")
-        write(f, "  Median ESS: $(round(median(ess_history), digits=2))\n")
-        write(f, "  Mean ESS: $(round(mean(ess_history), digits=2))\n")
-        write(f, "  Max ESS: $(round(maximum(ess_history), digits=2))\n")
-        write(f, "  Average Tail Effective Sample Size (tau * ESS): $(round(mean(ess_history) * tau, digits=2))\n\n")
-        write(f, "Representative Window Benchmark:\n")
-        write(f, "  Adaptive SIP solve time: $(round(t_ad, digits=4)) s (Active States: $(length(act_ad)))\n")
-        write(f, "  Dense Grid 21x21 solve time: $(round(t_d21, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d21, digits=6))\n")
-        write(f, "  Dense Grid 41x41 solve time: $(round(t_d41, digits=4)) s, L1 dist to Adaptive: $(round(l1_ad_d41, digits=6))\n")
-        write(f, "  Spatial Dispersion Radius rho (21x21): $(round(rho_21, digits=4))\n")
-        write(f, "  Lipschitz Inexact Oracle Certificate L_Phi * rho (21x21): $(round(cert_21, digits=4))\n")
-    end
-    println("Saved grid_validation.txt and grid_comparison.csv")
+    # (Removed duplicate grid validation block. See test_grid.jl for grid benchmark validation)
     println("All Julia pipeline tasks executed successfully.")
     
     rob_perf = results_df[results_df.Strategy .== "RobustSIP", :][1, :]

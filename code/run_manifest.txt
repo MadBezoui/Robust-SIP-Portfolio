@@ -127,7 +127,14 @@ Status `~/Documents/Projects/Robust_Portfolio/Portfolio_Robust_SIP_RealData/code
 Info Packages marked with ⌅ have new versions available but compatibility constraints restrict them from upgrading. To see why use `status --outdated -m`
 
 Release: v1.0.5
-Commit: f72da48b02fc9a435dca19ff686e4481c006d82e
-Date: Sun Aug 16 00:27:25 CEST 2026
+Code_Commit_Used_For_Run: f72da48b02fc9a435dca19ff686e4481c006d82e
+Results_Tag: v1.0.5
+Results_Tag_Resolved_SHA: 36687c14c6ff79cbee245b75773dcbb38e12d8b2
+Date: Sun Aug 16 05:15:00 CEST 2026
 Seed: 20260814
 Command: julia --project=. main_exp.jl
+Solver_Tolerances: Exchange tolerance 1e-4, HiGHS default tolerances
+Benchmark_Window_Dates: 1994-12-27 to 2026-06-17
+Timing_Scope: Wall-clock measurement covering kernel-matrix preparation within the solver routine, JuMP model construction, and HiGHS execution
+Objective_Gap_Information: Absolute and relative gaps exported in active_states_history.csv
+Release_Archive_Hash: 619f9d178bc65ac02879f3f73e0279c71e57e1c1b8eff416a3194d57cf18b2ce
