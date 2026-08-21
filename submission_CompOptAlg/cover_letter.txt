@@ -1,0 +1,27 @@
+[Date]
+
+Dear Editor-in-Chief,
+Computational Optimization and Applications
+Springer
+
+We are pleased to submit our manuscript entitled "From market states to robust portfolios: grid-restricted adaptive CVaR optimization with real financial data" for consideration for publication as a Research Article in Computational Optimization and Applications.
+
+In this manuscript, we address a fundamental limitation in robust portfolio optimization: the reliance on either rigid, discrete market regimes or unconditional ambiguity sets. To bridge this gap, we propose a novel continuous-state robust portfolio optimization framework formulated as a Semi-Infinite Program (SIP). By defining a continuous, compact state space governed by observable financial indicators (CBOE VIX and equity market drawdown), our model optimizes Conditional Value-at-Risk (CVaR) across an infinite family of kernel-weighted empirical conditional return distributions. 
+
+To overcome the computational intractability of the resulting SIP, we develop an adaptive constraint generation exchange algorithm with a finite grid-restricted separation oracle. We establish the theoretical well-posedness, continuity, and convexity of the continuous formulation, alongside exact convergence guarantees and spatial dispersion diagnostics for the finite approximation. We validate our methodological contributions through an extensive rolling-window empirical study spanning over 30 years (1990–2026) of US industry portfolio data.
+
+We believe this work aligns perfectly with the scope of Computational Optimization and Applications, as it presents a rigorous mathematical programming framework paired with a highly scalable, bespoke computational algorithm to solve a complex real-world financial engineering problem. 
+
+In accordance with the journal's ethical guidelines, we confirm that this manuscript is original, has not been published before, and is not currently under consideration for publication elsewhere. All authors have approved the manuscript and agree with its submission to this journal.
+
+Thank you for your time and consideration. We look forward to your response.
+
+Sincerely,
+
+Madani Bezoui (Corresponding Author)
+CESI LINEACT, UR 7527, Nancy, France
+Email: mbezoui@cesi.fr
+
+Thiziri Sifaoui
+Department of Mathematics and Computer Science, University of Amine Elokkal El Hadj Moussa Eg Akhamouk, Tamanghasset, Algeria
+LAROMAD, Faculty of Sciences, UMMTO, Tizi Ouzou, Algeria
