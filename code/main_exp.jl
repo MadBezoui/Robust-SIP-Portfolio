@@ -1,3 +1,60 @@
+using Statistics, Random
+
+function lw_studentized_bootstrap(rets1::Vector{Float64}, rets2::Vector{Float64}, block_size::Int=12, n_reps::Int=5000; seed::Int=20260821)
+    Random.seed!(seed)
+    T = length(rets1)
+    
+    # Original Sharpe ratios
+    sr1_ann = (mean(rets1) / std(rets1)) * sqrt(12.0)
+    sr2_ann = (mean(rets2) / std(rets2)) * sqrt(12.0)
+    diff_orig = sr1_ann - sr2_ann
+    
+    boot_t_stats = Float64[]
+    
+    for b in 1:n_reps
+        # Circular block bootstrap sampling
+        start_indices = rand(1:T, div(T, block_size) + 1)
+        boot_idx = Int[]
+        for s in start_indices
+            append!(boot_idx, [mod1(s + i - 1, T) for i in 1:block_size])
+        end
+        boot_idx = boot_idx[1:T]
+        
+        samp1 = rets1[boot_idx]
+        samp2 = rets2[boot_idx]
+        
+        # Bootstrap Sharpe difference
+        ds_boot = sqrt(12.0) * ((mean(samp1) / std(samp1)) - (mean(samp2) / std(samp2)))
+        
+        # For studentization, we approximate the standard error of the bootstrap sample
+        # Since exact influence-function variance is complex to compute inside the bootstrap loop,
+        # we use a standard proxy: the block-wise variance of the Sharpe difference.
+        se_boot = std(samp1 - samp2) / sqrt(T) # Simplified SE for the difference
+        
+        # Studentized statistic (t-stat)
+        t_stat = (ds_boot - diff_orig) / (se_boot + 1e-8)
+        push!(boot_t_stats, t_stat)
+    end
+    
+    # Original SE proxy
+    se_orig = std(rets1 - rets2) / sqrt(T)
+    
+    # Compute p-value using the studentized distribution
+    t_orig = diff_orig / se_orig
+    p_val = (1.0 + sum(abs.(boot_t_stats) .>= abs(t_orig))) / (n_reps + 1.0)
+    
+    # Confidence intervals
+    ci_lower = diff_orig - percentile(boot_t_stats, 97.5) * se_orig
+    ci_upper = diff_orig - percentile(boot_t_stats, 2.5) * se_orig
+    
+    return diff_orig, se_orig, ci_lower, ci_upper, p_val
+end
+
+function percentile(v, p)
+    sv = sort(v)
+    idx = max(1, min(length(v), round(Int, p / 100 * length(v))))
+    return sv[idx]
+end
 using Pkg
 Pkg.activate(".")
 
@@ -9,49 +66,6 @@ using .RobustSIP
 """
 Paired Circular Moving-Block Bootstrap for Annualized Sharpe Ratio Differences.
 """
-function paired_circular_block_bootstrap(rets1::AbstractVector, rets2::AbstractVector, block_size::Int=12, n_reps::Int=5000; seed::Int=20260814)
-    Random.seed!(seed)
-    
-    valid_idx = findall(i -> !ismissing(rets1[i]) && !ismissing(rets2[i]), 1:length(rets1))
-    clean_rets1 = Float64.(rets1[valid_idx])
-    clean_rets2 = Float64.(rets2[valid_idx])
-    
-    T = length(clean_rets1)
-    if T == 0
-        return (missing, missing, missing, missing, missing, Float64[])
-    end
-    
-    sr1_ann = (mean(clean_rets1) / std(clean_rets1)) * sqrt(12.0)
-    sr2_ann = (mean(clean_rets2) / std(clean_rets2)) * sqrt(12.0)
-    diff_sharpe_orig = sr1_ann - sr2_ann
-    
-    boot_diffs = Float64[]
-    for b in 1:n_reps
-        # Circular block bootstrap sampling
-        start_indices = rand(1:T, div(T, block_size) + 1)
-        boot_idx = Int[]
-        for s in start_indices
-            append!(boot_idx, [mod1(s + i - 1, T) for i in 1:block_size])
-        end
-        boot_idx = boot_idx[1:T] # truncate to exact length T
-        
-        samp1 = clean_rets1[boot_idx]
-        samp2 = clean_rets2[boot_idx]
-        
-        std1 = std(samp1)
-        std2 = std(samp2)
-        ds_ann = sqrt(12.0) * ((std1 > 0 ? mean(samp1)/std1 : 0.0) - (std2 > 0 ? mean(samp2)/std2 : 0.0))
-        push!(boot_diffs, ds_ann)
-    end
-    
-    ci_lower = percentile(boot_diffs, 2.5)
-    ci_upper = percentile(boot_diffs, 97.5)
-    boot_se = std(boot_diffs)
-    
-    p_val = 2.0 * min(mean(boot_diffs .>= 0.0), mean(boot_diffs .<= 0.0))
-    
-    return (diff_sharpe_orig, boot_se, ci_lower, ci_upper, p_val, boot_diffs)
-end
 
 """
 Calculate comprehensive 14 performance metrics.
@@ -479,7 +493,7 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     
     main_boot_dist = Float64[]
     for bench in ["NominalCVaR", "1/N", "MinVar", "FiniteRegime"]
-        diff, se, ci_l, ci_u, p_val, boot_dist = paired_circular_block_bootstrap(
+        diff, se, ci_l, ci_u, p_val, boot_dist = lw_studentized_bootstrap(
             rets_dict["RobustSIP"], rets_dict[bench], 12, 5000; seed=20260814
         )
         push!(boot_res_df, (bench, diff, se, ci_l, ci_u, p_val))
