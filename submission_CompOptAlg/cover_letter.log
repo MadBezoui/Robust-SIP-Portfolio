@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  21 AUG 2026 20:16
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  21 AUG 2026 20:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -119,19 +119,20 @@ LaTeX Font Info:    ... okay on input line 7.
 {/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 [2] (./cover_letter.aux) ) 
 Here is how much of TeX's memory you used:
- 987 strings out of 478994
- 15961 string characters out of 5858183
+ 989 strings out of 478994
+ 15985 string characters out of 5858183
  312140 words of memory out of 5000000
- 18533 multiletter control sequences out of 15000+600000
- 403730 words of font info for 28 fonts, out of 8000000 for 9000
+ 18534 multiletter control sequences out of 15000+600000
+ 404076 words of font info for 29 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 68i,4n,74p,616b,100s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 68i,4n,74p,618b,100s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2021/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmr10.pfb>
-Output written on cover_letter.pdf (2 pages, 25433 bytes).
+c/amsfonts/cm/cmr10.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmti10.pfb>
+Output written on cover_letter.pdf (2 pages, 37037 bytes).
 PDF statistics:
- 15 PDF objects out of 1000 (max. 8388607)
- 9 compressed objects within 1 object stream
+ 19 PDF objects out of 1000 (max. 8388607)
+ 12 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

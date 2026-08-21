@@ -107,7 +107,7 @@ def plot_bounds():
     )
     
     ax.set_xlabel('Adaptive Exchange Iteration ($k$)', fontsize=11)
-    ax.set_ylabel(r'Conditional Value-at-Risk (Daily $\mathrm{CVaR}_{0.95}$, %)', fontsize=11)
+    ax.set_ylabel('Daily CVaR at 95% Confidence (%)', fontsize=11)
     ax.set_title('Monotonic Convergence of Master LP Lower Bound and Grid Worst-Case CVaR', fontsize=12, pad=10)
     ax.set_xticks(iters)
     y_min = min(master_lb) - 0.08 * (max(oracle_ub) - min(master_lb))
@@ -165,7 +165,7 @@ def plot_frontier():
     ax.plot(df_front['Nom_CVaR'], df_front['Nom_Return'] * 100.0, color='#00b894', linewidth=2.5, linestyle='--', label='Nominal CVaR Frontier (Unconditional)', zorder=5)
     
     # 3. Continuous-State Robust SIP Frontier
-    ax.plot(df_front['Rob_CVaR'], df_front['Rob_Return'] * 100.0, color='#d63031', linewidth=2.8, linestyle='-', label=r'Grid-restricted robust frontier (Worst State $\widehat{G}$)', zorder=5)
+    ax.plot(df_front['Rob_CVaR'], df_front['Rob_Return'] * 100.0, color='#d63031', linewidth=2.8, linestyle='-', label=r'Grid-restricted robust frontier (worst-grid-state CVaR)', zorder=5)
     
     # Benchmark 1/N point
     w_eq = np.ones(N) / N
@@ -239,9 +239,9 @@ def plot_kernel_map():
     crises_ann = [
         ("Lehman / GFC (Oct 2008)", 80.06, 48.36, (-140, -18)),
         ("COVID-19 Crash (Mar 2020)", 82.69, 33.8, (-165, 15)),
-        ("Dot-Com Peak (Oct 2002)", 45.08, 44.7, (10, 8)),
+        ("Dot-Com Trough (Oct 2002)", 45.08, 44.7, (10, 8)),
         ("LTCM Crisis (Oct 1998)", 45.74, 19.3, (10, 8)),
-        ("2022 Inflation Low (Jun 2022)", 34.02, 24.5, (10, -15))
+        ("2022 Inflation Sell-Off (Jun 2022)", 34.02, 24.5, (10, -15))
     ]
     
     for label, vx, dd, offset in crises_ann:
@@ -520,8 +520,8 @@ def plot_active_states():
         ax.plot(windows, roll_avg, color='#2c3e50', linewidth=2.0, label='Trailing 12-Window Moving Average')
     
     ax.set_xlabel('Rolling Backtest Window (1 to 377)', fontsize=11)
-    ax.set_ylabel('Number of Active Master LP State Constraints', fontsize=11)
-    ax.set_title('Active Stress Constraints Identified by the Adaptive Exchange Algorithm', fontsize=12, pad=10)
+    ax.set_ylabel('Number of Active State Blocks', fontsize=11)
+    ax.set_title('Active State Blocks Identified by the Grid-Restricted Constraint-Generation Algorithm', fontsize=12, pad=10)
     ax.set_ylim(0, max(states) + 2)
     ax.grid(True, linestyle='--', alpha=0.45)
     ax.legend(loc='upper right', frameon=True, framealpha=0.92, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=9)
