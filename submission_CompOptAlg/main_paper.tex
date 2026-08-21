@@ -131,19 +131,14 @@ and
 \begin{equation}
 d_{\min}=\min_t D_{t-1},\qquad d_{\max}=\max_t D_{t-1}.
 \end{equation}
-All extrema, variances, bandwidths, and grid boundaries are recomputed exclusively from the current 1,260-day training window. In each rolling optimization, all extrema, variances, bandwidths, and grid boundaries are recomputed exclusively from the current 1,260-day training window. $d_{\min} = \min_{t} D_{t-1}$, and $d_{\max} = \max_{t} D_{t-1}$. We define the continuous state space $\mathcal{U} \subset \mathbb{R}^2$ as a compact rectangle containing all historically observed market states, augmented by a fixed 10\% outer margin to examine states slightly beyond the observed training-window extrema to account for potential unobserved stress levels, while strictly respecting the non-negative domain of drawdown:
+All extrema, variances, bandwidths, and grid boundaries are recomputed exclusively from the current 1,260-day training window. We define the continuous state space $\mathcal{U} \subset \mathbb{R}^2$ as a compact rectangle containing all historically observed market states, augmented by a fixed 10\% outer margin to examine states slightly beyond the observed training-window extrema, while strictly respecting the non-negative domain of drawdown:
 \begin{equation}
     \mathcal{U} = [v_{\min} - \delta_v, v_{\max} + \delta_v] \times [\max\{0, d_{\min} - \delta_d\}, \min\{1, d_{\max} + \delta_d\}]
 \end{equation}
 where $\delta_v = 0.10 (v_{\max} - v_{\min})$ and $\delta_d = 0.10 (d_{\max} - d_{\min})$. The lower bound on drawdown is clamped at 0, preventing negative drawdown values. By construction, $\mathcal{U}$ is a closed and bounded subset of $\mathbb{R}^2$, ensuring compactness.
 
-\begin{remark}[Domain geometry and data support]
-The Cartesian bounding box $\mathcal{U}$ treats every combination of VIX and drawdown as plausible. While kernel weights are strictly positive everywhere on $\mathcal{U}$, extreme corner regions (such as high VIX with zero drawdown, or very low VIX with deep drawdown) have low empirical data density. A natural regularized alternative is the effective data-support set $\mathcal{U}_{\text{supp}} = \{\theta \in \mathcal{U} : \operatorname{ESS}(\theta) \ge E_{\min}\}$ or a high-density level set $\{\theta \in \mathcal{U} : f(\theta) \ge \gamma\}$. In our empirical analysis, we track the Effective Sample Size of active states to monitor local data support.
-\end{remark}
-
-
-\begin{remark}[Domain rectangularity and 10\% margin]
-The Cartesian box $\mathcal{U}$ assumes that every VIX-drawdown combination is plausible. However, certain corners (e.g., very high VIX with zero drawdown) may be economically inconsistent or have negligible empirical support. Furthermore, the 10\% safety margin is arbitrary and sensitive to historical extrema. These low-support stress states represent a principal statistical vulnerability, as the worst-case CVaR can be driven by a small number of observations heavily extrapolated by the Gaussian kernel.
+\begin{remark}[Domain rectangularity and empirical support]
+The Cartesian bounding box $\mathcal{U}$ treats every combination of VIX and drawdown as plausible. However, certain corners (e.g., very high VIX with zero drawdown) have low empirical support. In our empirical analysis, we track the Effective Sample Size of active states to monitor local data support, and we evaluate regularized uncertainty sets $\mathcal{U}_{\text{supp}} = \{\theta \in \mathcal{U} : \operatorname{ESS}(\theta) \ge E_{\min}\}$ in Section \ref{sec:sensitivity}.
 \end{remark}
 
 
@@ -301,12 +296,12 @@ Because $\mathcal{U}$ is compact and $\Phi_\tau(w, \cdot)$ is continuous on $\ma
 A full Cartesian-grid approximation of the continuous state space $\mathcal{U}$ yields a large-scale linear program with one CVaR state block for every candidate grid point. We design an adaptive exchange algorithm that iteratively generates only the binding stress states.
 
 \subsection{Master problem and separation oracle}
-At iteration $k \ge 1$, the master problem optimizes portfolio weights $w$ and the robust risk level $\eta$ subject to a finite active subset of market states $\widehat{\mathcal{U}}_k = \{\theta^{(1)}, \dots, \theta^{(m_k)}\} \subseteq \widehat{\mathcal{U}} \subset \mathcal{U}$. For each active state $\theta^{(j)} \in \mathcal{U}_k$, we introduce a state-specific VaR variable $z_{\theta^{(j)}} \in \mathbb{R}$ and scenario excess loss variables $u_{t, \theta^{(j)}} \ge 0$. The master problem is the following finite Linear Program (LP):
+At iteration $k \ge 1$, the master problem optimizes portfolio weights $w$ and the robust risk level $\eta$ subject to a finite active subset of grid states $\widehat{\mathcal{U}}_k = \{\theta^{(1)}, \dots, \theta^{(m_k)}\} \subseteq \widehat{\mathcal{U}} \subset \mathcal{U}$. For each active state $\theta^{(j)} \in \widehat{\mathcal{U}}_k$, we introduce a state-specific VaR variable $z_{\theta^{(j)}} \in \mathbb{R}$ and scenario excess loss variables $u_{t, \theta^{(j)}} \ge 0$. The master problem is the following finite Linear Program (LP):
 \begin{align}
     \text{LB}_k = \min_{w, \eta, \{z_\theta\}, \{u_{t,\theta}\}} \quad & \eta \\
-    \text{s.t.} \quad & z_\theta + \frac{1}{\tau} \sum_{t=1}^{T} p_t(\theta) u_{t,\theta} \le \eta \quad \forall \theta \in \mathcal{U}_k \\
-    & u_{t,\theta} \ge -x_t^\top w - z_\theta \quad \forall t=1,\dots,T, \forall \theta \in \mathcal{U}_k \\
-    & u_{t,\theta} \ge 0 \quad \forall t=1,\dots,T, \forall \theta \in \mathcal{U}_k \\
+    \text{s.t.} \quad & z_\theta + \frac{1}{\tau} \sum_{t=1}^{T} p_t(\theta) u_{t,\theta} \le \eta \quad \forall \theta \in \widehat{\mathcal{U}}_k \\
+    & u_{t,\theta} \ge -x_t^\top w - z_\theta \quad \forall t=1,\dots,T, \forall \theta \in \widehat{\mathcal{U}}_k \\
+    & u_{t,\theta} \ge 0 \quad \forall t=1,\dots,T, \forall \theta \in \widehat{\mathcal{U}}_k \\
     & \sum_{i=1}^N w_i = 1, \quad 0 \le w_i \le \bar{w} \quad \forall i=1,\dots,N \\
     & \hat{\mu}^\top w \ge \mu_{\text{target}}
 \end{align}
@@ -340,16 +335,16 @@ The overall adaptive exchange algorithm is depicted in Figure \ref{fig:schema2}.
     box/.style={draw=blue!80, fill=blue!5, rectangle, rounded corners, thick, minimum width=8.2cm, minimum height=1.1cm, align=center},
     arrow/.style={thick, ->, >=stealth, color=gray!90}
 ]
-\node (step1) [box] {\textbf{1. INITIALIZATION}\\Set iteration $k=1$. Initialize active set $\mathcal{U}_1 = \{\hat\theta_T\}$,\\where $\hat\theta_T \in \arg\min_{\theta \in \widehat{\mathcal{U}}} \|\theta - y_T\|$ is the nearest grid node to $y_T$.};
-\node (step2) [box, below=0.5cm of step1] {\textbf{2. MASTER LP SOLVER}\\Solve finite LP over $\mathcal{U}_k$. Obtain candidate weights $w_k$ and master lower bound $\text{LB}_k$.};
+\node (step1) [box] {\textbf{1. INITIALIZATION}\\Set iteration $k=1$. Initialize active set $\widehat{\mathcal{U}}_1 = \{\hat\theta_T\}$,\\where $\hat\theta_T \in \arg\min_{\theta \in \widehat{\mathcal{U}}} \|\theta - y_T\|$ is the nearest grid node to $y_T$.};
+\node (step2) [box, below=0.5cm of step1] {\textbf{2. MASTER LP SOLVER}\\Solve finite LP over $\widehat{\mathcal{U}}_k$. Obtain candidate weights $w_k$ and master lower bound $\text{LB}_k$.};
 \node (step3) [box, below=0.5cm of step2] {\textbf{3. SEPARATION ORACLE}\\Fix $w_k$. Search candidate state space $\widehat{\mathcal{U}}$ to maximize $\Phi_\tau(w_k, \theta)$.\\Identify worst-case state $\theta^*$ and evaluate grid worst-case value $\widehat{G}_k = \Phi_\tau(w_k, \theta^*)$.};
 \node (check) [draw=purple!80, fill=purple!5, diamond, aspect=2, thick, below=0.5cm of step3, align=center] {Grid Residual Gap\\$\widehat{G}_k - \text{LB}_k \le \epsilon$?};
-\node (step6) [box, draw=teal!80, fill=teal!5, right=1.2cm of check] {\textbf{4. TERMINATION}\\Set optimal portfolio $w^* = w_k$.\\Retain active stress set $\mathcal{U}^* = \mathcal{U}_k$.};
+\node (step6) [box, draw=teal!80, fill=teal!5, right=1.2cm of check] {\textbf{4. TERMINATION}\\Set optimal portfolio $w^* = w_k$.\\Retain active grid set $\widehat{\mathcal{U}}^* = \widehat{\mathcal{U}}_k$.};
 
 \draw [arrow] (step1) -- (step2);
 \draw [arrow] (step2) -- (step3);
 \draw [arrow] (step3) -- (check);
-\draw [arrow] (check.west) -- ++(-1.6,0) |- node[pos=0.25, right, fill=white, inner sep=2pt] {Gap $> \epsilon$. Set $\mathcal{U}_{k+1} = \mathcal{U}_k \cup \{\theta^*\}$. Increment $k$.} (step2.west);
+\draw [arrow] (check.west) -- ++(-1.6,0) |- node[pos=0.25, right, fill=white, inner sep=2pt] {Gap $> \epsilon$. Set $\widehat{\mathcal{U}}_{k+1} = \widehat{\mathcal{U}}_k \cup \{\theta^*\}$. Increment $k$.} (step2.west);
 \draw [arrow] (check.east) -- node[above, fill=white, inner sep=2pt] {Yes} (step6.west);
 
 \end{tikzpicture}
@@ -374,7 +369,7 @@ Assume that each master problem is solved to exact LP optimality and the separat
 \end{proposition}
 
 \begin{proof}
-Because $\widehat{\mathcal{U}}_k \subseteq \widehat{\mathcal{U}} \subset \mathcal{U}_{k+1} \subset \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\text{LB}_k \le \text{LB}_{k+1} \le v^\star$. For Item 2, $G(w_k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w_k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
+Because $U_k \subseteq U_{k+1} \subseteq \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\text{LB}_k \le \text{LB}_{k+1} \le v^\star$. For Item 2, $G(w_k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w_k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
 
 For Item 3, upon termination with $G(w_k) - \text{LB}_k \le \epsilon$, we have $0 \le G(w_k) - v^\star \le G(w_k) - \text{LB}_k \le \epsilon$, and the portfolio $w_k$ satisfies all finite constraints in $W$ while the epigraph pair $(w^k, \text{LB}_k+\varepsilon)$ is feasible for the continuous constraint set.
 
@@ -390,7 +385,7 @@ When the separation oracle is evaluated over a finite candidate grid $\widehat{\
 \begin{equation}
 \widehat{G}(w) = \max_{\theta \in \widehat{\mathcal{U}}} \Phi_\tau(w, \theta) \le \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta).
 \end{equation}
-Since $\Phi_\tau$ is continuous on the compact set $W \times \mathcal{U}$, it is uniformly continuous. Therefore, the discrepancy between the continuous and grid-restricted objectives tends to zero as the grid dispersion radius tends to zero. A quantitative $L_\Phi\rho$ bound would require an explicitly validated uniform Lipschitz constant. We do not compute such a constant in the empirical analysis and instead assess discretization sensitivity through grid refinement. To ensure the algorithm operates strictly over $\widehat{\mathcal{U}}$, the active subset $U_1$ is initialized with the nearest grid node to the most recent observation $y_T$.
+Since $\Phi_\tau$ is continuous on the compact set $W \times \mathcal{U}$, it is uniformly continuous. Therefore, the discrepancy between the continuous and grid-restricted objectives tends to zero as the grid dispersion radius tends to zero. A quantitative $L_\Phi\rho$ bound would require an explicitly validated uniform Lipschitz constant. We do not compute such a constant in the empirical analysis and instead assess discretization sensitivity through grid refinement. To ensure the algorithm operates strictly over $\widehat{\mathcal{U}}$, the active subset $\widehat{\mathcal{U}}_1$ is initialized with the nearest grid node to the most recent observation $y_T$.
 
 
 The grid-resolution statistic $\rho$ alone is a geometric metric, not a continuous-optimality certificate. However, under standard assumptions, a conservative window-specific Lipschitz constant $L_\Phi$ for the conditional CVaR would provide the error bound:
@@ -700,7 +695,7 @@ Figure 11 illustrates convergence for one selected rolling window. Table \ref{ta
 Several diagnostics in Tables \ref{tab:computational} and \ref{tab:ess_diagnostics} warrant careful interpretation:
 \begin{enumerate}
     \item \textbf{Representative-Window $\ell_1$ Weight Discrepancy}: On the representative window, the $\ell_1$ distance between the adaptive $21\times21$ exchange solution and the dense $21\times21$ grid solution is $\|w_{\mathrm{adaptive}}-w_{\mathrm{dense21}}\|_1 \approx 0.00156$. The difference between the adaptive final grid worst-case value and the dense-grid optimum is approximately $7.6\times10^{-6}$, below the exchange tolerance of $10^{-4}$.
-    \item \textbf{Active-State Support}: Active-state support: The minimum, across rolling windows, of the within-window mean ESS over active states is 2.18, indicating that some windows contain collectively low-support active states. The reported value $\tau\times \operatorname{ESS}$ is only a descriptive tail-support proxy and is not a formal tail effective sample size.\end{enumerate}
+    \item \textbf{Active-State Support}: The minimum, across rolling windows, of the within-window mean ESS over active states is 2.18, indicating that some windows contain collectively low-support active states. The reported value $\tau\times \operatorname{ESS}$ is only a descriptive tail-support proxy and is not a formal tail effective sample size.\end{enumerate}
 
 
 \begin{figure}[htbp]
@@ -763,11 +758,11 @@ Against all four benchmarks, the two-sided $p$-values exceed 0.05 ($p = 0.286$ v
 This statistical finding provides an important nuance to the wealth accumulation results: while Robust SIP generates competitive cumulative wealth (\$25.04 vs. \$22.92 for Nominal CVaR), its risk-adjusted Sharpe ratio is lower due to elevated portfolio volatility. The bootstrap does not provide sufficient evidence to distinguish these Sharpe-ratio differences from zero at conventional significance levels. The primary methodological contribution of the continuous-state framework lies in its principled representation of the state-risk relationship and sparse constraint generation, rather than in statistically dominant out-of-sample risk-adjusted performance.
 
 \subsection{Reproducibility, open science, and codebase}
-To ensure scientific transparency and enable independent verification of all empirical results, the entire computational framework is open-source under an MIT License. The official repository is hosted at \url{https://github.com/MadBezoui/Robust-SIP-Portfolio}. The exact code and results corresponding to this manuscript are available under the immutable GitHub tag v1.0.6. A matching Zenodo archive will be cited upon availability.
+To ensure scientific transparency and enable independent verification of all empirical results, the entire computational framework is open-source under an MIT License. The official repository is hosted at \url{https://github.com/MadBezoui/Robust-SIP-Portfolio}. The exact code and results corresponding to this manuscript are available under the versioned GitHub tag v1.0.6 (commit \texttt{4a73dcb1b9e2c827f3f3f2eaf79ed5b2a58eea74}). A matching Zenodo archive will be cited upon availability.
 
 The repository provides the complete pipeline structured into four main components:
 \begin{enumerate}
-    \item \textbf{Optimization Engine} (\texttt{code/Robust SIP.jl}): Implements the grid-restricted adaptive constraint-generation algorithm, the HiGHS master-LP solver, the full-grid separation oracle, and the benchmark solvers.
+    \item \textbf{Optimization Engine} (\texttt{code/RobustSIP.jl}): Implements the grid-restricted adaptive constraint-generation algorithm, the HiGHS master-LP solver, the full-grid separation oracle, and the benchmark solvers.
     \item \textbf{Backtesting Suite} (\texttt{code/main\_exp.jl}): Executes the 31-year rolling-window out-of-sample backtest, computes the 14 performance metrics, performs transaction cost sensitivity sweeps, and conducts the paired circular moving-block bootstrap test.
     \item \textbf{Empirical Data Module} (\texttt{data/aligned\_market\_data.csv}): Contains the synchronized daily returns for the Kenneth French 30 Industry Portfolios alongside CBOE VIX and drawdown indicators over the full 1990 to 2026 period.
     \item \textbf{Figure Generation Routine} (\texttt{code/generate\_publication\_figures.py}): Reproduces all analytical figures in high-resolution vector PDF format.
@@ -776,6 +771,7 @@ The repository provides the complete pipeline structured into four main componen
 Computations were performed on an Apple M1 Pro with 8 CPU cores and 16 GB RAM, using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1. Reported solve times encompass model construction and solver execution.
 
 \section{Model-specification sensitivity}
+\label{sec:sensitivity}
 To ensure the robustness of our findings to methodological hyperparameters, we conduct sensitivity analyses across key design choices: grid resolution, kernel bandwidth, Effective Sample Size (ESS) regularization, and bootstrap block length. The grid resolution and bandwidth analyses (Tables \ref{tab:sens_grid} and \ref{tab:sens_bw}) report averages over a representative subset of 20 evenly spaced rolling out-of-sample windows spanning the full evaluation period from 28 December 1994 to 17 June 2026. This uniform sampling guarantees that the analyses span multiple market regimes, including crisis periods, while remaining computationally tractable for the dense grid benchmarks. The ESS threshold and bootstrap block length sensitivities are evaluated over the entire sequence of 377 rolling windows.
 
 \subsection{Grid resolution and bandwidth sensitivity}

@@ -1,6 +1,6 @@
-# From market states to robust portfolios: grid-restricted adaptive CVaR optimization with real financial data
+# Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation
 
-This repository contains the complete reproducible codebase, historical datasets, numerical tables, and generated publication figures for the research paper: **"From market states to robust portfolios: grid-restricted adaptive CVaR optimization with real financial data"** by Madani Bezoui and Thiziri Sifaoui.
+This repository contains the complete reproducible codebase, historical datasets, numerical tables, and generated publication figures for the research paper: **"Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation"** by Madani Bezoui and Thiziri Sifaoui.
 
 ## Abstract
 Portfolio risk depends heavily on prevailing financial-market conditions, yet standard robust portfolio optimization models frequently represent those conditions through a rigid discrete set of regimes. We introduce a continuous-state robust portfolio optimization framework in which every point of a continuous market-state space induces a conditional empirical return distribution. Market states are characterized by observable financial indicators (log-VIX and equity market drawdown), and multivariate kernel weights connect historical observations to any target state. The paper formulates a continuous-state SIP and implements a finite grid-restricted approximation solved through adaptive constraint generation. We solve the resulting grid-restricted program efficiently using an adaptive exchange algorithm that alternates between a finite master linear program and a grid-restricted separation oracle.
@@ -12,6 +12,7 @@ Portfolio risk depends heavily on prevailing financial-market conditions, yet st
   - `main_exp.jl`: The rolling-window backtest pipeline over 30 years comparing Robust SIP against 1/N, Target-Constrained MinVar (TC-MinVar), Nominal CVaR, and Finite-Regime CVaR, including the unstudentized paired circular block bootstrap test.
   - `run_sensitivity.jl`: Script generating sensitivity experiments for grid resolution, kernel bandwidth, ESS regularization, and bootstrap block length.
   - `data_prep.py`: Python script for acquiring and cleaning Kenneth French 30 Industry Portfolios and CBOE VIX data.
+  - `generate_publication_figures.py`: Script generating all publication-quality figures directly from empirical outputs.
 - `data/`: Contains the aligned daily financial dataset (`aligned_market_data.csv`).
 - `results/`: Contains the generated analytical figures (PDF) and summary numerical tables (CSV).
   - `performance_table.csv`: 14 summary statistics across all strategies net of 10 bps transaction costs.
@@ -21,9 +22,9 @@ Portfolio risk depends heavily on prevailing financial-market conditions, yet st
   - 10 analytical PDF plots (wealth trajectory, drawdowns, weights, turnover, active states, bounds, efficient frontier, kernel density map, and bootstrap distribution).
 
 ## Release Information
-The definitive reproducibility release associated with the submitted manuscript is v1.0.7.
-- **GitHub Release:** [v1.0.7](https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.0.7)
-- **Archive SHA-256 Checksum:** Zenodo archive pending.
+The exact code and results corresponding to this manuscript are available under the versioned GitHub tag **v1.0.6** (commit `4a73dcb1b9e2c827f3f3f2eaf79ed5b2a58eea74`). A matching Zenodo archive will be cited upon availability.
+- **GitHub Tag:** [v1.0.6](https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.0.6)
+
 ## Software Environment
 Computations were validated on an Apple M1 Pro using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1.
 
