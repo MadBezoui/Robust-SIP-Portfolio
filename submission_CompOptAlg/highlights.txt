@@ -1,7 +1,7 @@
 Research Highlights:
 
-- Proposes a continuous-state robust portfolio model, replacing rigid discrete regimes.
-- Formulates the problem as a Semi-Infinite Program (SIP) using kernel-weighted returns.
-- Develops an adaptive constraint generation algorithm for tractable, exact SIP solutions.
-- Establishes a spatial dispersion diagnostic bounding the continuous optimality gap.
-- Validates the framework via a comprehensive 31-year rolling out-of-sample backtest.
+- Formulates state-robust portfolio selection over a continuous family of kernel-weighted conditional return distributions.
+- Establishes continuity, convexity, and existence properties of the resulting semi-infinite CVaR model.
+- Solves a finite grid-restricted approximation using adaptive constraint generation and a full-grid separation oracle.
+- Evaluates grid resolution, bandwidth, empirical support, transaction costs, and bootstrap sensitivity.
+- Reports competitive long-run wealth but no statistically significant Sharpe-ratio advantage over standard benchmarks.
