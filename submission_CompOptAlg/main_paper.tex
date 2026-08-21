@@ -40,7 +40,7 @@ Madani Bezoui$^{*,1}$ and Thiziri Sifaoui$^{2,3}$ \\
 \begin{abstract}
 Portfolio risk depends heavily on prevailing financial-market conditions. Standard robust portfolio optimization models typically represent these conditions through discrete regimes or unconditional ambiguity sets. In this paper, we formulate a continuous-state robust portfolio model that minimizes Conditional Value-at-Risk (CVaR) uniformly over a continuously indexed family of kernel-weighted empirical conditional return distributions. Market states are characterized by observable financial indicators: the CBOE Volatility Index (VIX) and trailing market drawdown. We establish the well-posedness, continuity, and convexity of the continuous semi-infinite programming formulation. For practical computation, we propose a grid-restricted separation oracle and solve the resulting approximation via adaptive constraint generation, achieving substantial computational speedups relative to dense enumeration. Using data spanning 1990--2026, we conduct an extensive rolling out-of-sample study on US industry portfolios from December 1994 to June 2026. The grid-restricted continuous-state robust strategy achieves competitive long-run wealth accumulation relative to standard benchmarks. However, an exploratory paired circular block-bootstrap analysis provides no evidence of a statistically significant Sharpe-ratio advantage over nominal CVaR. The findings highlight the importance of evaluating data support in tail regions, and demonstrate the computational tractability of adaptive constraint generation in continuous-state portfolio robustification.
 
-\textbf{Keywords:} Robust Portfolio Optimization; Conditional Value-at-Risk; Semi-Infinite Programming; Kernel Density Estimation; Out-of-Sample Performance.
+\textbf{Keywords:} Robust Portfolio Optimization; Conditional Value-at-Risk; Semi-Infinite Programming; Kernel-Weighted Conditional Distributions; Constraint Generation.
 \end{abstract}
 
 \newpage
@@ -168,7 +168,7 @@ To monitor local data support across the continuous domain, we compute the Effec
 \begin{equation}
     \text{ESS}(\theta) = \frac{1}{\sum_{t=1}^T p_t(\theta)^2}
 \end{equation}
-When weights are uniformly distributed ($p_t(\theta) = 1/T$), the ESS reaches its theoretical maximum $\text{ESS}(\theta) = T$. Conversely, if all weight concentrates on a single historical observation, $\text{ESS}(\theta) = 1$. For conditional tail risk at level $\tau = 0.05$, the effective number of observations in the tail is $\tau \times \text{ESS}(\theta)$.
+When weights are uniformly distributed ($p_t(\theta) = 1/T$), the ESS reaches its theoretical maximum $\text{ESS}(\theta) = T$. Conversely, if all weight concentrates on a single historical observation, $\text{ESS}(\theta) = 1$. For descriptive purposes, we report $\tau\times \operatorname{ESS}(\theta)$ as a coarse tail-support proxy. Because kernel weights are non-uniform and tail membership depends on the ordering of portfolio losses, this quantity should not be interpreted as a formal tail effective sample size.
 
 \begin{figure}[htbp]
 \centering
@@ -229,7 +229,15 @@ Let $S_{\bar w}=\{w \in \mathbb{R}^N : \mathbf{1}^\top w=1,\ 0\leq w_i\leq\bar w
 \end{proposition}
 
 \begin{proof}
-If $N\bar{w} < 1$, then $\sum_{i=1}^N w_i \le N\bar{w} < 1$, so no fully invested portfolio exists. When $N\bar{w} \ge 1$, the continuous knapsack problem $\max\{\hat{\mu}^\top w : \mathbf{1}^\top w = 1, 0 \le w_i \le \bar{w}\}$ is solved greedily by setting $w_{(i)} = \bar{w}$ for the $q$ assets with largest mean returns, and assigning the residual weight $r = 1 - q\bar{w}$ to the $(q+1)$-th asset, yielding the upper bound $\mu_{\max}$. The set $W$ is the intersection of closed half-spaces and the compact unit simplex, hence compact and convex.
+If $N\bar w<1$, then
+\begin{equation}
+\sum_{i=1}^{N}w_i\leq N\bar w<1,
+\end{equation}
+so the capped simplex is empty. If $N\bar w\geq1$, a feasible fully invested allocation exists. The continuous knapsack problem
+\begin{equation}
+\max\{\hat\mu^\top w:\mathbf 1^\top w=1,\ 0\leq w_i\leq\bar w\}
+\end{equation}
+is solved by allocating $\bar w$ to the assets with the largest sample means and assigning the residual weight $r$ to the next asset, which yields $\mu_{\max}$. Analogously, allocating weight first to the assets with the smallest sample means yields $\mu_{\min}$. Since the capped simplex is convex and $w\mapsto\hat\mu^\top w$ is continuous and linear, its image is the interval $[\mu_{\min},\mu_{\max}]$. Therefore, $W\neq\varnothing$ if and only if $\mu_{\mathrm{target}}\leq\mu_{\max}$, and strict feasibility of the return constraint holds if and only if $\mu_{\mathrm{target}}<\mu_{\max}$. Finally, $W$ is a closed convex subset of the compact capped simplex and is therefore compact and convex.
 \end{proof}
 
 Following \citet{rockafellar2000optimization}, the conditional CVaR evaluated at state $\theta$ at confidence level $\alpha = 1 - \tau$ (with $\tau = 0.05$) is:
@@ -262,7 +270,23 @@ Assume that $H \succ 0$, $N\bar{w} \ge 1$, and $\mu_{\text{target}} \le \mu_{\ma
 \end{proposition}
 
 \begin{proof}
-Item 1 follows from Proposition 1 and the closed bounding box construction of $\mathcal{U}$. For Item 2, the Gaussian kernel $K_H(u)$ is smooth and strictly positive on $\mathbb{R}^2$. The normalization denominator $\sum_{s=1}^T K_H(y_{s-1} - \theta)$ is strictly positive on compact $\mathcal{U}$. Thus $p_t(\theta)$ is a ratio of smooth, positive functions with a non-vanishing denominator, making it smooth and strictly positive. For Item 3, for each fixed $t$, the loss function $(w, z) \mapsto [-x_t^\top w - z]_+$ is jointly continuous and convex. Because $p_t(\theta)$ is continuous, the function $F(w, z, \theta) = z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w - z]_+$ is jointly continuous on $\mathbb{R}^N \times \mathbb{R} \times \mathcal{U}$. The partial minimization over $z$ is restricted to a compact interval $[-M_L, M_L]$, where $M_L = \max_{w \in W, t} |x_t^\top w| < \infty$. Since a weighted empirical VaR minimizer can always be selected between the minimum and maximum portfolio losses, we restrict $z$ to this compact set. By Berge's Maximum Theorem, the marginal function $\Phi_\tau(w, \theta) = \min_z F(w, z, \theta)$ is continuous on $W \times \mathcal{U}$. For Item 4, for fixed $\theta$, $\Phi_\tau(\cdot, \theta)$ is the partial minimization over $z$ of the jointly convex function $(w, z) \mapsto F(w, z, \theta)$, which preserves convexity in $w$.
+Item 1 follows from Proposition 1 and the closed bounding box construction of $\mathcal{U}$. For Item 2, the Gaussian kernel $K_H(u)$ is smooth and strictly positive on $\mathbb{R}^2$. The normalization denominator $\sum_{s=1}^T K_H(y_{s-1} - \theta)$ is strictly positive on compact $\mathcal{U}$. Thus $p_t(\theta)$ is a ratio of smooth, positive functions with a non-vanishing denominator, making it smooth and strictly positive.
+
+For Item 3, define
+\begin{equation}
+F(w,z,\theta) = z+\frac{1}{\tau}\sum_{t=1}^{T} p_t(\theta)\big[-x_t^\top w-z\big]_+.
+\end{equation}
+Since $p_t(\theta)$ and $(w,z)\mapsto[-x_t^\top w-z]_+$ are continuous, $F$ is jointly continuous on $\mathbb R^N\times\mathbb R\times\mathcal{U}$. For every $w\in W$, a weighted empirical VaR minimizer can be selected in
+\begin{equation}
+\left[\min_t\{-x_t^\top w\},\max_t\{-x_t^\top w\}\right].
+\end{equation}
+Since $W$ is compact and the return sample is finite, all such minimizers lie in the common compact interval $[-M_L,M_L]$, where
+\begin{equation}
+M_L=\max_{w\in W,\;t}|x_t^\top w|<\infty.
+\end{equation}
+By Berge's Maximum Theorem, the partial minimum $\Phi_\tau(w, \theta) = \min_{z \in [-M_L, M_L]} F(w, z, \theta)$ is continuous on $W \times \mathcal{U}$.
+
+For Item 4, since $F(w, z, \theta)$ is jointly convex in $(w, z)$ for each fixed $\theta$, the partial minimization over convex $z$ preserves convexity in $w$. Hence, $w \mapsto \Phi_\tau(w, \theta)$ is convex on $W$ for each $\theta \in \mathcal{U}$.
 \end{proof}
 
 \begin{theorem}[Existence of optimal robust allocation]
@@ -274,10 +298,10 @@ Because $\mathcal{U}$ is compact and $\Phi_\tau(w, \cdot)$ is continuous on $\ma
 \end{proof}
 
 \section{Grid-restricted adaptive constraint generation}
-Direct discretization of the continuous state space $\mathcal{U}$ over a fine Cartesian grid $\widehat{\mathcal{U}} = \{\theta_1, \dots, \theta_K\}$ yields a large-scale linear program with $K \times T$ auxiliary variables and constraints. For realistic rolling backtests requiring hundreds of sequential optimizations, dense grid solvers suffer from excessive memory footprints and slow convergence. We design an adaptive exchange algorithm that iteratively generates only the binding stress states.
+A full Cartesian-grid approximation of the continuous state space $\mathcal{U}$ yields a large-scale linear program with one CVaR state block for every candidate grid point. We design an adaptive exchange algorithm that iteratively generates only the binding stress states.
 
 \subsection{Master problem and separation oracle}
-At iteration $k \ge 1$, the master problem optimizes portfolio weights $w$ and the robust risk level $\eta$ subject to a finite active subset of market states $\mathcal{U}_k = \{\theta^{(1)}, \dots, \theta^{(m_k)}\} \subset \mathcal{U}$. For each active state $\theta^{(j)} \in \mathcal{U}_k$, we introduce a state-specific VaR variable $z_{\theta^{(j)}} \in \mathbb{R}$ and scenario excess loss variables $u_{t, \theta^{(j)}} \ge 0$. The master problem is the following finite Linear Program (LP):
+At iteration $k \ge 1$, the master problem optimizes portfolio weights $w$ and the robust risk level $\eta$ subject to a finite active subset of market states $\widehat{\mathcal{U}}_k = \{\theta^{(1)}, \dots, \theta^{(m_k)}\} \subseteq \widehat{\mathcal{U}} \subset \mathcal{U}$. For each active state $\theta^{(j)} \in \mathcal{U}_k$, we introduce a state-specific VaR variable $z_{\theta^{(j)}} \in \mathbb{R}$ and scenario excess loss variables $u_{t, \theta^{(j)}} \ge 0$. The master problem is the following finite Linear Program (LP):
 \begin{align}
     \text{LB}_k = \min_{w, \eta, \{z_\theta\}, \{u_{t,\theta}\}} \quad & \eta \\
     \text{s.t.} \quad & z_\theta + \frac{1}{\tau} \sum_{t=1}^{T} p_t(\theta) u_{t,\theta} \le \eta \quad \forall \theta \in \mathcal{U}_k \\
@@ -286,7 +310,7 @@ At iteration $k \ge 1$, the master problem optimizes portfolio weights $w$ and t
     & \sum_{i=1}^N w_i = 1, \quad 0 \le w_i \le \bar{w} \quad \forall i=1,\dots,N \\
     & \hat{\mu}^\top w \ge \mu_{\text{target}}
 \end{align}
-Solving the master LP yields a candidate allocation $w_k$ and a lower bound $\text{LB}_k$ on the true optimal value $v^\star$, because $\mathcal{U}_k \subset \mathcal{U}$ represents a relaxed constraint set.
+Solving the master LP yields a candidate allocation $w^k$ and a lower bound $\text{LB}_k$ on both the grid-restricted optimum $\widehat v^\star$ and the continuous optimum $v^\star$, because $\widehat{\mathcal{U}}_k\subseteq\widehat{\mathcal{U}}\subset\mathcal{U}$.
 
 Given $w_k$, the separation oracle searches for the most adverse state that maximizes conditional CVaR. In our empirical implementation, the separation step searches a candidate discretization $\widehat{\mathcal{U}} \subset \mathcal{U}$ ($21\times21 = 441$ states):
 \begin{equation}
@@ -300,11 +324,12 @@ For computational tractability, we replace the continuous domain $\mathcal{U}$ w
 Every numerical ``optimal'', ``worst-case'', or ``binding'' claim regarding our adaptive exchange algorithm refers to $\widehat{v}^\star$ over $\widehat{\mathcal{U}}$, not the continuous domain $\mathcal{U}$.
 
 
-The conditional CVaR evaluation $\Phi_	au(w_k, 	heta)$ is computed in $O(T \log T + KT)$ time across the $K$ grid states by sorting portfolio losses once $\ell_t = -x_t^\top w_k$ in ascending order $\ell_{(1)} \le \dots \le \ell_{(T)}$ and identifying the index $j$ where the cumulative kernel weight reaches $1 - \tau = 0.95$:
+The conditional CVaR values $\Phi_\tau(w^k,\theta)$, for all $\theta\in\widehat{\mathcal{U}}$, are evaluated in $O(T\log T+KT)$ time by sorting the portfolio losses once,
 \begin{equation}
-    j^* = \min \left\{ j \in \{1,\dots,T\} : \sum_{t=1}^j p_{(t)}(\theta) \ge 1 - \tau \right\}
+\ell_t = -x_t^\top w^k,\qquad \ell_{(1)} \le \dots \le \ell_{(T)},
 \end{equation}
-The optimal conditional VaR is $z^*(\theta) = \ell_{(j^*)}$, and the conditional CVaR is evaluated directly from the tail excess losses. The overall adaptive exchange algorithm is depicted in Figure \ref{fig:schema2}.
+and reordering the kernel probabilities accordingly as $p_{(t)}(\theta)$.
+The overall adaptive exchange algorithm is depicted in Figure \ref{fig:schema2}.
 
 \begin{figure}[htbp]
 \centering
@@ -349,11 +374,11 @@ Assume that each master problem is solved to exact LP optimality and the separat
 \end{proposition}
 
 \begin{proof}
-Because $\mathcal{U}_k \subset \mathcal{U}_{k+1} \subset \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\text{LB}_k \le \text{LB}_{k+1} \le v^\star$. For Item 2, $G(w_k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w_k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
+Because $\widehat{\mathcal{U}}_k \subseteq \widehat{\mathcal{U}} \subset \mathcal{U}_{k+1} \subset \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\text{LB}_k \le \text{LB}_{k+1} \le v^\star$. For Item 2, $G(w_k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w_k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
 
-For Item 3, upon termination with $G(w_k) - \text{LB}_k \le \epsilon$, we have $0 \le G(w_k) - v^\star \le G(w_k) - \text{LB}_k \le \epsilon$, and the portfolio $w_k$ satisfies all finite constraints in $W$ while the epigraph pair $(w_k, \text{LB}_k)$ is $\epsilon$-feasible for the continuous constraint set.
+For Item 3, upon termination with $G(w_k) - \text{LB}_k \le \epsilon$, we have $0 \le G(w_k) - v^\star \le G(w_k) - \text{LB}_k \le \epsilon$, and the portfolio $w_k$ satisfies all finite constraints in $W$ while the epigraph pair $(w^k, \text{LB}_k+\varepsilon)$ is feasible for the continuous constraint set.
 
-To establish finite termination, suppose for contradiction that the algorithm does not terminate. Then it generates an infinite sequence of states $\{\theta_k\}_{k=1}^\infty \subset \mathcal{U}$ such that $\Phi_\tau(w_k, \theta_k) - \text{LB}_k > \epsilon$ for all $k$. For any $j < k$, the constraint for $\theta_j$ was included in master problem $k$, so $\Phi_\tau(w_k, \theta_j) \le \text{LB}_k$. Thus $\Phi_\tau(w_k, \theta_k) - \Phi_\tau(w_k, \theta_j) > \epsilon$. Since $\Phi_\tau$ is continuous on the compact set $W\times \mathcal{U}$, it is uniformly continuous. Hence, for every $\varepsilon>0$, there exists $\delta_\varepsilon>0$ such that $\|\theta-\theta'\|<\delta_\varepsilon \implies |\Phi_\tau(w,\theta)-\Phi_\tau(w,\theta')|<\varepsilon$ uniformly for all $w\in W$. Therefore, $\|\theta_k - \theta_j\| \ge \delta_\epsilon$ for all $j < k$. A compact metric space is totally bounded and therefore cannot contain an infinite $\delta_\epsilon$-separated sequence, which contradicts the compactness of $\mathcal{U}$ \citep{hettich1993semi, lopez2007semi}. This exact-oracle convergence is a classical consequence of standard SIP exchange methods. This exact-oracle convergence is a classical consequence of standard SIP exchange methods.
+To establish finite termination, suppose for contradiction that the algorithm does not terminate. Then it generates an infinite sequence of states $\{\theta_k\}_{k=1}^\infty \subset \mathcal{U}$ such that $\Phi_\tau(w_k, \theta_k) - \text{LB}_k > \epsilon$ for all $k$. For any $j < k$, the constraint for $\theta_j$ was included in master problem $k$, so $\Phi_\tau(w_k, \theta_j) \le \text{LB}_k$. Thus $\Phi_\tau(w_k, \theta_k) - \Phi_\tau(w_k, \theta_j) > \epsilon$. Since $\Phi_\tau$ is continuous on the compact set $W\times \mathcal{U}$, it is uniformly continuous. Hence, for every $\varepsilon>0$, there exists $\delta_\varepsilon>0$ such that $\|\theta-\theta'\|<\delta_\varepsilon \implies |\Phi_\tau(w,\theta)-\Phi_\tau(w,\theta')|<\varepsilon$ uniformly for all $w\in W$. Therefore, $\|\theta_k - \theta_j\| \ge \delta_\epsilon$ for all $j < k$. A compact metric space is totally bounded and therefore cannot contain an infinite $\delta_\epsilon$-separated sequence, which contradicts the compactness of $\mathcal{U}$ \citep{hettich1993semi, lopez2007semi}. This exact-oracle convergence is a classical consequence of standard SIP exchange methods.
 \end{proof}
 
 \begin{remark}[Monotonicity of bounds]
@@ -435,8 +460,13 @@ To incorporate realistic market frictions, we compute holding-period portfolio t
 \end{equation}
 where $R_{i,t}$ is the cumulative simple/net return (and $1+R_{i,t}$ is the gross return) of asset $i$ over the 21-day holding period. Holding-period turnover and net return are defined as:
 \begin{equation}
-    \text{TO}_t = \frac{1}{2} \sum_{i=1}^N | w_{i,t} - \widetilde w_{i,t} |, \qquad r_{t}^{\text{net}} = r_{t}^{\text{gross}} - c \cdot \text{TO}_t
+    \text{TO}_t = \frac{1}{2} \sum_{i=1}^N | w_{i,t} - \widetilde w_{i,t} |
 \end{equation}
+and
+\begin{equation}
+    r_t^{\mathrm{net}} = r_t^{\mathrm{pre-cost}} - c\,\mathrm{TO}_t,
+\end{equation}
+where $r_t^{\mathrm{pre-cost}}$ is the portfolio's simple holding-period return before transaction costs.
 
 \subsection{Long-term cumulative wealth and risk-adjusted performance}
 Figure \ref{fig:wealth} displays the cumulative wealth trajectories of all five investment strategies net of 10 bps transaction costs on an initial \$1 investment. The naive $1/N$ portfolio delivers the highest final cumulative wealth of \$29.25, followed by the Finite-Regime CVaR portfolio (\$25.68), the continuous Robust SIP strategy (\$25.04), the Nominal CVaR portfolio (\$22.92), and the TC-MinVar portfolio (\$22.16).
@@ -665,13 +695,12 @@ Mean window-level $\tau\times \operatorname{ESS}$ tail-support proxy & 4.15 \\
 \end{tabular}
 \end{table}
 
-Table \ref{tab:computational} provides a quantitative comparison between the adaptive exchange algorithm and dense Cartesian grid solutions. Using the representative-window benchmark, the adaptive algorithm with 5 active states solves in 3.45 seconds, compared to 71.43 seconds for the $21\times21$ grid (441 states), achieving approximately a $20.7\times$ speedup on the representative benchmark window relative to the $21\times21$ grid. The dense $41\times41$ formulation did not return a primal solution within the 600-second solver limit; therefore, no objective value or allocation distance is reported.
+Figure 11 illustrates convergence for one selected rolling window. Table \ref{tab:computational} reports a separate representative-window benchmark used for the dense-grid comparison; therefore, the objective values and numbers of active states in Figure 11 and Table \ref{tab:computational} are not expected to coincide. For the selected benchmark window and the reported extensive-form implementation, the dense $41\times41$ LP did not return a primal solution within the 600-second solver limit.
 
 Several diagnostics in Tables \ref{tab:computational} and \ref{tab:ess_diagnostics} warrant careful interpretation:
 \begin{enumerate}
     \item \textbf{Representative-Window $\ell_1$ Weight Discrepancy}: On the representative window, the $\ell_1$ distance between the adaptive $21\times21$ exchange solution and the dense $21\times21$ grid solution is $\|w_{\mathrm{adaptive}}-w_{\mathrm{dense21}}\|_1 \approx 0.00156$. The difference between the adaptive final grid worst-case value and the dense-grid optimum is approximately $7.6\times10^{-6}$, below the exchange tolerance of $10^{-4}$.
-    \item \textbf{Tail Effective Sample Size}: The minimum, across rolling windows, of the within-window mean ESS over active states is 2.18, indicating that some windows contain collectively low-support active stress states. State-level exports would be required to identify the minimum individual active-state ESS and determine whether it occurs at the boundary of the state domain.
-\end{enumerate}
+    \item \textbf{Active-State Support}: Active-state support: The minimum, across rolling windows, of the within-window mean ESS over active states is 2.18, indicating that some windows contain collectively low-support active states. The reported value $\tau\times \operatorname{ESS}$ is only a descriptive tail-support proxy and is not a formal tail effective sample size.\end{enumerate}
 
 
 \begin{figure}[htbp]
@@ -699,7 +728,7 @@ Several diagnostics in Tables \ref{tab:computational} and \ref{tab:ess_diagnosti
     \end{minipage}
 \end{figure}
 
-Figure \ref{fig:frontier} contextualizes the in-sample decision environment. The continuous-state robust efficient frontier forms an outer envelope of worst-case risk across all states in $\mathcal{U}$, positioned to the right of the unconditional nominal CVaR frontier and the classical Markowitz mean-variance frontier. Individual industry portfolios exhibit substantial dispersion in both expected return and downside tail risk, with defensive sectors displaying lower tail risk compared to high-beta sectors.
+Figure \ref{fig:frontier} contextualizes the in-sample decision environment. The grid-restricted robust efficient frontier forms an outer envelope of worst-grid-state CVaR values, positioned to the right of the unconditional nominal CVaR frontier and the classical Markowitz mean-variance frontier. Individual industry portfolios exhibit substantial dispersion in both expected return and downside tail risk, with defensive sectors displaying lower tail risk compared to high-beta sectors.
 
 Figure \ref{fig:kernel} visualizes the continuous market-state space $\mathcal{U} \subset \mathbb{R}^2$ alongside the bivariate kernel density estimate $f(\text{log-VIX}, \text{Drawdown})$. Historical market states concentrate in a low-volatility, low-drawdown core regime (VIX between 10 and 20, Drawdown below 10\%). However, the continuous domain extends outward into severe tail regions, encompassing major historical dislocations such as the 1998 LTCM collapse (VIX 45.74, Drawdown 19.3\%), the 2000--2002 Dot-Com crash (VIX 45.08, Drawdown 44.7\%), the 2008 Lehman Brothers crisis (VIX 80.06, Drawdown 48.4\%), the March 2020 COVID-19 shock (VIX 82.69, Drawdown 33.8\%), and the 2022 inflation-driven bear market (VIX 34.02, Drawdown 24.5\%). In the representative visualization, some active stress states lie in relatively low-density regions of the state domain, exerting binding constraints on the master portfolio problem.
 
@@ -729,7 +758,7 @@ vs.\ Finite-Regime & $-0.0919$ & 0.0613 & $[-0.216, \, 0.026]$ & 0.124 \\
 \end{tabular}
 \end{table}
 
-Against all four benchmarks, the two-sided $p$-values exceed 0.05 ($p = 0.286$ vs. Nominal CVaR, $p = 0.384$ vs. $1/N$, $p = 0.286$ vs. TC-MinVar, and $p = 0.124$ vs. Finite-Regime). The null hypothesis of equal Sharpe ratios is not rejected at the 5\% or 10\% significance levels. As shown in Figure \ref{fig:bootstrap}, the raw bootstrap distribution of $\Delta \text{SR}$ relative to Nominal CVaR is approximately symmetric and centered near the observed estimate $-0.071$. The two-sided empirical p-value is calculated as twice the smaller bootstrap proportion lying on either side of zero. The unstudentized percentile bootstrap is used for confidence intervals, with the null value $\Delta \text{SR} = 0$ comfortably contained within the 95\% confidence interval.
+Against all four benchmarks, the two-sided $p$-values exceed 0.05 ($p = 0.286$ vs. Nominal CVaR, $p = 0.384$ vs. $1/N$, $p = 0.286$ vs. TC-MinVar, and $p = 0.124$ vs. Finite-Regime). The exploratory bootstrap results do not provide evidence against equality of the Sharpe ratios at the 5\% or 10\% levels. As shown in Figure \ref{fig:bootstrap}, the raw bootstrap distribution of $\Delta \text{SR}$ relative to Nominal CVaR is approximately symmetric and centered near the observed estimate $-0.071$. We report an unstudentized two-sided bootstrap tail-area measure, calculated as twice the smaller proportion of bootstrap Sharpe-ratio differences lying on either side of zero. This quantity is interpreted as an exploratory inferential diagnostic rather than as the studentized Ledoit--Wolf test. The unstudentized percentile bootstrap is used for confidence intervals, with the null value $\Delta \text{SR} = 0$ comfortably contained within the 95\% confidence interval.
 
 This statistical finding provides an important nuance to the wealth accumulation results: while Robust SIP generates competitive cumulative wealth (\$25.04 vs. \$22.92 for Nominal CVaR), its risk-adjusted Sharpe ratio is lower due to elevated portfolio volatility. The bootstrap does not provide sufficient evidence to distinguish these Sharpe-ratio differences from zero at conventional significance levels. The primary methodological contribution of the continuous-state framework lies in its principled representation of the state-risk relationship and sparse constraint generation, rather than in statistically dominant out-of-sample risk-adjusted performance.
 
@@ -738,7 +767,7 @@ To ensure scientific transparency and enable independent verification of all emp
 
 The repository provides the complete pipeline structured into four main components:
 \begin{enumerate}
-    \item \textbf{Optimization Engine} (\texttt{code/Robust SIP.jl}): Implements the adaptive semi-infinite programming exchange algorithm, the HiGHS master LP solver, the grid separation oracle, and benchmark solvers.
+    \item \textbf{Optimization Engine} (\texttt{code/Robust SIP.jl}): Implements the grid-restricted adaptive constraint-generation algorithm, the HiGHS master-LP solver, the full-grid separation oracle, and the benchmark solvers.
     \item \textbf{Backtesting Suite} (\texttt{code/main\_exp.jl}): Executes the 31-year rolling-window out-of-sample backtest, computes the 14 performance metrics, performs transaction cost sensitivity sweeps, and conducts the paired circular moving-block bootstrap test.
     \item \textbf{Empirical Data Module} (\texttt{data/aligned\_market\_data.csv}): Contains the synchronized daily returns for the Kenneth French 30 Industry Portfolios alongside CBOE VIX and drawdown indicators over the full 1990 to 2026 period.
     \item \textbf{Figure Generation Routine} (\texttt{code/generate\_publication\_figures.py}): Reproduces all analytical figures in high-resolution vector PDF format.
@@ -750,7 +779,7 @@ Computations were performed on an Apple M1 Pro with 8 CPU cores and 16 GB RAM, u
 To ensure the robustness of our findings to methodological hyperparameters, we conduct sensitivity analyses across key design choices: grid resolution, kernel bandwidth, Effective Sample Size (ESS) regularization, and bootstrap block length. The grid resolution and bandwidth analyses (Tables \ref{tab:sens_grid} and \ref{tab:sens_bw}) report averages over a representative subset of 20 evenly spaced rolling out-of-sample windows spanning the full evaluation period from 28 December 1994 to 17 June 2026. This uniform sampling guarantees that the analyses span multiple market regimes, including crisis periods, while remaining computationally tractable for the dense grid benchmarks. The ESS threshold and bootstrap block length sensitivities are evaluated over the entire sequence of 377 rolling windows.
 
 \subsection{Grid resolution and bandwidth sensitivity}
-Table \ref{tab:sens_grid} details the sensitivity of the adaptive exchange algorithm to the separation oracle's grid density. The standard implementation uses a $21\times21$ grid (441 candidate states). Increasing the grid resolution from $11\times11$ to $81\times81$ increases the average worst-case CVaR from approximately 4.46\% to 4.53\%, with little change beyond the $21\times21$ grid. Average solve time remains below one second for all examined grids. Table \ref{tab:computational} reports one representative-window wall-clock measurement covering kernel-matrix preparation within the solver routine, JuMP model construction, and HiGHS execution. Table \ref{tab:sens_grid} reports averages over 20 rolling-window instances. The two timing experiments therefore differ in both selected instances and aggregation and should not be compared as identical benchmarks.
+Table \ref{tab:sens_grid} details the sensitivity of the adaptive exchange algorithm to the separation oracle's grid density. The standard implementation uses a $21\times21$ grid (441 candidate states). Increasing the grid resolution from $11\times11$ to $81\times81$ increases the average worst-case CVaR from approximately 4.46\% to 4.53\%, with limited objective variation beyond the $21\times21$ grid. Nevertheless, the average $\ell_1$ allocation distance between the $21\times21$ and $81\times81$ solutions is approximately 0.063, indicating that objective stability does not imply complete allocation stability. Average solve time remains below one second for all examined grids. Table \ref{tab:computational} reports one representative-window wall-clock measurement covering kernel-matrix preparation within the solver routine, JuMP model construction, and HiGHS execution. Table \ref{tab:sens_grid} reports averages over 20 rolling-window instances. The two timing experiments therefore differ in both selected instances and aggregation and should not be compared as identical benchmarks.
 
 \begin{table}[htbp]
 \centering
