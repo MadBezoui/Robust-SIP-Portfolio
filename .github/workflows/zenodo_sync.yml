@@ -1,0 +1,62 @@
+name: Zenodo Automated Sync
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      sandbox:
+        description: 'Use Zenodo Sandbox'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  sync-zenodo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Prepare Zenodo Bundle
+        run: |
+          python -c "
+          import os, zipfile
+          bundle_name = 'zenodo_bundle.zip'
+          with zipfile.ZipFile(bundle_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+              for folder in ['code', 'data', 'results', 'paper', 'submission_CompOptAlg']:
+                  if os.path.exists(folder):
+                      for root, dirs, files in os.walk(folder):
+                          for f in files:
+                              if not f.startswith('.') and '__pycache__' not in root:
+                                  fp = os.path.join(root, f)
+                                  zipf.write(fp, fp)
+              for extra in ['README.md', '.zenodo.json']:
+                  if os.path.exists(extra):
+                      zipf.write(extra, extra)
+          "
+
+      - name: Upload to Zenodo
+        env:
+          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+        run: |
+          if [ -z "$ZENODO_TOKEN" ]; then
+            echo "::warning ::ZENODO_TOKEN secret is not set. Skipping direct API upload. (Native GitHub-Zenodo integration will still handle the release if configured on zenodo.org)."
+          else
+            SANDBOX_FLAG=""
+            if [ "${{ github.event.inputs.sandbox }}" = "true" ]; then
+              SANDBOX_FLAG="--sandbox"
+            fi
+            python upload_to_zenodo.py --zip zenodo_bundle.zip $SANDBOX_FLAG
+          fi

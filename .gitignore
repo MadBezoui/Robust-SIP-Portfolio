@@ -1,2 +1,16 @@
-paper/
+.DS_Store
+__pycache__/
+*.pyc
+*.aux
+*.log
+*.out
+*.blg
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+.ipynb_checkpoints/
+scratch/
 paper2/
+zenodo_bundle_v1.0.6/
+zenodo_release_v1.0.4/
+zenodo_release*.zip

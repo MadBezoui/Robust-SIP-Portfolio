@@ -1,0 +1,35 @@
+{
+  "title": "Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation: Code, Data, and Empirical Results",
+  "description": "This archive contains the complete reproducible experimental codebase, historical market dataset, empirical result tables, and high-resolution publication figures for the research paper: 'Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation' by Madani Bezoui and Thiziri Sifaoui.\n\n### Contents:\n- `code/`: Complete Julia and Python implementation of the continuous-state robust portfolio optimization model, grid-restricted constraint generation algorithm, HiGHS LP master solver, full-grid separation oracle, 31-year rolling backtest pipeline, and publication figure generator.\n- `data/`: Aligned daily returns for Kenneth French 30 Industry Portfolios alongside CBOE VIX and market drawdown indicators spanning 1990--2026.\n- `results/`: Complete experimental outputs, including 14-metric performance tables, crisis-period analysis, transaction cost sweeps, circular block-bootstrap distributions, sensitivity analyses, and high-resolution PDF publication plots.\n- `paper/`: Compiled PDF of the manuscript, cover letter, and research highlights.",
+  "upload_type": "software",
+  "publication_date": "2026-08-21",
+  "creators": [
+    {
+      "name": "Bezoui, Madani",
+      "affiliation": "CESI LINEACT, Nancy, France",
+      "orcid": "0000-0002-3907-8822"
+    },
+    {
+      "name": "Sifaoui, Thiziri",
+      "affiliation": "University of Tamanghasset and LAROMAD, UMMTO, Algeria"
+    }
+  ],
+  "access_right": "open",
+  "license": "MIT",
+  "keywords": [
+    "Robust Portfolio Optimization",
+    "Conditional Value-at-Risk",
+    "Semi-Infinite Programming",
+    "Kernel-Weighted Conditional Distributions",
+    "Constraint Generation",
+    "Empirical Backtesting",
+    "Open Science"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/MadBezoui/Robust-SIP-Portfolio",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
