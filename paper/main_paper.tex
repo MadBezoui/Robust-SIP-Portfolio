@@ -577,6 +577,15 @@ Figures \ref{fig:weights_rob} and \ref{fig:weights_mv} compare the dynamic alloc
 
 Figure \ref{fig:turnover} confirms that the turnover distribution for Robust SIP has a mean near 9.5\%, reflecting the active rebalancing induced by continuous state conditioning. TC-MinVar exhibits lower mean turnover (7.0\%), while $1/N$ has the lowest (1.7\%) due to its static equal-weight target.
 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../results/cumulative_tc_plot.pdf}
+    \caption{Cumulative transaction cost impact over the out-of-sample period, assuming 10 bps proportional friction.}
+    \label{fig:cumulative_tc}
+\end{figure}
+
+
 \begin{table}[htbp]
 \centering
 \caption{Transaction cost sensitivity: out-of-sample performance under alternative cost levels}
@@ -680,6 +689,15 @@ Several diagnostics in Tables \ref{tab:computational} and \ref{tab:ess_diagnosti
     \item \textbf{Representative-Window $\ell_1$ Weight Discrepancy}: On the representative window, the $\ell_1$ distance between the adaptive $21 \times 21$ exchange solution and the dense $21 \times 21$ grid solution is $\|w_{\mathrm{adaptive}}-w_{\mathrm{dense21}}\|_1 \approx 0.00156$. The difference between the adaptive final grid worst-case value and the dense-grid optimum is approximately $7.6\times10^{-6}$, below the exchange tolerance of $10^{-4}$.
     \item \textbf{Tail Effective Sample Size}: The minimum, across rolling windows, of the within-window mean ESS over active states is 2.18, indicating that some windows contain collectively low-support active stress states. State-level exports would be required to identify the minimum individual active-state ESS and determine whether it occurs at the boundary of the state domain.
 \end{enumerate}
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.88\textwidth]{../results/ess_history_plot.pdf}
+    \caption{Evolution of the average Effective Sample Size (ESS) for active stress states across the 377 rolling backtest windows.}
+    \label{fig:ess_history}
+\end{figure}
+
 
 \begin{figure}[htbp]
     \centering

@@ -8,17 +8,24 @@ import matplotlib.patches as patches
 from scipy.stats import gaussian_kde
 
 # Set academic publication style
+plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams.update({
     'font.family': 'sans-serif',
     'font.sans-serif': ['Helvetica', 'Arial', 'DejaVu Sans'],
-    'font.size': 11,
-    'axes.labelsize': 12,
-    'axes.titlesize': 13,
-    'xtick.labelsize': 10,
-    'ytick.labelsize': 10,
-    'legend.fontsize': 10,
-    'figure.titlesize': 14,
+    'font.size': 12,
+    'axes.labelsize': 13,
+    'axes.titlesize': 15,
+    'axes.titleweight': 'bold',
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+    'figure.titlesize': 16,
     'figure.autolayout': True,
+    'axes.edgecolor': '#333333',
+    'axes.linewidth': 1.2,
+    'grid.color': '#e0e0e0',
+    'grid.linestyle': '--',
+    'grid.alpha': 0.7,
     'pdf.fonttype': 42,
     'ps.fonttype': 42
 })
@@ -525,6 +532,99 @@ def plot_active_states():
     print("Saved active_states_plot.pdf")
 
 
+# ==============================================================================
+# 10. TIME-VARYING MARKET STATE TRAJECTORY
+# ==============================================================================
+def plot_market_trajectory():
+    df_mkt = pd.read_csv(data_path)
+    dates = pd.to_datetime(df_mkt['Date'])
+    vix = df_mkt['VIX'].values
+    drawdown = df_mkt['Drawdown'].values * 100.0
+
+    fig, ax1 = plt.subplots(figsize=(8.0, 5.0), dpi=300)
+    
+    color1 = '#e74c3c'
+    ax1.set_xlabel('Date (1990 to 2026)', fontsize=11)
+    ax1.set_ylabel('CBOE VIX Index', color=color1, fontsize=11)
+    ax1.plot(dates, vix, color=color1, linewidth=1.2, alpha=0.85, label='VIX')
+    ax1.tick_params(axis='y', labelcolor=color1)
+    
+    ax2 = ax1.twinx()
+    color2 = '#2980b9'
+    ax2.set_ylabel('Trailing Equity Market Drawdown (%)', color=color2, fontsize=11)
+    ax2.plot(dates, drawdown, color=color2, linewidth=1.2, alpha=0.85, label='Drawdown')
+    ax2.tick_params(axis='y', labelcolor=color2)
+    
+    ax1.set_title('Evolution of Market State Variables (VIX and Drawdown)', fontsize=13, pad=10)
+    fig.tight_layout()
+    plt.savefig(os.path.join(output_dir, "market_trajectory_plot.pdf"))
+    plt.close()
+    print("Saved market_trajectory_plot.pdf")
+
+
+# ==============================================================================
+# 11. EFFECTIVE SAMPLE SIZE (ESS) OVER TIME
+# ==============================================================================
+def plot_ess_over_time():
+    hist_file = os.path.join(output_dir, "active_states_history.csv")
+    if not os.path.exists(hist_file):
+        return
+    
+    df_hist = pd.read_csv(hist_file)
+    windows = df_hist['Window'].values
+    ess = df_hist['Avg_Active_State_ESS'].values
+    
+    fig, ax = plt.subplots(figsize=(7.5, 4.6), dpi=300)
+    ax.plot(windows, ess, color='#8e44ad', linewidth=2.0, alpha=0.9, label='Avg ESS of Active States')
+    
+    mean_val = np.mean(ess)
+    ax.axhline(mean_val, color='#2c3e50', linewidth=1.8, linestyle='--', label=f'Mean ESS ({mean_val:.1f})')
+    
+    ax.set_xlabel('Rolling Backtest Window (1 to 377)', fontsize=11)
+    ax.set_ylabel('Effective Sample Size (ESS)', fontsize=11)
+    ax.set_title('Statistical Support of Active Stress States Over Time', fontsize=12, pad=10)
+    ax.grid(True, linestyle='--', alpha=0.45)
+    ax.legend(loc='upper right', frameon=True, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "ess_history_plot.pdf"))
+    plt.close()
+    print("Saved ess_history_plot.pdf")
+
+
+# ==============================================================================
+# 12. CUMULATIVE TRANSACTION COST DRAG
+# ==============================================================================
+def plot_cumulative_tc_drag():
+    ts_file = os.path.join(output_dir, "strategy_holding_period_returns.csv")
+    if not os.path.exists(ts_file):
+        return
+    
+    df_ts = pd.read_csv(ts_file)
+    dates = pd.to_datetime(df_ts['Date'])
+    
+    fig, ax = plt.subplots(figsize=(8.0, 5.0), dpi=300)
+    tc_rate = 0.0010  # 10 bps
+    
+    for s, col in COLORS.items():
+        turnover = df_ts[f"{s}_TO"].values
+        tc_drag = turnover * tc_rate * 100.0  # in percentage points
+        cum_drag = np.cumsum(tc_drag)
+        lw = 2.4 if s == 'RobustSIP' else 1.8
+        ls = '-' if s in ['RobustSIP', 'MinVar', '1/N'] else '--'
+        ax.plot(dates, cum_drag, label=s, color=col, linewidth=lw, linestyle=ls)
+    
+    ax.set_xlabel('Out-of-Sample Date (1995 to 2026)', fontsize=11)
+    ax.set_ylabel('Cumulative Transaction Cost Drag (%)', fontsize=11)
+    ax.set_title('Cumulative Transaction Cost Impact (Assuming 10 bps)', fontsize=12, pad=10)
+    ax.grid(True, linestyle='--', alpha=0.45)
+    ax.legend(loc='upper left', frameon=True, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "cumulative_tc_plot.pdf"))
+    plt.close()
+    print("Saved cumulative_tc_plot.pdf")
+
 if __name__ == "__main__":
     print("Generating all publication-quality figures directly from empirical outputs...")
     plot_bounds()
@@ -536,4 +636,7 @@ if __name__ == "__main__":
     plot_weights()
     plot_turnover()
     plot_active_states()
+    plot_market_trajectory()
+    plot_ess_over_time()
+    plot_cumulative_tc_drag()
     print("All figures generated successfully.")
