@@ -276,7 +276,7 @@ function evaluate_backtest(trans_cost::Float64=0.0010, tau::Float64=0.05)
     mu_min_achievable = min_feasible_return(mu_full, max_weight)
     
     target_grid = range(mu_min_achievable * 1.05, mu_max_achievable * 0.95, length=25)
-    frontier_df = DataFrame(
+    println("Evaluation complete.")
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
