@@ -6,7 +6,7 @@ using LinearAlgebra
 using Statistics
 using Distributions
 
-export get_kernel_weights, effective_sample_size, empirical_cvar,
+export get_kernel_weights, effective_sample_size, empirical_cvar, grad_cvar_theta, lipschitz_certificate, verify_continuous_cvar, solve_master_cvar_regularized, filter_grid_to_hull,
        max_feasible_return, min_feasible_return,
        solve_master_cvar, solve_oracle, solve_robust_sip,
        solve_nominal_cvar, solve_min_variance, solve_finite_regime_cvar,
@@ -543,6 +543,222 @@ function compute_dispersion_certificate(v_range::Tuple{Float64, Float64}, d_rang
     certificate = L_Phi * rho
     
     return rho, L_Phi, certificate
+end
+
+
+# --- Phase M1: Continuous-Optimality Certification ---
+
+"""
+Analytic gradient of the conditional CVaR w.r.t state theta.
+∇_θ Φ_τ(w,θ) = (1/τ) ∑_t ∇_θ p_t(θ) [l_t(w) - z^*(θ)]_+
+"""
+function grad_cvar_theta(w::Vector{Float64}, theta::Vector{Float64}, X::Matrix{Float64}, Y::Matrix{Float64}, H::Matrix{Float64}, tau::Float64)
+    T = size(X, 1)
+    H_inv = inv(H)
+    
+    # 1. Compute kernel weights
+    log_w = zeros(T)
+    for t in 1:T
+        u = Y[t, :] - theta
+        log_w[t] = -0.5 * dot(u, H_inv * u)
+    end
+    max_log = maximum(log_w)
+    W = exp.(log_w .- max_log)
+    P = W ./ sum(W)
+    
+    # 2. Compute y_bar
+    y_bar = zeros(2)
+    for t in 1:T
+        y_bar += P[t] * Y[t, :]
+    end
+    
+    # 3. Compute gradients of weights ∇_θ p_t(θ)
+    grad_p = zeros(2, T)
+    for t in 1:T
+        grad_p[:, t] = P[t] .* (H_inv * (y_bar - Y[t, :]))
+    end
+    
+    # 4. Compute losses and sort to find VaR z^*(θ)
+    losses = -(X * w)
+    idx = sortperm(losses, rev=true)
+    sorted_losses = losses[idx]
+    sorted_P = P[idx]
+    
+    cum_p = 0.0
+    z_star = 0.0
+    for i in 1:T
+        cum_p += sorted_P[i]
+        if cum_p >= tau
+            z_star = sorted_losses[i]
+            break
+        end
+    end
+    
+    # 5. Compute CVaR gradient
+    grad_phi = zeros(2)
+    for t in 1:T
+        l_t = losses[t]
+        if l_t > z_star
+            grad_phi += grad_p[:, t] .* (l_t - z_star)
+        end
+    end
+    
+    return (1.0 / tau) .* grad_phi
+end
+
+"""
+A priori Lipschitz Certificate L_Phi <= (4 * R * M_L) / (tau * lambda_min(H))
+"""
+function lipschitz_certificate(X::Matrix{Float64}, Y::Matrix{Float64}, H::Matrix{Float64}, tau::Float64, thetas::Vector{Vector{Float64}})
+    T, N = size(X)
+    
+    # M_L = max_w max_t |X_t w| = max_t max_j |X_tj| (since w in simplex)
+    M_L = maximum(abs.(X))
+    
+    # R = max_{t, θ} || Y_t - θ ||
+    R = 0.0
+    for t in 1:T
+        for th in thetas
+            d = norm(Y[t, :] - th)
+            if d > R
+                R = d
+            end
+        end
+    end
+    
+    eigvals_H = eigen(H).values
+    lambda_min_H = minimum(eigvals_H)
+    
+    L_Phi = (4.0 * R * M_L) / (tau * lambda_min_H)
+    return L_Phi
+end
+
+"""
+Projected gradient ascent over θ for A Posteriori Verification.
+Starts from the best grid points and climbs the continuous CVaR surface.
+"""
+function verify_continuous_cvar(w::Vector{Float64}, X::Matrix{Float64}, Y::Matrix{Float64}, H::Matrix{Float64}, tau::Float64, top_thetas::Vector{Vector{Float64}}, bounds_v::Tuple{Float64,Float64}, bounds_d::Tuple{Float64,Float64}; max_steps=100, lr=1e-3)
+    best_cvar = -Inf
+    best_theta = top_thetas[1]
+    
+    for th_start in top_thetas
+        th = copy(th_start)
+        for step in 1:max_steps
+            g = grad_cvar_theta(w, th, X, Y, H, tau)
+            
+            # Gradient ascent step
+            th += lr .* g
+            
+            # Project onto box U
+            th[1] = clamp(th[1], bounds_v[1], bounds_v[2])
+            th[2] = clamp(th[2], bounds_d[1], bounds_d[2])
+            
+            # If gradient is tiny, break
+            if norm(g) < 1e-6
+                break
+            end
+        end
+        
+        # Evaluate final continuous CVaR
+        _, val = solve_oracle(w, X, Y, [th], H, tau)
+        if val > best_cvar
+            best_cvar = val
+            best_theta = copy(th)
+        end
+    end
+    
+    return best_theta, best_cvar
+end
+
+
+# --- Phase M2: Turnover Regularization ---
+
+"""
+Master LP augmented with L1 Turnover Regularization: lambda ||w - w_prev||_1
+"""
+function solve_master_cvar_regularized(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64, w_prev::Union{Vector{Float64}, Nothing}, lambda_turnover::Float64)
+    T, N = size(X)
+    K = length(active_thetas)
+    
+    mu_max = max_feasible_return(mu, max_weight)
+    mu_min = min_feasible_return(mu, max_weight)
+    t_ret = clamp(target_return, mu_min, mu_max - 1e-6)
+    
+    P_matrix = zeros(K, T)
+    for k in 1:K
+        P_matrix[k, :] = get_kernel_weights(Y, active_thetas[k], H)
+    end
+    
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    set_attribute(model, "time_limit", 600.0)
+    
+    @variable(model, t_var)
+    @variable(model, 0.0 <= w[1:N] <= max_weight)
+    @variable(model, z[1:K])
+    @variable(model, u[1:K, 1:T] >= 0.0)
+    
+    @constraint(model, sum(w) == 1.0)
+    @constraint(model, dot(mu, w) >= t_ret)
+    
+    for k in 1:K
+        @constraint(model, z[k] + (1.0/tau) * sum(P_matrix[k, i] * u[k, i] for i in 1:T) <= t_var)
+        for i in 1:T
+            @constraint(model, u[k, i] >= -dot(X[i, :], w) - z[k])
+        end
+    end
+    
+    # Turnover penalty
+    if w_prev !== nothing && lambda_turnover > 0.0
+        @variable(model, turn_abs[1:N] >= 0.0)
+        for j in 1:N
+            @constraint(model, turn_abs[j] >= w[j] - w_prev[j])
+            @constraint(model, turn_abs[j] >= w_prev[j] - w[j])
+        end
+        @objective(model, Min, t_var + lambda_turnover * sum(turn_abs))
+    else
+        @objective(model, Min, t_var)
+    end
+    
+    optimize!(model)
+    
+    term_status = termination_status(model)
+    if term_status == MOI.OPTIMAL || term_status == MOI.LOCALLY_SOLVED || (term_status == MOI.TIME_LIMIT && has_values(model))
+        return value.(w), objective_value(model), term_status
+    else
+        return missing, missing, term_status
+    end
+end
+
+
+# --- Phase M5: Convex Hull Geometry ---
+
+"""
+Filters a Cartesian grid to only include points inside the 2D convex hull of the observed data.
+"""
+function filter_grid_to_hull(grid::Vector{Vector{Float64}}, Y_obs::Matrix{Float64})
+    # For a point p to be inside the convex hull of Y_obs,
+    # it must be representable as a convex combination of points in Y_obs.
+    # We can solve a small LP for each point to check membership, or use a package.
+    # Since we want to keep dependencies low, we solve an LP for membership.
+    
+    T = size(Y_obs, 1)
+    filtered_grid = Vector{Vector{Float64}}()
+    
+    for pt in grid
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
+        @variable(model, lambda_vars[1:T] >= 0.0)
+        @constraint(model, sum(lambda_vars) == 1.0)
+        @constraint(model, Y_obs' * lambda_vars .== pt)
+        @objective(model, Min, 0.0)
+        optimize!(model)
+        
+        if termination_status(model) == MOI.OPTIMAL
+            push!(filtered_grid, pt)
+        end
+    end
+    return filtered_grid
 end
 
 end # module
