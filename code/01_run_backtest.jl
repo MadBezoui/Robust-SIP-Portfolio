@@ -439,172 +439,25 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     CSV.write(joinpath(output_dir, "weights_mv.csv"), w_mv_df)
     
     # -------------------------------------------------------------------------
-    # 2. EXPORT CRISIS PERIOD ANALYSIS
-    # -------------------------------------------------------------------------
-    crises = [
-        ("DotCom", Date(2000,3,1), Date(2002,10,31)),
-        ("GFC", Date(2007,10,1), Date(2009,3,31)),
-        ("COVID", Date(2020,2,1), Date(2020,4,30)),
-        ("Inflation", Date(2022,1,1), Date(2022,12,31))
-    ]
-    crisis_df = DataFrame(Strategy=String[], Period=String[], Return=Float64[], MaxDD=Float64[])
-    for (name, c_start, c_end) in crises
-        idx = findall(d -> c_start <= d <= c_end, calendar_df.Hold_End_Date)
-        if !isempty(idx)
-            for s in strat_names
-                r_sub = rets_dict[s][idx]
-                w_sub = vcat(1.0, cumprod(1.0 .+ r_sub))
-                cum_ret = w_sub[end] - 1.0
-                running_max = accumulate(max, w_sub)
-                dd_sub = minimum(w_sub ./ running_max .- 1.0)
-                push!(crisis_df, (s, name, cum_ret, dd_sub))
-            end
-        end
-    end
-    CSV.write(joinpath(output_dir, "crisis_performance.csv"), crisis_df)
-    println("Saved crisis_performance.csv")
-    display(crisis_df)
-    
-    # -------------------------------------------------------------------------
-    # 3. EXPORT TRANSACTION COST SENSITIVITY TABLE
-    # -------------------------------------------------------------------------
-    tc_levels = [0.0, 0.0005, 0.0010, 0.0020, 0.0050] # 0, 5, 10, 20, 50 bps
-    tc_df = DataFrame(Strategy=String[], TC_bps=Float64[], Sharpe=Float64[], Final_Wealth=Float64[])
-    for c_val in tc_levels
-        for s in strat_names
-            # recompute net returns with c_val
-            r_net = rets_gross_dict[s] .- turnover_dict[s] .* c_val
-            mat_w = reduce(hcat, weights_dict[s])'
-            m = calculate_metrics(r_net, mat_w, turnover_dict[s], c_val)
-            push!(tc_df, (s, c_val * 10000.0, m[3], m[14]))
-        end
-    end
-    CSV.write(joinpath(output_dir, "tc_sensitivity.csv"), tc_df)
-    println("Saved tc_sensitivity.csv")
-    
-    # -------------------------------------------------------------------------
-    # 4. EXPORT UNSTUDENTIZED CIRCULAR BLOCK-BOOTSTRAP INFERENCE
-    # -------------------------------------------------------------------------
-    println("Computing circular moving-block bootstrap inference (B=5000)...")
-    boot_res_df = DataFrame(
-        Benchmark=String[], Sharpe_Diff=Float64[], Std_Error=Float64[],
-        CI_Lower_95=Float64[], CI_Upper_95=Float64[], P_Value=Float64[]
-    )
-    
-    main_boot_dist = Float64[]
-    for bench in ["NominalCVaR", "1/N", "MinVar", "FiniteRegime"]
-        diff, se, ci_l, ci_u, p_val, boot_dist = lw_studentized_bootstrap(
-            rets_dict["RobustSIP"], rets_dict[bench], 12, 5000; seed=20260814
-        )
-        push!(boot_res_df, (bench, diff, se, ci_l, ci_u, p_val))
-        if bench == "NominalCVaR"
-            main_boot_dist = boot_dist
-        end
-    end
-    CSV.write(joinpath(output_dir, "bootstrap_inference.csv"), boot_res_df)
-    CSV.write(joinpath(output_dir, "bootstrap_distribution.csv"), DataFrame(Bootstrap_Diff=main_boot_dist))
-    println("Saved bootstrap_inference.csv and bootstrap_distribution.csv")
-    display(boot_res_df)
-    
-    # -------------------------------------------------------------------------
-    # 5. EXPORT CONVERGENCE HISTORY AND ACTIVE STATES
-    # -------------------------------------------------------------------------
-    if !isempty(sample_convergence_history)
-        conv_df = DataFrame(
-            Iteration=[h.iteration for h in sample_convergence_history],
-            Master_LB=[h.lb * 100.0 for h in sample_convergence_history], # daily %
-            Oracle_UB=[h.ub * 100.0 for h in sample_convergence_history], # daily %
-            Optimality_Gap=[h.gap * 100.0 for h in sample_convergence_history], # daily %
-            Active_Count=[h.active_count for h in sample_convergence_history]
-        )
-        CSV.write(joinpath(output_dir, "convergence_history.csv"), conv_df)
-        println("Saved convergence_history.csv")
-    end
-    
-    # Export active states from sample window and distribution of active counts
-    if !isempty(active_states_sample)
-        sample_states_df = DataFrame(
-            State_Index=1:length(active_states_sample),
-            logVIX=[th[1] for th in active_states_sample],
-            Drawdown=[th[2] for th in active_states_sample],
-            Raw_VIX=[exp(th[1]) for th in active_states_sample],
-            Drawdown_Pct=[th[2] * 100.0 for th in active_states_sample]
-        )
-        CSV.write(joinpath(output_dir, "active_states_sample.csv"), sample_states_df)
-        println("Saved active_states_sample.csv")
-    end
-    
-    active_hist_df = DataFrame(Window=1:step_count, Active_States=active_states_history, Iterations=iterations_history, Avg_Active_State_ESS=ess_history)
-    CSV.write(joinpath(output_dir, "active_states_history.csv"), active_hist_df)
-    
-    # -------------------------------------------------------------------------
-    # 6. EXPORT REAL IN-SAMPLE EFFICIENT FRONTIER DATA
-    # -------------------------------------------------------------------------
-    println("Computing real in-sample efficient frontiers across target returns...")
-    mu_full = mean(X_all, dims=1)[:] * 252.0
-    cov_full = cov(X_all) * 252.0
-    
-    vix_min_f, vix_max_f = extrema(Y_all[:, 1])
-    dd_min_f, dd_max_f = extrema(Y_all[:, 2])
-    vix_grid_f = range(vix_min_f, vix_max_f, length=21)
-    dd_grid_f  = range(max(0.0, dd_min_f), min(1.0, dd_max_f), length=21)
-    grid_thetas_f = [[v, d] for v in vix_grid_f for d in dd_grid_f]
-    
-    sigma_vix_f, sigma_dd_f = std(Y_all[:, 1]), std(Y_all[:, 2])
-    h_vix_f = sigma_vix_f * size(Y_all, 1)^(-1/6)
-    h_dd_f  = sigma_dd_f  * size(Y_all, 1)^(-1/6)
-    H_f = [h_vix_f^2 0.0; 0.0 h_dd_f^2]
-    
-    mu_max_achievable = max_feasible_return(mu_full, max_weight)
-    mu_min_achievable = min_feasible_return(mu_full, max_weight)
-    
-    target_grid = range(mu_min_achievable * 1.05, mu_max_achievable * 0.95, length=25)
-    frontier_df = DataFrame(
-        Target_Return=Float64[], MV_Return=Float64[], MV_CVaR=Float64[],
-        Nom_Return=Float64[], Nom_CVaR=Float64[], Rob_Return=Float64[], Rob_CVaR=Float64[]
-    )
-    
-    p_uniform = fill(1.0/size(X_all, 1), size(X_all, 1))
-    
-    for (tr_idx, tr) in enumerate(target_grid)
-        # 1. MinVar
-        w_m = solve_min_variance(cov_full, mu_full, tr, max_weight)
-        ret_m = dot(mu_full, w_m)
-        cvar_m = empirical_cvar(w_m, X_all, p_uniform, tau) * 100.0 # daily CVaR %
+    # 1.b EXPORT ALL WEIGHTS AND RETURNS
+    for s in strat_names
+        s_safe = replace(s, "/" => "")
+        mat_w = reduce(hcat, weights_dict[s])'
+        df_w = DataFrame(mat_w, :auto)
+        df_w.Date = calendar_df.Hold_End_Date
+        CSV.write(joinpath(output_dir, "weights_$(s_safe).csv"), df_w)
         
-        # 2. Nominal CVaR
-        w_n, cvar_n_obj = solve_nominal_cvar(X_all, mu_full ./ 252.0, tau, tr / 252.0, max_weight)
-        ret_n = dot(mu_full, w_n)
-        cvar_n = cvar_n_obj * 100.0 # daily CVaR %
-        
-        # 3. Robust SIP
-        w_r, lb_r, ub_r, _, _ = solve_robust_sip(X_all, Y_all, grid_thetas_f, H_f, mu_full ./ 252.0, tau, tr / 252.0; max_iter=15, max_weight=max_weight)
-        ret_r = dot(mu_full, w_r)
-        cvar_r = ub_r * 100.0 # daily worst-case CVaR %
-        
-        push!(frontier_df, (tr, ret_m, cvar_m, ret_n, cvar_n, ret_r, cvar_r))
+        df_perf = DataFrame(
+            Return = rets_dict[s],
+            Return_Gross = rets_gross_dict[s],
+            Turnover = turnover_dict[s]
+        )
+        CSV.write(joinpath(output_dir, "perf_$(s_safe).csv"), df_perf)
     end
-    CSV.write(joinpath(output_dir, "frontier_data.csv"), frontier_df)
-    println("Saved frontier_data.csv")
-    
-    # (Removed duplicate grid validation block. See test_grid.jl for grid benchmark validation)
-    println("All Julia pipeline tasks executed successfully.")
-    
-    rob_perf = results_df[results_df.Strategy .== "RobustSIP", :][1, :]
-    return (
-        Ann_Ret_Decimal = rob_perf.Ann_Mean,
-        Vol_Decimal = rob_perf.Ann_Vol,
-        Sharpe = rob_perf.Sharpe,
-        Max_DD_Decimal = rob_perf.Max_DD,
-        Wealth = rob_perf.Final_Wealth,
-        Turnover_Decimal = rob_perf.Avg_Turnover,
-        Avg_ESS = mean(ess_history),
-        Min_ESS = minimum(ess_history),
-        Retained_Frac_Decimal = mean(retained_frac_history)
-    )
+    CSV.write(joinpath(output_dir, "calendar.csv"), calendar_df)
+    println("All weights and performance arrays saved to CSV. Optimization complete.")
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    println("Executing comprehensive institutional pipeline...")
     run_institutional_backtest(0.0010, 0.05)
 end
