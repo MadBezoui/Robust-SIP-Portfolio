@@ -24,7 +24,7 @@
 
 \onehalfspacing
 
-\title{From market states to robust portfolios: grid-restricted adaptive CVaR optimization with real financial data}
+\title{Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation}
 \author{
 Madani Bezoui$^{*,1}$ and Thiziri Sifaoui$^{2,3}$ \\
 \small $^1$CESI LINEACT, UR 7527, Nancy, France \\
@@ -111,25 +111,7 @@ Classical SIP & Continuous & Analytical & State-independent & Continuous states 
 \end{table}
 
 
-\begin{table}[htbp]
-\centering
-\caption{Comparison of conditional and robust risk models}
-\label{tab:lit_comparison}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Model Family} & \textbf{Uncertainty Index} & \textbf{Distribution} & \textbf{Decision} & \textbf{Robustness over} & \textbf{Optimization Problem} \\
-\midrule
-Weighted SAA & Covariates & Fixed empirical & State-dependent & Parameters (none) & Finite/Data-driven \\
-Nonparametric ES & Covariates & Fixed empirical & State-dependent & Parameters (none) & Finite/Data-driven \\
-Conditional DRO & Covariates & Ambiguous & State-dependent & Ambiguity ball & Finite (via duality) \\
-Regime-based CVaR & Discrete Regimes & Fixed per regime & State-independent & Regimes & Finite LP \\
-Classical SIP & Continuous & Analytical & State-independent & Continuous states & Continuous SIP \\
-\textbf{Present Model} & \textbf{Continuous Covariates} & \textbf{Fixed kernel weights} & \textbf{State-independent} & \textbf{Continuous states} & \textbf{Grid-restricted LP} \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
+
 
 \section{Continuous-state robust CVaR framework}
 We consider an investment universe consisting of $N$ risky financial assets over a discrete time horizon $t = 1, \dots, T$. Let $x_t = (x_{1,t}, \dots, x_{N,t})^\top \in \mathbb{R}^N$ denote the vector of realized asset returns from trading day $t-1$ to day $t$. The joint conditional distribution of asset returns is modulated by prevailing financial-market state variables observable at time $t-1$, denoted by the vector $y_{t-1} \in \mathbb{R}^M$.
@@ -158,9 +140,7 @@ The Cartesian box $\mathcal{U}$ assumes that every VIX-drawdown combination is p
 
 
 
-\begin{remark}[Domain rectangularity and 10\% margin]
-The Cartesian box $\mathcal{U}$ assumes that every VIX-drawdown combination is plausible. However, certain corners (e.g., very high VIX with zero drawdown) may be economically inconsistent or have negligible empirical support. Furthermore, the 10\% safety margin is arbitrary and sensitive to historical extrema. These low-support stress states represent a principal statistical vulnerability, as the worst-case CVaR can be driven by a small number of observations heavily extrapolated by the Gaussian kernel.
-\end{remark}
+
 
 
 \subsection{Kernel-weighted conditional distributions and effective sample size}
@@ -380,7 +360,7 @@ When the separation oracle is evaluated over a finite candidate grid $\widehat{\
 Since $\Phi_\tau$ is continuous on the compact set $W \times \mathcal{U}$, it is uniformly continuous. Therefore, the discrepancy between the continuous and grid-restricted objectives tends to zero as the grid dispersion radius tends to zero. A quantitative $L_\Phi\rho$ bound would require an explicitly validated uniform Lipschitz constant. We do not compute such a constant in the empirical analysis and instead assess discretization sensitivity through grid refinement. To ensure the algorithm operates strictly over $\widehat{\mathcal{U}}$, the active subset $U_1$ is initialized with the nearest grid node to the most recent observation $y_T$.
 
 
-The dispersion radius $\rho$ alone is a geometric grid statistic, not a continuous-optimality certificate. However, under standard assumptions, a conservative window-specific Lipschitz constant $L_\Phi$ for the conditional CVaR would provide the error bound:
+The grid-resolution statistic $\rho$ alone is a geometric metric, not a continuous-optimality certificate. However, under standard assumptions, a conservative window-specific Lipschitz constant $L_\Phi$ for the conditional CVaR would provide the error bound:
 \begin{equation}
 0 \le \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) - \max_{\theta \in \widehat{\mathcal{U}}} \Phi_\tau(w, \theta) \le L_\Phi \rho.
 \end{equation}
@@ -388,7 +368,7 @@ Since we do not explicitly compute $L_\Phi$, we rely on grid-refinement sensitiv
 
 
 
-The dispersion radius $\rho$ alone is a geometric grid statistic, not a continuous-optimality certificate. However, under standard assumptions, a conservative window-specific Lipschitz constant $L_\Phi$ for the conditional CVaR would provide the error bound:
+The grid-resolution statistic $\rho$ alone is a geometric metric, not a continuous-optimality certificate. However, under standard assumptions, a conservative window-specific Lipschitz constant $L_\Phi$ for the conditional CVaR would provide the error bound:
 \begin{equation}
 0 \le \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) - \max_{\theta \in \widehat{\mathcal{U}}} \Phi_\tau(w, \theta) \le L_\Phi \rho.
 \end{equation}
@@ -644,7 +624,7 @@ Figure \ref{fig:bounds} tracks the convergence of the Master LP Lower Bound ($\t
 \resizebox{1.0\textwidth}{!}{
 \begin{tabular}{llrlr}
 \toprule
-\textbf{Method} & \textbf{Status} & \textbf{Constraints} & \textbf{Runtime} & \textbf{Reported value} \\
+\textbf{Method} & \textbf{Status} & \textbf{State blocks} & \textbf{Runtime} & \textbf{Reported value} \\
 \midrule
 Adaptive SIP $21\times 21$ & OPTIMAL / tolerance reached & 5 & 3.45 s & final grid worst-case CVaR $\approx$ 3.3585\% \\
 Dense $21\times 21$ & OPTIMAL & 441 & 71.43 s & optimum $\approx$ 3.3578\% \\
@@ -662,7 +642,7 @@ Dense $41\times 41$ & TIME\_LIMIT / no primal solution & 1681 & 632.25 s & --- \
 \toprule
 \textbf{Diagnostic Metric} & \textbf{Value} \\
 \midrule
-Geometric grid radius $\rho$ (unit-dependent) & 0.032 \\
+Grid-resolution statistic $\rho$ (unit-dependent) & 0.032 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -680,7 +660,7 @@ Minimum window-level mean ESS & 2.18 \\
 Median window-level mean ESS & 72.75 \\
 Mean window-level mean ESS & 83.02 \\
 Maximum window-level mean ESS & 264.36 \\
-Mean window-level effective tail count ($\tau \times \overline{\mathrm{ESS}}$) & 4.15 \\
+Mean window-level tail ESS & 4.15 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -730,7 +710,7 @@ Figure \ref{fig:kernel} visualizes the continuous market-state space $\mathcal{U
     \label{fig:bootstrap}
 \end{figure}
 
-To determine whether the observed performance differences are statistically distinguishable from sample noise, we implement an unstudentized paired circular block bootstrap tail-area calculation (percentile interval) for Sharpe ratio differences. Unlike the studentized time-series bootstrap of \citet{ledoit2008robust}, our procedure computes ordinary differences without replication-specific standard errors. Because financial returns exhibit temporal dependence and volatility clustering, standard i.i.d. $t$-tests produce severely understated standard errors. We resample holding-period strategy return pairs using a block size of $b = 12$ periods over $B = 5{,}000$ bootstrap replications. Table \ref{tab:bootstrap} reports the point estimate, two-sided 95\% confidence interval, and empirical $p$-value for the zero-rate Sharpe ratio difference $\Delta \text{SR} = \text{SR}_{\text{Robust}} - \text{SR}_{\text{Benchmark}}$ against all four benchmarks.
+As an exploratory robustness procedure to assess whether the observed performance differences are statistically distinguishable from sample noise, we implement an unstudentized paired circular block bootstrap tail-area calculation (percentile interval) for Sharpe ratio differences. Unlike the studentized time-series bootstrap of \citet{ledoit2008robust}, our procedure computes ordinary differences without replication-specific standard errors. Because financial returns exhibit temporal dependence and volatility clustering, standard i.i.d. $t$-tests produce severely understated standard errors. We resample holding-period strategy return pairs using a block size of $b = 12$ periods over $B = 5{,}000$ bootstrap replications. Table \ref{tab:bootstrap} reports the point estimate, two-sided 95\% confidence interval, and empirical $p$-value for the zero-rate Sharpe ratio difference $\Delta \text{SR} = \text{SR}_{\text{Robust}} - \text{SR}_{\text{Benchmark}}$ against all four benchmarks.
 
 \begin{table}[htbp]
 \centering
