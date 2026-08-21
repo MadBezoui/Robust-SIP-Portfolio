@@ -1,4 +1,7 @@
+    
+
 # Continuous-State Robust Portfolio Optimization (Robust SIP)
+
 **Comprehensive State, Codebase, Paper, and Results Documentation**
 
 ---
@@ -20,7 +23,9 @@
 2. **State Variables ($M = 2$)**:
    - **CBOE Volatility Index (VIX)**: Implied volatility of S&P 500 index options (spliced with VXO prior to 2003).
    - **Equity Market Drawdown ($D_t$)**: Peak-to-trough decline of the broad CRSP US equity market index over a trailing 63-day lookback window:
-     $$D_t = 1 - \frac{P_t}{\max_{s \in [t-63, t]} P_s}$$
+     $$
+     D_t = 1 - \frac{P_t}{\max_{s \in [t-63, t]} P_s}
+     $$
 3. **Temporal Horizon**: July 1990 to May 2026 (35.8 years, 9,028 daily observations).
 4. **Out-of-Sample Backtesting Protocol**:
    - Rolling estimation window: $T_{\text{train}} = 1260$ trading days (5 years).
@@ -28,24 +33,42 @@
    - Total evaluation periods: **377 monthly rolling windows** (1995 to 2026).
    - Dynamic target expected return: $\mu_{\text{target}} = \text{median}(\hat{\mu})$ at each rebalancing date.
    - Transaction costs: 10 basis points (0.10%) applied to pre-trade drifted turnover:
-     $$w_{i,t}^{\text{pretrade}} = \frac{w_{i,t-1}(1 + R_{i,t})}{\sum_j w_{j,t-1}(1 + R_{j,t})}, \quad \text{TO}_t = \frac{1}{2} \sum_{i=1}^N |w_{i,t} - w_{i,t}^{\text{pretrade}}|$$
+     $$
+     w_{i,t}^{\text{pretrade}} = \frac{w_{i,t-1}(1 + R_{i,t})}{\sum_j w_{j,t-1}(1 + R_{j,t})}, \quad \text{TO}_t = \frac{1}{2} \sum_{i=1}^N |w_{i,t} - w_{i,t}^{\text{pretrade}}|
+     $$
 
 ---
 
 ## 3. Mathematical Framework
 
 ### 3.1 Kernel Weighting and Compact State Space
+
 For any continuous state query $\theta \in \mathcal{U} = [v_{\min} - \delta_v, v_{\max} + \delta_v] \times [d_{\min} - \delta_d, d_{\max} + \delta_d]$:
-$$p_t(\theta) = \frac{K_H(y_{t-1} - \theta)}{\sum_{s=1}^T K_H(y_{s-1} - \theta)}, \quad H = T^{-1/3} \hat{\Sigma}_y$$
+
+$$
+p_t(\theta) = \frac{K_H(y_{t-1} - \theta)}{\sum_{s=1}^T K_H(y_{s-1} - \theta)}, \quad H = T^{-1/3} \hat{\Sigma}_y
+$$
+
 Effective Sample Size (ESS):
-$$\text{ESS}(\theta) = \frac{1}{\sum_{t=1}^T p_t(\theta)^2}$$
+
+$$
+\text{ESS}(\theta) = \frac{1}{\sum_{t=1}^T p_t(\theta)^2}
+$$
 
 ### 3.2 Master Epigraph Formulation
-$$\min_{w \in W, \eta \in \mathbb{R}} \eta \quad \text{s.t.} \quad \Phi_\tau(w, \theta) \le \eta \quad \forall \theta \in \mathcal{U}$$
+
+$$
+\min_{w \in W, \eta \in \mathbb{R}} \eta \quad \text{s.t.} \quad \Phi_\tau(w, \theta) \le \eta \quad \forall \theta \in \mathcal{U}
+$$
+
 where the conditional CVaR at state $\theta$ is:
-$$\Phi_\tau(w, \theta) = \min_{z \in \mathbb{R}} \left\{ z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w - z]_+ \right\}$$
+
+$$
+\Phi_\tau(w, \theta) = \min_{z \in \mathbb{R}} \left\{ z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [-x_t^\top w - z]_+ \right\}
+$$
 
 ### 3.3 The Adaptive Semi-Infinite Exchange Algorithm
+
 - **Master LP**: Solves over a finite active subset $\mathcal{U}_k \subset \mathcal{U}$, yielding candidate weights $w_k$ and Lower Bound $\text{LB}_k$.
 - **Continuous Oracle**: Maximizes $\Phi_\tau(w_k, \theta)$ over $\mathcal{U}$, identifying worst-case state $\theta^*$ and Upper Bound $\text{UB}_k$.
 - **Convergence**: Terminates when $\text{UB}_k - \text{LB}_k \le \epsilon$. Under inexact separation with spatial dispersion $\rho$, convergence guarantee is $\epsilon + L_\Phi \rho$.
@@ -55,6 +78,7 @@ $$\Phi_\tau(w, \theta) = \min_{z \in \mathbb{R}} \left\{ z + \frac{1}{\tau} \sum
 ## 4. Complete Codebase
 
 ### `RobustSIP.jl`
+
 ```julia
 module RobustSIP
 
@@ -100,20 +124,20 @@ Empirical CVaR
 """
 function empirical_cvar(w::Vector{Float64}, X::Matrix{Float64}, p::Vector{Float64}, tau::Float64)
     T = size(X, 1)
-    
+  
     model = Model(HiGHS.Optimizer)
     set_silent(model)
     set_attribute(model, "time_limit", 5.0)
-    
+  
     @variable(model, z)
     @variable(model, u[1:T] >= 0)
-    
+  
     @objective(model, Min, z + (1.0/tau) * sum(p[t] * u[t] for t in 1:T))
-    
+  
     for t in 1:T
         @constraint(model, u[t] >= -dot(X[t, :], w) - z)
     end
-    
+  
     optimize!(model)
     if termination_status(model) == MOI.OPTIMAL
         return objective_value(model)
@@ -128,29 +152,29 @@ Solve Nominal CVaR Portfolio
 function solve_nominal_cvar(X::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64=1.0)
     T, N = size(X)
     p = fill(1.0/T, T)
-    
+  
     # Check max achievable return under weight cap
     sorted_mu = sort(mu, rev=true)
     max_achievable = sum(sorted_mu[1:ceil(Int, 1.0/max_weight)]) * max_weight
     t_ret = min(target_return, max_achievable - 1e-5)
-    
+  
     model = Model(HiGHS.Optimizer)
     set_silent(model)
     set_attribute(model, "time_limit", 10.0)
-    
+  
     @variable(model, 0 <= w[1:N] <= max_weight)
     @variable(model, z)
     @variable(model, u[1:T] >= 0)
-    
+  
     @constraint(model, sum(w) == 1.0)
     @constraint(model, dot(mu, w) >= t_ret)
-    
+  
     for t in 1:T
         @constraint(model, u[t] >= -dot(X[t, :], w) - z)
     end
-    
+  
     @objective(model, Min, z + (1.0/tau) * sum(p[t] * u[t] for t in 1:T))
-    
+  
     optimize!(model)
     if termination_status(model) == MOI.OPTIMAL
         return value.(w), objective_value(model)
@@ -177,32 +201,32 @@ Solve Finite Regime CVaR (4-quadrant benchmark)
 function solve_finite_regime_cvar(X::Matrix{Float64}, P_matrix::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64=1.0)
     T, N = size(X)
     K = size(P_matrix, 1) # K regimes
-    
+  
     sorted_mu = sort(mu, rev=true)
     max_achievable = sum(sorted_mu[1:ceil(Int, 1.0/max_weight)]) * max_weight
     t_ret = min(target_return, max_achievable - 1e-5)
-    
+  
     model = Model(HiGHS.Optimizer)
     set_silent(model)
     set_attribute(model, "time_limit", 10.0)
-    
+  
     @variable(model, t_var)
     @variable(model, 0 <= w[1:N] <= max_weight)
     @variable(model, z[1:K])
     @variable(model, u[1:K, 1:T] >= 0)
-    
+  
     @constraint(model, sum(w) == 1.0)
     @constraint(model, dot(mu, w) >= t_ret)
-    
+  
     for k in 1:K
         @constraint(model, z[k] + (1.0/tau) * sum(P_matrix[k, i] * u[k, i] for i in 1:T) <= t_var)
         for i in 1:T
             @constraint(model, u[k, i] >= -dot(X[i, :], w) - z[k])
         end
     end
-    
+  
     @objective(model, Min, t_var)
-    
+  
     optimize!(model)
     if termination_status(model) == MOI.OPTIMAL
         return value.(w), value(t_var)
@@ -232,19 +256,19 @@ Solve Target-Constrained Minimum Variance with Weight Cap and PSD Ridge
 function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, target_return::Float64, max_weight::Float64=1.0)
     N = size(cov_mat, 1)
     cov_psd = cov_mat + 1e-4 * Matrix(I, N, N) # Ensure strict numerical PSD for solver
-    
+  
     sorted_mu = sort(mu, rev=true)
     max_achievable = sum(sorted_mu[1:ceil(Int, 1.0/max_weight)]) * max_weight
     t_ret = min(target_return, max_achievable - 1e-5)
-    
+  
     model = Model(HiGHS.Optimizer)
     set_silent(model)
-    
+  
     @variable(model, 0 <= w[1:N] <= max_weight)
     @constraint(model, sum(w) == 1.0)
     @constraint(model, dot(mu, w) >= t_ret)
     @objective(model, Min, dot(w, cov_psd * w))
-    
+  
     optimize!(model)
     if (termination_status(model) == MOI.OPTIMAL || has_values(model)) && !any(isnan.(value.(w)))
         return value.(w)
@@ -270,37 +294,37 @@ Master LP for Robust CVaR over active subset of states
 function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64=1.0)
     T, N = size(X)
     K = length(active_thetas)
-    
+  
     sorted_mu = sort(mu, rev=true)
     max_achievable = sum(sorted_mu[1:ceil(Int, 1.0/max_weight)]) * max_weight
     t_ret = min(target_return, max_achievable - 1e-5)
-    
+  
     P_matrix = zeros(K, T)
     for k in 1:K
         P_matrix[k, :] = get_kernel_weights(Y, active_thetas[k], H)
     end
-    
+  
     model = Model(HiGHS.Optimizer)
     set_silent(model)
     set_attribute(model, "time_limit", 5.0)
-    
+  
     @variable(model, t_var)
     @variable(model, 0 <= w[1:N] <= max_weight)
     @variable(model, z[1:K])
     @variable(model, u[1:K, 1:T] >= 0)
-    
+  
     @constraint(model, sum(w) == 1.0)
     @constraint(model, dot(mu, w) >= t_ret)
-    
+  
     for k in 1:K
         @constraint(model, z[k] + (1.0/tau) * sum(P_matrix[k, i] * u[k, i] for i in 1:T) <= t_var)
         for i in 1:T
             @constraint(model, u[k, i] >= -dot(X[i, :], w) - z[k])
         end
     end
-    
+  
     @objective(model, Min, t_var)
-    
+  
     optimize!(model)
     if termination_status(model) == MOI.OPTIMAL
         return value.(w), value(t_var)
@@ -332,11 +356,11 @@ Vectorized across all candidate grid states simultaneously.
 function solve_oracle(w::Vector{Float64}, X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, tau::Float64)
     T = size(X, 1)
     K_states = length(grid_thetas)
-    
+  
     port_rets = X * w
     idx = sortperm(port_rets)
     sorted_rets = port_rets[idx]
-    
+  
     # Vectorized kernel calculation for all 441 states simultaneously
     thetas_mat = hcat(grid_thetas...) # 2 x K_states
     h_vix = sqrt(H[1, 1])
@@ -348,12 +372,12 @@ function solve_oracle(w::Vector{Float64}, X::Matrix{Float64}, Y::Matrix{Float64}
     max_log = maximum(log_w, dims=1)
     W = exp.(log_w .- max_log)
     P_all = W ./ sum(W, dims=1) # T x K_states
-    
+  
     sorted_P = P_all[idx, :] # T x K_states
-    
+  
     max_cvar = -Inf
     best_idx = 1
-    
+  
     for k in 1:K_states
         cum_p = 0.0
         cvar_val = 0.0
@@ -369,13 +393,13 @@ function solve_oracle(w::Vector{Float64}, X::Matrix{Float64}, Y::Matrix{Float64}
             end
         end
         cvar_val = -cvar_val / tau
-        
+      
         if cvar_val > max_cvar
             max_cvar = cvar_val
             best_idx = k
         end
     end
-    
+  
     return grid_thetas[best_idx], max_cvar
 end
 
@@ -385,35 +409,35 @@ Adaptive Semi-Infinite Programming (SIP) Exchange Algorithm
 function solve_robust_sip(X::Matrix{Float64}, Y::Matrix{Float64}, grid_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64; max_iter=20, tol=1e-4, max_weight=1.0)
     # Initialize active set with the most recent observed state in training sample
     active_thetas = [collect(Y[end, :])]
-    
+  
     w_best = fill(1.0/size(X, 2), size(X, 2))
     lb = -Inf
     ub = Inf
     history = []
-    
+  
     for iter in 1:max_iter
         w, lb_new = solve_master_cvar(X, Y, active_thetas, H, mu, tau, target_return, max_weight)
         w_best = w
         lb = lb_new
-        
+      
         best_theta, ub_new = solve_oracle(w_best, X, Y, grid_thetas, H, tau)
         ub = ub_new
-        
+      
         gap = ub - lb
         push!(history, (iteration=iter, lb=lb, ub=ub, gap=gap, active_count=length(active_thetas)))
-        
+      
         if gap <= tol
             break
         end
-        
+      
         # Avoid duplicate states
         if any(norm(best_theta - th) <= 1e-5 for th in active_thetas)
             break
         end
-        
+      
         push!(active_thetas, copy(best_theta))
     end
-    
+  
     return w_best, lb, ub, active_thetas, history
 end
 
@@ -423,6 +447,7 @@ end # module
 ---
 
 ### `main_exp.jl`
+
 ```julia
 using Pkg
 Pkg.activate(".")
@@ -439,11 +464,11 @@ Paired Circular Moving-Block Bootstrap for Annualized Sharpe Ratio Differences.
 function paired_circular_block_bootstrap(rets1::Vector{Float64}, rets2::Vector{Float64}, block_size::Int=12, n_reps::Int=2000; seed::Int=20260814)
     Random.seed!(seed)
     T = length(rets1)
-    
+  
     sr1_ann = (mean(rets1) / std(rets1)) * sqrt(12.0)
     sr2_ann = (mean(rets2) / std(rets2)) * sqrt(12.0)
     diff_sharpe_orig = sr1_ann - sr2_ann
-    
+  
     boot_diffs = Float64[]
     for b in 1:n_reps
         # Circular block bootstrap sampling
@@ -453,22 +478,22 @@ function paired_circular_block_bootstrap(rets1::Vector{Float64}, rets2::Vector{F
             append!(boot_idx, [mod1(s + i - 1, T) for i in 1:block_size])
         end
         boot_idx = boot_idx[1:T] # truncate to exact length T
-        
+      
         samp1 = rets1[boot_idx]
         samp2 = rets2[boot_idx]
-        
+      
         ds_ann = sqrt(12.0) * ((mean(samp1) / std(samp1)) - (mean(samp2) / std(samp2)))
         push!(boot_diffs, ds_ann)
     end
-    
+  
     ci_lower = percentile(boot_diffs, 2.5)
     ci_upper = percentile(boot_diffs, 97.5)
     boot_se = std(boot_diffs)
-    
+  
     # Two-sided empirical p-value for H0: diff == 0
     centered_boot = boot_diffs .- mean(boot_diffs)
     p_val = mean(abs.(centered_boot) .>= abs(diff_sharpe_orig))
-    
+  
     return diff_sharpe_orig, boot_se, ci_lower, ci_upper, p_val, boot_diffs
 end
 
@@ -480,33 +505,33 @@ function calculate_metrics(returns::Vector{Float64}, weights_matrix::AbstractMat
     ann_mean = mean(returns) * 12.0
     ann_vol = std(returns) * sqrt(12.0)
     sharpe = ann_mean / ann_vol
-    
+  
     # Downside deviation relative to MAR = 0
     downside_dev = sqrt(mean(min.(returns, 0.0).^2)) * sqrt(12.0)
     sortino = downside_dev > 0 ? (ann_mean / downside_dev) : Inf
-    
+  
     # Wealth including initial wealth 1.0
     wealth = vcat(1.0, cumprod(1.0 .+ returns))
     running_peak = accumulate(max, wealth)
     drawdowns = wealth ./ running_peak .- 1.0
     max_dd = minimum(drawdowns)
-    
+  
     # CAGR and Calmar Ratio
     cagr = wealth[end]^(12.0 / T_out) - 1.0
     calmar = cagr / abs(max_dd)
-    
+  
     # Realized Monthly Expected Shortfall (CVaR)
     sorted_rets = sort(returns)
     cvar_95_monthly = -mean(sorted_rets[1:max(1, floor(Int, 0.05 * T_out))])
     cvar_99_monthly = -mean(sorted_rets[1:max(1, floor(Int, 0.01 * T_out))])
-    
+  
     avg_turnover = mean(turnover)
     tc_drag = avg_turnover * tc * 12.0 # Annualized in decimal
-    
+  
     # Concentration (Effective N)
     eff_n = mean([1.0 / sum(weights_matrix[i, :].^2) for i in 1:size(weights_matrix, 1)])
     worst_month = minimum(returns)
-    
+  
     return (ann_mean, ann_vol, sharpe, sortino, cvar_95_monthly, cvar_99_monthly, max_dd, cagr, calmar, avg_turnover, tc_drag, eff_n, worst_month, wealth[end])
 end
 
@@ -517,12 +542,12 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
 
     df = CSV.read(data_path, DataFrame)
     returns_cols = names(df)[2:end-4] 
-    
+  
     # Strictly lag state variables: x_t is paired with y_{t-1}
     X_raw = Matrix{Float64}(df[:, returns_cols])
     Y_raw = Matrix{Float64}(df[:, ["logVIX", "Drawdown"]])
     dates_raw = df.Date
-    
+  
     X_all = X_raw[2:end, :]
     Y_all = Y_raw[1:end-1, :]
     dates_all = dates_raw[2:end]
@@ -533,12 +558,12 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     max_weight = 0.15
 
     dates_out = Date[]
-    
+  
     strat_names = ["1/N", "MinVar", "NominalCVaR", "FiniteRegime", "RobustSIP"]
     rets_dict = Dict(s => Float64[] for s in strat_names)
     weights_dict = Dict(s => [] for s in strat_names)
     turnover_dict = Dict(s => Float64[] for s in strat_names)
-    
+  
     active_states_history = Int[]
     ess_history = Float64[]
     sample_convergence_history = []
@@ -546,52 +571,52 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     total_steps = length(1:step_size:(T_total - window_size - step_size))
     println("Starting rolling out-of-sample backtest ($(total_steps) windows, T_train = $(window_size), T_hold = $(step_size))...")
     flush(stdout)
-    
+  
     step_count = 0
     for t_start in 1:step_size:(T_total - window_size - step_size)
         step_count += 1
         t_end = t_start + window_size - 1
         t_hold_end = t_end + step_size
-        
+      
         if step_count % 10 == 0 || step_count == 1 || step_count == total_steps
             println("[Progress: Window $(step_count) / $(total_steps) ($(round(step_count/total_steps*100, digits=1))%)] Date: $(dates_all[t_end])")
             flush(stdout)
         end
-        
+      
         X_train = X_all[t_start:t_end, :]
         Y_train = Y_all[t_start:t_end, :]
-        
+      
         mu_train = mean(X_train, dims=1)[:] * 252.0
         cov_train = cov(X_train) * 252.0
-        
+      
         # Kernel Bandwidth Matrix H
         sigma_vix, sigma_dd = std(Y_train[:, 1]), std(Y_train[:, 2])
         n_train = size(Y_train, 1)
         h_vix = 1.06 * sigma_vix * n_train^(-1/6)
         h_dd  = 1.06 * sigma_dd  * n_train^(-1/6)
         H = [h_vix^2 0.0; 0.0 h_dd^2]
-        
+      
         # State space U_t defined strictly within training window (with 10% safety margin)
         vix_min, vix_max = extrema(Y_train[:, 1])
         dd_min, dd_max = extrema(Y_train[:, 2])
         delta_v = 0.10 * (vix_max - vix_min)
         delta_d = 0.10 * (dd_max - dd_min)
-        
+      
         vix_grid = range(vix_min - delta_v, vix_max + delta_v, length=21)
         dd_grid  = range(dd_min - delta_d, dd_max + delta_d, length=21)
         grid_thetas = [[v, d] for v in vix_grid for d in dd_grid]
-        
+      
         target_return = median(mu_train)
-        
+      
         # 1. Benchmark 1/N
         w_eq = fill(1.0/N, N)
-        
+      
         # 2. Benchmark MinVar (target-constrained, max_weight=0.15)
         w_mv = solve_min_variance(cov_train, mu_train, target_return, max_weight)
-        
+      
         # 3. Benchmark Nominal CVaR
         w_nom, _ = solve_nominal_cvar(X_train, mu_train ./ 252.0, tau, target_return / 252.0, max_weight)
-        
+      
         # 4. Benchmark Finite-Regime CVaR (4 quadrants from training medians)
         med_vix = median(Y_train[:, 1])
         med_dd  = median(Y_train[:, 2])
@@ -616,28 +641,28 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
             end
         end
         w_fin, _ = solve_finite_regime_cvar(X_train, P_matrix, mu_train ./ 252.0, tau, target_return / 252.0, max_weight)
-        
+      
         # 5. Proposed Continuous-State Robust SIP
         w_rob, lb, ub, active_thetas, hist = solve_robust_sip(X_train, Y_train, grid_thetas, H, mu_train ./ 252.0, tau, target_return / 252.0; max_iter=10, max_weight=max_weight)
-        
+      
         if step_count == 100 # Save representative convergence history for plotting
             sample_convergence_history = hist
         end
 
         push!(active_states_history, length(active_thetas))
-        
+      
         # ESS for active states
         avg_ess = mean([effective_sample_size(get_kernel_weights(Y_train, th, H)) for th in active_thetas])
         push!(ess_history, avg_ess)
-        
+      
         w_curr = Dict("1/N" => w_eq, "MinVar" => w_mv, "NominalCVaR" => w_nom, "FiniteRegime" => w_fin, "RobustSIP" => w_rob)
-        
+      
         # Out-of-sample evaluation over 21-day holding period
         X_test = X_all[t_end+1:t_hold_end, :]
         push!(dates_out, dates_all[t_end])
-        
+      
         asset_growth = vec(prod(1.0 .+ X_test, dims=1))
-        
+      
         for s in strat_names
             if length(weights_dict[s]) > 0
                 # Pre-trade drifted weight
@@ -647,19 +672,19 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
             else
                 to = 0.5 * sum(abs.(w_curr[s] - fill(1.0/N, N)))
             end
-            
+          
             push!(weights_dict[s], copy(w_curr[s]))
             push!(turnover_dict[s], to)
-            
+          
             # Buy-and-hold return net of transaction cost
             ret_gross = dot(w_curr[s], asset_growth) - 1.0
             ret_net = ret_gross - to * trans_cost
             push!(rets_dict[s], ret_net)
         end
     end
-    
+  
     println("Backtest completed across $(step_count) rolling windows.")
-    
+  
     # -------------------------------------------------------------------------
     # 1. EXPORT 14-METRIC PERFORMANCE TABLE
     # -------------------------------------------------------------------------
@@ -675,7 +700,7 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     end
     CSV.write(joinpath(output_dir, "performance_table.csv"), results_df)
     println("Saved performance_table.csv")
-    
+  
     # -------------------------------------------------------------------------
     # 2. EXPORT CRISIS PERIOD ANALYSIS
     # -------------------------------------------------------------------------
@@ -701,7 +726,7 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
     end
     CSV.write(joinpath(output_dir, "crisis_performance.csv"), crisis_df)
     println("Saved crisis_performance.csv")
-    
+  
     # -------------------------------------------------------------------------
     # 3. EXPORT STUDENTIZED BLOCK-BOOTSTRAP INFERENCE
     # -------------------------------------------------------------------------
@@ -711,11 +736,11 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         Value=[diff, se, ci_l, ci_u, p_val, 2000.0, 12.0]
     )
     CSV.write(joinpath(output_dir, "bootstrap_inference.csv"), boot_df)
-    
+  
     boot_dist_df = DataFrame(Bootstrap_Diff=boot_dist)
     CSV.write(joinpath(output_dir, "bootstrap_distribution.csv"), boot_dist_df)
     println("Saved bootstrap_inference.csv and bootstrap_distribution.csv")
-    
+  
     # -------------------------------------------------------------------------
     # 4. EXPORT CONVERGENCE HISTORY
     # -------------------------------------------------------------------------
@@ -730,52 +755,52 @@ function run_institutional_backtest(trans_cost::Float64=0.0010, tau::Float64=0.0
         CSV.write(joinpath(output_dir, "convergence_history.csv"), conv_df)
         println("Saved convergence_history.csv")
     end
-    
+  
     # -------------------------------------------------------------------------
     # 5. EXPORT REAL EFFICIENT FRONTIER DATA
     # -------------------------------------------------------------------------
     println("Computing real in-sample efficient frontiers across target returns...")
     mu_full = mean(X_all, dims=1)[:] * 252.0
     cov_full = cov(X_all) * 252.0
-    
+  
     vix_min_f, vix_max_f = extrema(Y_all[:, 1])
     dd_min_f, dd_max_f = extrema(Y_all[:, 2])
     vix_grid_f = range(vix_min_f, vix_max_f, length=21)
     dd_grid_f  = range(dd_min_f, dd_max_f, length=21)
     grid_thetas_f = [[v, d] for v in vix_grid_f for d in dd_grid_f]
-    
+  
     sigma_vix_f, sigma_dd_f = std(Y_all[:, 1]), std(Y_all[:, 2])
     h_vix_f = 1.06 * sigma_vix_f * size(Y_all, 1)^(-1/6)
     h_dd_f  = 1.06 * sigma_dd_f  * size(Y_all, 1)^(-1/6)
     H_f = [h_vix_f^2 0.0; 0.0 h_dd_f^2]
-    
+  
     target_grid = range(minimum(mu_full) * 0.95, maximum(mu_full) * 0.90, length=25)
     frontier_df = DataFrame(Target_Return=Float64[], MV_Return=Float64[], MV_CVaR=Float64[], Nom_Return=Float64[], Nom_CVaR=Float64[], Rob_Return=Float64[], Rob_CVaR=Float64[])
-    
+  
     for (tr_idx, tr) in enumerate(target_grid)
         println("  [Frontier: Point $(tr_idx) / 25 ($(round(tr_idx/25*100, digits=1))%)] Target Return: $(round(tr*100, digits=2))%")
         flush(stdout)
-        
+      
         # MinVar
         w_m = solve_min_variance(cov_full, mu_full, tr, max_weight)
         ret_m = dot(mu_full, w_m)
         cvar_m = -empirical_cvar(w_m, X_all, fill(1.0/size(X_all, 1), size(X_all, 1)), tau) * 252.0 # In-sample CVaR
-        
+      
         # Nominal CVaR
         w_n, cvar_n_obj = solve_nominal_cvar(X_all, mu_full ./ 252.0, tau, tr / 252.0, max_weight)
         ret_n = dot(mu_full, w_n)
         cvar_n = cvar_n_obj * 252.0
-        
+      
         # Robust SIP
         w_r, lb_r, ub_r, _, _ = solve_robust_sip(X_all, Y_all, grid_thetas_f, H_f, mu_full ./ 252.0, tau, tr / 252.0; max_iter=10, max_weight=max_weight)
         ret_r = dot(mu_full, w_r)
         cvar_r = ub_r * 252.0
-        
+      
         push!(frontier_df, (tr, ret_m, cvar_m, ret_n, cvar_n, ret_r, cvar_r))
     end
     CSV.write(joinpath(output_dir, "frontier_data.csv"), frontier_df)
     println("Saved frontier_data.csv")
-    
+  
     # -------------------------------------------------------------------------
     # 6. EXPORT COMPUTATIONAL METRICS
     # -------------------------------------------------------------------------
@@ -796,6 +821,7 @@ run_institutional_backtest(0.0010, 0.05)
 ---
 
 ### `generate_publication_figures.py`
+
 ```python
 import os
 import numpy as np
@@ -938,7 +964,7 @@ for t_mu in target_mus:
         port_losses = - (X @ w_opt) * 252
         v95 = np.percentile(port_losses, 95)
         cvar_val = np.mean(port_losses[port_losses >= v95])
-        
+      
         mv_returns.append(ret_val)
         mv_cvars.append(cvar_val)
         nom_returns.append(ret_val)
@@ -1464,11 +1490,13 @@ print("All publication figures (bounds_plot, frontier_plot, kernel_map_plot, boo
 ## 6. Comprehensive Description of Figures and Tables
 
 ### Schemas and Conceptual Architecture
+
 - **Schema 1 (`fig:schema1`)**: Illustrates the continuous market-state mapping. Historical state vectors $y_t$ and a target continuous state $\theta \in \mathcal{U}$ pass through a multivariate Gaussian kernel $K_H$, producing non-parametric empirical weights $p_t(\theta)$ and inducing conditional empirical distributions $\mathbb{P}(X|\theta)$.
 - **Schema 2 (`fig:schema2`)**: Details the adaptive semi-infinite programming exchange algorithm, showing the feedback loop between the finite Master LP and the continuous separation oracle until the optimality gap $\text{UB}_k - \text{LB}_k \le \epsilon$ is satisfied.
 - **Schema 3 (`fig:schema3`)**: Details the rolling-window backtest protocol: 1260 trading days in-sample training window shifted monthly by 21 days across 1995 to 2026.
 
 ### Empirical Performance Tables
+
 - **Table 1 (`tab:performance`)**: Reports 14 out-of-sample performance metrics across 1/N, MinVar, Nominal CVaR, Finite-Regime CVaR, and Robust SIP (Annualized Return, Volatility, Sharpe Ratio, Sortino Ratio, 95% CVaR, 99% CVaR, Max Drawdown, CAGR, Calmar Ratio, Turnover, TC Drag, Effective N, Worst Month, Final Wealth).
 - **Table 2 (`tab:crisis`)**: Evaluates realized returns and maximum drawdowns across four historical crises: Dot-Com Crash (2000–2002), Global Financial Crisis (2007–2009), COVID-19 Shock (2020), and 2022 Inflation Tightening.
 - **Table 3 (`tab:tc_sensitivity`)**: Evaluates transaction cost sensitivity across 0, 5, 10, 20, and 50 basis points.
@@ -1476,6 +1504,7 @@ print("All publication figures (bounds_plot, frontier_plot, kernel_map_plot, boo
 - **Table 5 (`tab:bootstrap`)**: Reports Ledoit-Wolf studentized circular block-bootstrap inference ($B=2000$, $b=12$) for Sharpe ratio differences.
 
 ### Visualizations and Figures
+
 - **Figure 1 (`wealth_plot.pdf`)**: Out-of-sample cumulative wealth trajectories over 30+ years from 1 dollar initial capital.
 - **Figure 2 (`drawdown_plot.pdf`)**: Underwater peak-to-trough drawdown curves over time across all strategies.
 - **Figure 3 & 4 (`weights_rob_plot.pdf`, `weights_mv_plot.pdf`)**: Dynamic asset allocations over time for Robust SIP vs. Minimum Variance across the 30 industry portfolios.
@@ -2104,15 +2133,15 @@ Several extensions warrant future investigation:
 
 ## 8. Summary of Project Milestones and Artifacts
 
-| Artifact / File | Description | Status |
-|---|---|---|
-| `code/RobustSIP.jl` | Core Julia module (Kernel, LP, QP, Oracle, SIP Exchange) | Complete & Vectorized |
-| `code/main_exp.jl` | Multi-decade rolling backtest (377 windows, 14 metrics, Bootstrap) | Complete with Live Logging |
-| `code/generate_publication_figures.py` | Vector publication figure generator (Matplotlib) | Complete with Royal Blue & Crimson Red |
-| `paper/main_paper.tex` | 23-page LaTeX paper (6 sections, 0 banned punctuation, full proofs) | Complete & Compiles with 0 errors |
-| `paper/references.bib` | 30+ BibTeX citations including 11 verified 2025/2026 references | Complete & Validated |
-| `figures/performance_table.csv` | 14-metric out-of-sample results across 5 strategies | Output Validated |
-| `figures/crisis_performance.csv` | Sub-period crisis analysis (Dot-Com, GFC, COVID, Inflation) | Output Validated |
-| `figures/bootstrap_inference.csv` | Ledoit-Wolf circular block bootstrap test results | Output Validated |
-| `figures/grid_validation.txt` | Active states count, ESS, and computational speedups | Output Validated |
-| `GitHub Repository` | Open science repository at `MadBezoui/Robust-SIP-Portfolio` | Configured in Section 1 & Section 5.5 |
+| Artifact / File                          | Description                                                         | Status                                 |
+| ---------------------------------------- | ------------------------------------------------------------------- | -------------------------------------- |
+| `code/RobustSIP.jl`                    | Core Julia module (Kernel, LP, QP, Oracle, SIP Exchange)            | Complete & Vectorized                  |
+| `code/main_exp.jl`                     | Multi-decade rolling backtest (377 windows, 14 metrics, Bootstrap)  | Complete with Live Logging             |
+| `code/generate_publication_figures.py` | Vector publication figure generator (Matplotlib)                    | Complete with Royal Blue & Crimson Red |
+| `paper/main_paper.tex`                 | 23-page LaTeX paper (6 sections, 0 banned punctuation, full proofs) | Complete & Compiles with 0 errors      |
+| `paper/references.bib`                 | 30+ BibTeX citations including 11 verified 2025/2026 references     | Complete & Validated                   |
+| `figures/performance_table.csv`        | 14-metric out-of-sample results across 5 strategies                 | Output Validated                       |
+| `figures/crisis_performance.csv`       | Sub-period crisis analysis (Dot-Com, GFC, COVID, Inflation)         | Output Validated                       |
+| `figures/bootstrap_inference.csv`      | Ledoit-Wolf circular block bootstrap test results                   | Output Validated                       |
+| `figures/grid_validation.txt`          | Active states count, ESS, and computational speedups                | Output Validated                       |
+| `GitHub Repository`                    | Open science repository at`MadBezoui/Robust-SIP-Portfolio`        | Configured in Section 1 & Section 5.5  |
