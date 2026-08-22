@@ -326,7 +326,7 @@ For computational tractability, we replace the continuous domain $\mathcal{U}$ w
 Every numerical ``optimal'', ``worst-case'', or ``binding'' claim regarding our adaptive exchange algorithm refers to $\widehat{v}^\star$ over $\widehat{\mathcal{U}}$, not the continuous domain $\mathcal{U}$.
 
 
-The conditional CVaR values $\Phi_\tau(w^k,\theta)$, for all $\theta\in\widehat{\mathcal{U}}$, are evaluated in $O(T\log T+KT)$ time by sorting the portfolio losses once,
+Because the portfolio allocation $w^k$ is fixed during separation, the conditional CVaR values $\Phi_\tau(w^k,\theta)$ for all $\theta\in\widehat{\mathcal{U}}$ are evaluated in overall $O(T\log T+KT)$ time by sorting the $T$ portfolio losses only once in $O(T\log T)$, followed by a sequential $O(T)$ summation over the grid's $K$ states to aggregate the reordered kernel probabilities.
 \begin{equation}
 \ell_t = -x_t^\top w^k,\qquad \ell_{(1)} \le \dots \le \ell_{(T)},
 \end{equation}
@@ -706,7 +706,7 @@ Mean window-level $\tau\times \operatorname{ESS}$ tail-support proxy & 4.15 \\
 \end{tabular}
 \end{table}
 
-Figure 11 illustrates convergence for one selected rolling window. Table \ref{tab:computational} reports a separate representative-window benchmark used for the dense-grid comparison; therefore, the objective values and numbers of active states in Figure 11 and Table \ref{tab:computational} are not expected to coincide. For the selected benchmark window and the reported extensive-form implementation, the dense $41\times41$ LP did not return a primal solution within the 600-second solver limit.
+Figure 11 illustrates convergence for one selected rolling window. Table \ref{tab:computational} reports a single representative-window snapshot used specifically for the dense-grid benchmarking, as running the exact dense $41\times41$ LP over all 377 windows proved computationally prohibitive; therefore, the objective values and numbers of active states in Figure 11 and Table \ref{tab:computational} are not expected to coincide. For the selected benchmark window and the reported extensive-form implementation, the dense $41\times41$ LP did not return a primal solution within the 600-second solver limit.
 
 Several diagnostics in Tables \ref{tab:computational} and \ref{tab:ess_diagnostics} warrant careful interpretation:
 \begin{enumerate}
@@ -741,7 +741,7 @@ Several diagnostics in Tables \ref{tab:computational} and \ref{tab:ess_diagnosti
 
 Figure \ref{fig:frontier} contextualizes the in-sample decision environment. The grid-restricted robust efficient frontier forms an outer envelope of worst-grid-state CVaR values, positioned to the right of the unconditional nominal CVaR frontier and the classical Markowitz mean-variance frontier. Individual industry portfolios exhibit substantial dispersion in both expected return and downside tail risk, with defensive sectors displaying lower tail risk compared to high-beta sectors.
 
-Figure \ref{fig:kernel} visualizes the continuous market-state space $\mathcal{U} \subset \mathbb{R}^2$ alongside the bivariate kernel density estimate $f(\text{log-VIX}, \text{Drawdown})$. Historical market states concentrate in a low-volatility, low-drawdown core regime (VIX between 10 and 20, Drawdown below 10\%). However, the continuous domain extends outward into severe tail regions, encompassing major historical dislocations such as the 1998 LTCM collapse (VIX 45.74, Drawdown 19.3\%), the 2000--2002 Dot-Com crash (VIX 45.08, Drawdown 44.7\%), the 2008 Lehman Brothers crisis (VIX 80.06, Drawdown 48.4\%), the March 2020 COVID-19 shock (VIX 82.69, Drawdown 33.8\%), and the 2022 inflation-driven bear market (VIX 34.02, Drawdown 24.5\%). In the representative visualization, some active stress states lie in relatively low-density regions of the state domain, exerting binding constraints on the master portfolio problem.
+Figure \ref{fig:kernel} visualizes the continuous market-state space $\mathcal{U} \subset \mathbb{R}^2$ alongside the bivariate kernel density estimate $f(\text{log-VIX}, \text{Drawdown})$. Historical market states concentrate in a low-volatility, low-drawdown core regime (VIX between 10 and 20, Drawdown below 10\%). However, the continuous domain extends outward into severe tail regions, encompassing major historical dislocations such as the 1998 LTCM collapse (VIX 45.74, Drawdown 19.3\%), the 2000--2002 Dot-Com crash (VIX 45.08, Drawdown 44.7\%), the 2008 Lehman Brothers crisis (VIX 80.06, Drawdown 48.4\%), the March 2020 COVID-19 shock (VIX 82.69, Drawdown 33.8\%), and the 2022 inflation-driven bear market (VIX 34.02, Drawdown 24.5\%). In the representative visualization, some active stress states lie in relatively low-density regions of the state domain, exerting binding constraints on the master portfolio problem. To mitigate the computational burden and prevent over-conservatism, one could restrict the Cartesian grid $\widehat{\mathcal{U}}$ to the empirical convex hull of the observed data, thereby eliminating artificial corner states that lack any historical precedent while preserving the interpolative properties of the kernel density.
 
 \begin{figure}[H]
     \centering
