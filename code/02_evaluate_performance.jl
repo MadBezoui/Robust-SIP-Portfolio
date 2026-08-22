@@ -89,13 +89,13 @@ function evaluate_backtest(trans_cost::Float64=0.0010, tau::Float64=0.05)
     for s in strat_names
         s_safe = replace(s, "/" => "")
         df_w = CSV.read(joinpath(output_dir, "weights_$(s_safe).csv"), DataFrame)
-        w_mat = Matrix(df_w[:, 1:end-1])
+        w_mat = Matrix{Float64}(coalesce.(df_w[:, 1:end-1], 0.0))
         weights_dict[s] = [w_mat[i, :] for i in 1:size(w_mat,1)]
         
         df_perf = CSV.read(joinpath(output_dir, "perf_$(s_safe).csv"), DataFrame)
-        rets_dict[s] = df_perf.Return
-        rets_gross_dict[s] = df_perf.Return_Gross
-        turnover_dict[s] = df_perf.Turnover
+        rets_dict[s] = convert(Vector{Float64}, coalesce.(df_perf.Return, 0.0))
+        rets_gross_dict[s] = convert(Vector{Float64}, coalesce.(df_perf.Return_Gross, 0.0))
+        turnover_dict[s] = convert(Vector{Float64}, coalesce.(df_perf.Turnover, 0.0))
     df = CSV.read("../data/aligned_market_data.csv", DataFrame)
     col_names = names(df)
     vix_idx = findfirst(x -> x == "VIX", col_names)
@@ -151,62 +151,10 @@ function evaluate_backtest(trans_cost::Float64=0.0010, tau::Float64=0.05)
     println("Saved tc_sensitivity.csv")
     
     # -------------------------------------------------------------------------
-    display(boot_res_df)
     
-    # -------------------------------------------------------------------------
-    # 5. EXPORT CONVERGENCE HISTORY AND ACTIVE STATES
-    # -------------------------------------------------------------------------
-    if !isempty(sample_convergence_history)
-        conv_df = DataFrame(
-            Iteration=[h.iteration for h in sample_convergence_history],
-            Master_LB=[h.lb * 100.0 for h in sample_convergence_history], # daily %
-            Oracle_UB=[h.ub * 100.0 for h in sample_convergence_history], # daily %
-            Optimality_Gap=[h.gap * 100.0 for h in sample_convergence_history], # daily %
-            Active_Count=[h.active_count for h in sample_convergence_history]
-        )
-        CSV.write(joinpath(output_dir, "convergence_history.csv"), conv_df)
-        println("Saved convergence_history.csv")
-    end
-    
-    # Export active states from sample window and distribution of active counts
-    if !isempty(active_states_sample)
-        sample_states_df = DataFrame(
-            State_Index=1:length(active_states_sample),
-            logVIX=[th[1] for th in active_states_sample],
-            Drawdown=[th[2] for th in active_states_sample],
-            Raw_VIX=[exp(th[1]) for th in active_states_sample],
-            Drawdown_Pct=[th[2] * 100.0 for th in active_states_sample]
-        )
-        CSV.write(joinpath(output_dir, "active_states_sample.csv"), sample_states_df)
-        println("Saved active_states_sample.csv")
-    end
-    
-    active_hist_df = DataFrame(Window=1:step_count, Active_States=active_states_history, Iterations=iterations_history, Avg_Active_State_ESS=ess_history)
-    CSV.write(joinpath(output_dir, "active_states_history.csv"), active_hist_df)
-    
-    # -------------------------------------------------------------------------
-    # 6. EXPORT REAL IN-SAMPLE EFFICIENT FRONTIER DATA
-    # -------------------------------------------------------------------------
-    println("Computing real in-sample efficient frontiers across target returns...")
-    mu_full = mean(X_all, dims=1)[:] * 252.0
-    cov_full = cov(X_all) * 252.0
-    
-    vix_min_f, vix_max_f = extrema(Y_all[:, 1])
-    dd_min_f, dd_max_f = extrema(Y_all[:, 2])
-    vix_grid_f = range(vix_min_f, vix_max_f, length=21)
-    dd_grid_f  = range(max(0.0, dd_min_f), min(1.0, dd_max_f), length=21)
-    grid_thetas_f = [[v, d] for v in vix_grid_f for d in dd_grid_f]
-    
-    sigma_vix_f, sigma_dd_f = std(Y_all[:, 1]), std(Y_all[:, 2])
-    h_vix_f = sigma_vix_f * size(Y_all, 1)^(-1/6)
-    h_dd_f  = sigma_dd_f  * size(Y_all, 1)^(-1/6)
-    H_f = [h_vix_f^2 0.0; 0.0 h_dd_f^2]
-    
-    mu_max_achievable = max_feasible_return(mu_full, max_weight)
-    mu_min_achievable = min_feasible_return(mu_full, max_weight)
-    
-    target_grid = range(mu_min_achievable * 1.05, mu_max_achievable * 0.95, length=25)
-    println("Evaluation complete.")
+if abspath(PROGRAM_FILE) == @__FILE__
+    evaluate_backtest(0.0010, 0.05)
+end
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

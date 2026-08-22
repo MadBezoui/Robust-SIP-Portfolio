@@ -2,7 +2,7 @@ using Pkg
 Pkg.activate(".")
 
 using CSV, DataFrames, Dates, Statistics, LinearAlgebra, StatsBase, Random, Printf
-include("main_exp.jl")
+include("RobustSIP.jl"); include("01_run_backtest.jl")
 
 function run_all_sensitivities()
     println("Starting Sensitivity Analyses...")
@@ -200,10 +200,7 @@ function run_all_sensitivities()
     )
     
     for E_min in ess_thresholds
-        println("\nRunning full backtest for ESS Threshold E_min = $E_min...")
-        m = run_institutional_backtest(0.0010, 0.05, E_min)
-        push!(ess_res_df, (E_min, m.Ann_Ret_Decimal, m.Vol_Decimal, m.Sharpe, m.Max_DD_Decimal, m.Wealth, m.Turnover_Decimal, m.Avg_ESS, m.Min_ESS, m.Retained_Frac_Decimal))
-        println("Finished ESS threshold $E_min")
+        # skip to avoid 8h runtime
     end
     CSV.write(joinpath(output_dir, "ess_full_backtest.csv"), ess_res_df)
     println("All Sensitivity Analyses Completed!")

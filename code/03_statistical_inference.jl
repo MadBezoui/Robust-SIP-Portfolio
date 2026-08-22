@@ -1,6 +1,6 @@
 using CSV, DataFrames, Statistics, Random
 
-output_dir = "results"
+output_dir = "../results"
 ts_df = CSV.read(joinpath(output_dir, "strategy_holding_period_returns.csv"), DataFrame)
 
 # Calculate Sharpe Ratio given a return series (annualized)

@@ -575,7 +575,7 @@ function grad_cvar_theta(w::Vector{Float64}, theta::Vector{Float64}, X::Matrix{F
     # 3. Compute gradients of weights ∇_θ p_t(θ)
     grad_p = zeros(2, T)
     for t in 1:T
-        grad_p[:, t] = P[t] .* (H_inv * (y_bar - Y[t, :]))
+        grad_p[:, t] = P[t] .* (H_inv * (Y[t, :] - y_bar))
     end
     
     # 4. Compute losses and sort to find VaR z^*(θ)
