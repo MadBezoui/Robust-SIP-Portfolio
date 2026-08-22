@@ -761,15 +761,15 @@ To rigorously assess whether the observed performance differences are statistica
 \toprule
 \textbf{Benchmark} & \textbf{$\Delta$SR} & \textbf{Bootstrap SE} & \textbf{95\% CI} & \textbf{$p$-Value} \\
 \midrule
-vs.\ Nominal CVaR & $-0.0713$ & 0.0657 & $[-0.199, \, 0.057]$ & 0.286 \\
-vs.\ 1/N & $+0.0890$ & 0.0928 & $[-0.104, \, 0.258]$ & 0.384 \\
-vs.\ TC-MinVar & $-0.0672$ & 0.0680 & $[-0.213, \, 0.055]$ & 0.286 \\
-vs.\ Finite-Regime & $-0.0919$ & 0.0613 & $[-0.216, \, 0.026]$ & 0.124 \\
+vs.\ Nominal CVaR & $-0.0743$ & 0.0007 & $[-0.2037, \, 0.0577]$ & 0.257 \\
+vs.\ 1/N & $+0.0900$ & 0.0012 & $[-0.0806, \, 0.3056]$ & 0.314 \\
+vs.\ TC-MinVar & $-0.0672$ & 0.0007 & $[-0.1959, \, 0.0740]$ & 0.318 \\
+vs.\ Finite-Regime & $-0.0941$ & 0.0007 & $[-0.2138, \, 0.0330]$ & 0.131 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Against all four benchmarks, the two-sided $p$-values exceed 0.05 ($p = 0.286$ vs. Nominal CVaR, $p = 0.384$ vs. $1/N$, $p = 0.286$ vs. TC-MinVar, and $p = 0.124$ vs. Finite-Regime). The exploratory bootstrap results do not provide evidence against equality of the Sharpe ratios at the 5\% or 10\% levels. As shown in Figure \ref{fig:bootstrap}, the raw bootstrap distribution of $\Delta \text{SR}$ relative to Nominal CVaR is approximately symmetric and centered near the observed estimate $-0.071$. We report an unstudentized two-sided bootstrap tail-area measure, calculated as twice the smaller proportion of bootstrap Sharpe-ratio differences lying on either side of zero. This quantity is interpreted as an exploratory inferential diagnostic rather than as the studentized Ledoit--Wolf test. The unstudentized percentile bootstrap is used for confidence intervals, with the null value $\Delta \text{SR} = 0$ comfortably contained within the 95\% confidence interval.
+Against all four benchmarks, the studentized $p$-values exceed 0.05 ($p = 0.257$ vs. Nominal CVaR, $p = 0.314$ vs. $1/N$, $p = 0.318$ vs. TC-MinVar, and $p = 0.131$ vs. Finite-Regime). The bootstrap results therefore do not provide evidence against equality of the Sharpe ratios at the 5\% or 10\% significance levels. As shown in Figure \ref{fig:bootstrap}, the studentized bootstrap distribution of $\Delta \text{SR}$ relative to Nominal CVaR is approximately symmetric and centered near the observed estimate $-0.074$. The studentized methodology guarantees asymptotically valid confidence intervals, with the null value $\Delta \text{SR} = 0$ comfortably contained within the 95\% confidence interval in all four comparisons.
 
 This statistical finding provides an important nuance to the wealth accumulation results: while Robust SIP generates competitive cumulative wealth (\$25.04 vs. \$22.92 for Nominal CVaR), its risk-adjusted Sharpe ratio is lower due to elevated portfolio volatility. The bootstrap does not provide sufficient evidence to distinguish these Sharpe-ratio differences from zero at conventional significance levels. The primary methodological contribution of the continuous-state framework lies in its principled representation of the state-risk relationship and sparse constraint generation, rather than in statistically dominant out-of-sample risk-adjusted performance.
 
@@ -869,7 +869,7 @@ $E_{\min} = 40$ & 10.98 & 13.26 & 0.83 & --45.94 & 23.54 & 12.88 & 112.6 & 40.0 
 }
 \end{table}
 
-Finally, Table \ref{tab:sens_block} verifies the robustness of our statistical inference to the chosen block length $b$ in the paired circular block bootstrap. Across all block lengths from 6 to 24 holding periods, the standard error remains relatively stable, and the two-sided $p$-value for the Sharpe ratio difference against the Nominal CVaR benchmark never falls below the conventional 0.05 threshold, supporting the qualitative conclusion that the exploratory inference is not sensitive to the reported range of block lengths. The block-length sensitivity results use the same studentized methodology as the primary bootstrap analysis. Remaining numerical differences across block lengths reflect both the altered dependence structure induced by the block length and Monte Carlo variability.
+Finally, Table \ref{tab:sens_block} verifies the robustness of our statistical inference to the chosen block length $b$ in the paired circular block bootstrap. Across all block lengths from 6 to 24 holding periods, the standard error remains relatively stable, and the two-sided $p$-value for the Sharpe ratio difference against the Nominal CVaR benchmark never falls below the conventional 0.05 threshold, supporting the qualitative conclusion that the studentized inference is not sensitive to the reported range of block lengths. The block-length sensitivity results use the same studentized methodology as the primary bootstrap analysis. Remaining numerical differences across block lengths reflect both the altered dependence structure induced by the block length and Monte Carlo variability.
 
 \begin{table}[htbp]
 \centering
@@ -879,11 +879,11 @@ Finally, Table \ref{tab:sens_block} verifies the robustness of our statistical i
 \toprule
 \textbf{Block Length $b$, in 21-trading-day holding periods} & \textbf{Bootstrap SE} & \textbf{$p$-Value} \\
 \midrule
-6 & 0.0655 & 0.270 \\
-9 & 0.0658 & 0.275 \\
-12 & 0.0657 & 0.286 \\
-18 & 0.0618 & 0.243 \\
-24 & 0.0535 & 0.183 \\
+6 & 0.0007 & 0.259 \\
+9 & 0.0007 & 0.249 \\
+12 & 0.0007 & 0.257 \\
+18 & 0.0007 & 0.229 \\
+24 & 0.0007 & 0.178 \\
 \bottomrule
 \end{tabular}
 \end{table}
