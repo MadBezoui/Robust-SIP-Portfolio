@@ -1,13 +1,17 @@
 import re
-
 with open("README.md", "r") as f:
     text = f.read()
 
-text = text.replace("v1.1.0", "v1.2.0-submission-final")
-text = re.sub(r"commit `[0-9a-f]+`", "commit `bd9c810`", text) # The commit hash of the tag I just created was bd9c810.
+# Replace commit hash instruction
+text = re.sub(r"git checkout [0-9a-f]{7,40}", r"git checkout v1.4.0-submission-final", text)
 
-# Also update the figure count in README
-text = text.replace("10 analytical PDF plots", "13 analytical PDF plots")
+# Replace the pipeline commands if main_exp is used
+commands = """cd code
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. main_exp.jl"""
+
+# find the bash block
+text = re.sub(r"```bash\ncd code\njulia --project=\. main_exp\.jl\n```", f"```bash\n{commands}\n```", text)
 
 with open("README.md", "w") as f:
     f.write(text)

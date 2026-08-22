@@ -1,10 +1,19 @@
-println("Starting Robust SIP Portfolio Backtest and Evaluation Pipeline")
+println("Starting Robust SIP Portfolio Reproduction Pipeline")
 
-println("\n--- Step 4: Statistical Inference ---")
+include("01_run_backtest.jl")
+include("02_evaluate_performance.jl")
 include("03_statistical_inference.jl")
-run_bootstrap_inference()
 
-println("\n--- Step 5: Generate Publication Figures ---")
+println("\n--- Step 1: Rolling Backtest ---")
+run_backtest()
+
+println("\n--- Step 2: Performance Evaluation ---")
+evaluate_backtest(0.0010, 0.05)
+
+println("\n--- Step 3: Statistical Inference ---")
+run_statistical_inference()
+
+println("\n--- Step 4: Figure Generation ---")
 run(`python3 generate_publication_figures.py`)
 
-println("\nPipeline complete. All results and figures are saved in the results/ directory.")
+println("\nPipeline complete.")

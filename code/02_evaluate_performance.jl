@@ -149,12 +149,6 @@ function evaluate_backtest(trans_cost::Float64=0.0010, tau::Float64=0.05)
     end
     CSV.write(joinpath(output_dir, "tc_sensitivity.csv"), tc_df)
     println("Saved tc_sensitivity.csv")
-    
-    # -------------------------------------------------------------------------
-    
-if abspath(PROGRAM_FILE) == @__FILE__
-    evaluate_backtest(0.0010, 0.05)
-end
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
