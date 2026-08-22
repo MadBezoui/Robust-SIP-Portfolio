@@ -108,6 +108,10 @@ def plot_bounds():
     
     ax.set_xlabel('Adaptive Exchange Iteration ($k$)', fontsize=11)
     ax.set_ylabel('Daily CVaR at 95% Confidence (%)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Monotonic Convergence of Master LP Lower Bound and Grid Worst-Case CVaR', fontsize=12, pad=10)
     ax.set_xticks(iters)
     y_min = min(master_lb) - 0.08 * (max(oracle_ub) - min(master_lb))
@@ -182,6 +186,10 @@ def plot_frontier():
     
     ax.set_xlabel(r'Conditional Value-at-Risk (Daily $\mathrm{CVaR}_{0.95}$, %)', fontsize=11)
     ax.set_ylabel('Expected Return (Annualized %)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('In-Sample Risk-Return Efficient Frontiers (15% Weight Cap)', fontsize=12, pad=10)
     ax.grid(True, linestyle='--', alpha=0.45)
     ax.legend(loc='upper left', frameon=True, framealpha=0.95, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=8.5)
@@ -270,6 +278,10 @@ def plot_kernel_map():
     ax.set_ylim(-2, 58)
     ax.set_xlabel('CBOE Implied Volatility Index (VIX)', fontsize=11)
     ax.set_ylabel('Trailing Equity Market Drawdown ($D_t$, %)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Continuous Market-State Space, Empirical Density, and Active Stress States', fontsize=12, pad=10)
     ax.grid(True, linestyle='--', alpha=0.4)
     ax.legend(loc='upper right', frameon=True, framealpha=0.92, facecolor='#ffffff', edgecolor='#dcdde1', fontsize=8.5)
@@ -343,6 +355,10 @@ def plot_bootstrap():
     
     ax.set_xlabel(r'Annualized Sharpe Ratio Difference ($\Delta\mathrm{SR} = \mathrm{SR}_{\mathrm{Robust}} - \mathrm{SR}_{\mathrm{Nominal}}$)', fontsize=11)
     ax.set_ylabel('Probability Density', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Paired Circular Moving-Block Bootstrap Distribution for Out-of-Sample Sharpe Difference', fontsize=12, pad=10)
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.legend(loc='upper right', frameon=True, framealpha=0.92, facecolor='#ffffff', edgecolor='#dcdde1', fontsize=8)
@@ -377,6 +393,10 @@ def plot_wealth():
     ax.set_yscale('log')
     ax.set_xlabel('Out-of-Sample Date (1995 to 2026)', fontsize=11)
     ax.set_ylabel('Cumulative Wealth (\\$, Log Scale, Initial \\$1)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Out-of-Sample Cumulative Net Wealth Trajectories (Net of 10 bps TC)', fontsize=12, pad=10)
     ax.grid(True, which="both", linestyle='--', alpha=0.45)
     ax.legend(loc='upper left', frameon=True, framealpha=0.95, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=9)
@@ -410,6 +430,10 @@ def plot_drawdowns():
     
     ax.set_xlabel('Out-of-Sample Date (1995 to 2026)', fontsize=11)
     ax.set_ylabel('Portfolio Drawdown (%)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Out-of-Sample Peak-to-Trough Drawdown Curves', fontsize=12, pad=10)
     ax.grid(True, linestyle='--', alpha=0.45)
     ax.legend(loc='lower left', frameon=True, framealpha=0.95, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=8.5)
@@ -438,6 +462,10 @@ def plot_weights():
         ax.set_ylim(0, 1)
         ax.set_xlabel('Rebalancing Date (1995 to 2026)', fontsize=11)
         ax.set_ylabel('Portfolio Allocation Weight', fontsize=11)
+        try:
+            ax.set_xlim(dates.min(), dates.max())
+        except NameError:
+            pass
         ax.set_title('Robust SIP Dynamic Industry Allocations (Max 15% Cap)', fontsize=12, pad=10)
         ax.grid(True, linestyle='--', alpha=0.3)
         plt.tight_layout()
@@ -456,6 +484,10 @@ def plot_weights():
         ax.set_ylim(0, 1)
         ax.set_xlabel('Rebalancing Date (1995 to 2026)', fontsize=11)
         ax.set_ylabel('Portfolio Allocation Weight', fontsize=11)
+        try:
+            ax.set_xlim(dates.min(), dates.max())
+        except NameError:
+            pass
         ax.set_title('Minimum Variance Industry Allocations (Max 15% Cap)', fontsize=12, pad=10)
         ax.grid(True, linestyle='--', alpha=0.3)
         plt.tight_layout()
@@ -486,6 +518,10 @@ def plot_turnover():
         patch.set_alpha(0.7)
     
     ax.set_ylabel('Holding-Period Pre-Trade Drifted Turnover (%)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Distribution of 21-Trading-Day Holding-Period Portfolio Turnover across Strategies', fontsize=12, pad=10)
     ax.grid(True, linestyle='--', alpha=0.45)
     
@@ -521,6 +557,10 @@ def plot_active_states():
     
     ax.set_xlabel('Rolling Backtest Window (1 to 377)', fontsize=11)
     ax.set_ylabel('Number of Active State Blocks', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Active State Blocks Identified by the Grid-Restricted Constraint-Generation Algorithm', fontsize=12, pad=10)
     ax.set_ylim(0, max(states) + 2)
     ax.grid(True, linestyle='--', alpha=0.45)
@@ -582,6 +622,10 @@ def plot_ess_over_time():
     
     ax.set_xlabel('Rolling Backtest Window (1 to 377)', fontsize=11)
     ax.set_ylabel('Effective Sample Size (ESS)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Statistical Support of Active Stress States Over Time', fontsize=12, pad=10)
     ax.grid(True, linestyle='--', alpha=0.45)
     ax.legend(loc='upper right', frameon=True, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=9)
@@ -616,6 +660,10 @@ def plot_cumulative_tc_drag():
     
     ax.set_xlabel('Out-of-Sample Date (1995 to 2026)', fontsize=11)
     ax.set_ylabel('Cumulative Transaction Cost Drag (%)', fontsize=11)
+    try:
+        ax.set_xlim(dates.min(), dates.max())
+    except NameError:
+        pass
     ax.set_title('Cumulative Transaction Cost Impact (Assuming 10 bps)', fontsize=12, pad=10)
     ax.grid(True, linestyle='--', alpha=0.45)
     ax.legend(loc='upper left', frameon=True, facecolor='#ffffff', edgecolor='#b2bec3', fontsize=9)
