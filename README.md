@@ -22,8 +22,14 @@ Portfolio risk depends heavily on prevailing financial-market conditions, yet st
   - 13 analytical PDF plots (wealth trajectory, drawdowns, weights, turnover, active states, bounds, efficient frontier, kernel density map, and bootstrap distribution).
 
 ## Release Information
-The exact code and results corresponding to this manuscript are available under the versioned GitHub tag **v1.2.0-submission-final** (commit `bd9c810`). A matching Zenodo archive will be cited upon availability.
-- **GitHub Tag:** [v1.2.0-submission-final](https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.2.0-submission-final)
+
+The exact code and results corresponding to the manuscript are archived
+under the GitHub release and annotated tag `v1.5.0-submission-final`.
+
+- Release:
+  https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.5.0-submission-final
+- Tag:
+  https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.5.0-submission-final
 
 ## Software Environment
 Computations were validated on an Apple M1 Pro using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1.

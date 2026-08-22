@@ -1,4 +1,4 @@
-cff-version: 1.2.0
+cff-version: 1.5.0
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Bezoui"
@@ -6,6 +6,6 @@ authors:
   - family-names: "Sifaoui"
     given-names: "Thiziri"
 title: "Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation"
-version: 1.2.0
+version: 1.5.0
 date-released: 2026-08-22
-url: "https://github.com/MadBezoui/Robust-SIP-Portfolio"
+url: "https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.5.0-submission-final"

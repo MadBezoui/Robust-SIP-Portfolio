@@ -1,17 +1,22 @@
-import re
 with open("README.md", "r") as f:
     text = f.read()
 
-# Replace commit hash instruction
-text = re.sub(r"git checkout [0-9a-f]{7,40}", r"git checkout v1.4.0-submission-final", text)
+import re
+old_section = re.search(r"## Release Information.*?(?=##|$)", text, re.DOTALL).group(0)
 
-# Replace the pipeline commands if main_exp is used
-commands = """cd code
-julia --project=. -e 'using Pkg; Pkg.instantiate()'
-julia --project=. main_exp.jl"""
+new_section = """## Release Information
 
-# find the bash block
-text = re.sub(r"```bash\ncd code\njulia --project=\. main_exp\.jl\n```", f"```bash\n{commands}\n```", text)
+The exact code and results corresponding to the manuscript are archived
+under the GitHub release and annotated tag `v1.4.0-submission-final`,
+corresponding to commit
+`763899895767a0437dedeeb77536573af6b947c6`.
 
+- Release:
+  https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.4.0-submission-final
+- Tag:
+  https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.4.0-submission-final
+
+"""
+text = text.replace(old_section, new_section)
 with open("README.md", "w") as f:
     f.write(text)

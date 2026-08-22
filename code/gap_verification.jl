@@ -6,7 +6,7 @@ using .RobustSIP
 
 function run_gap_verification()
     println("Running Gap Verification...")
-    data_path = "../data/aligned_market_data.csv"
+    data_path = joinpath(@__DIR__, "..", "data", "aligned_market_data.csv")
     output_dir = "results"
     
     df = CSV.read(data_path, DataFrame)
@@ -65,7 +65,7 @@ function run_gap_verification()
         std_v = std(Y_train[:,1])
         std_d = std(Y_train[:,2])
         c = 1.0
-        H = [ (c * std_v)^2 0.0 ; 0.0 (c * std_d)^2 ]
+        H = (size(Y_train, 1)^(-1/3)) * [ (c * std_v)^2 0.0 ; 0.0 (c * std_d)^2 ]
         
         mu_train = vec(mean(X_train, dims=1))
         target_return = median(mu_train)

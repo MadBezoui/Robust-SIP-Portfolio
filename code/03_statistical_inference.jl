@@ -1,5 +1,7 @@
 using CSV, DataFrames, Statistics, Random
 
+function run_statistical_inference()
+
 output_dir = "../results"
 ts_df = CSV.read(joinpath(output_dir, "strategy_holding_period_returns.csv"), DataFrame)
 
@@ -96,3 +98,5 @@ end
 CSV.write(joinpath(output_dir, "block_length_sensitivity.csv"), boot_sens_df)
 println("Saved block_length_sensitivity.csv")
 display(boot_sens_df)
+
+end
