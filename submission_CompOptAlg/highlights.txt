@@ -1,7 +1,0 @@
-Research Highlights:
-
-- Formulates state-robust portfolio selection over a continuous family of kernel-weighted conditional return distributions.
-- Establishes continuity, convexity, and existence properties of the resulting semi-infinite CVaR model.
-- Solves a finite grid-restricted approximation using adaptive constraint generation and a full-grid separation oracle.
-- Evaluates grid resolution, bandwidth, empirical support, transaction costs, and bootstrap sensitivity.
-- Reports competitive long-run wealth but no statistically significant Sharpe-ratio advantage over standard benchmarks.
