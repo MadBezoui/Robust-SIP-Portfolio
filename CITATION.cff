@@ -8,6 +8,5 @@ authors:
     given-names: "Thiziri"
 title: "Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation"
 version: 1.1.0
-doi: 10.5281/zenodo.22050110
 date-released: 2026-08-22
 url: "https://github.com/MadBezoui/Robust-SIP-Portfolio"
