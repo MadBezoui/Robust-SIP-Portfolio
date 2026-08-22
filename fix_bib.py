@@ -1,20 +1,18 @@
 with open("submission_CompOptAlg_v2/references.bib", "r") as f:
-    lines = f.readlines()
+    text = f.read()
 
-new_lines = []
-skip = False
-for line in lines:
-    if line.startswith("@article{bezanson2017julia") and len(new_lines) > 400:
-        skip = True
-    elif line.startswith("@article{dunning2017jump") and len(new_lines) > 400:
-        skip = True
-    
-    if skip and line.strip() == "}":
-        skip = False
-        continue
-    
-    if not skip:
-        new_lines.append(line)
+text = text.replace(
+    r"title        = {{v1.1.0: Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation}},",
+    r"title        = {{v1.2.0: Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation}},"
+)
+text = text.replace(
+    r"note         = {Zenodo. \href{https://doi.org/10.5281/zenodo.22050110}{[Zenodo DOI to be generated upon acceptance]}},",
+    r"doi          = {10.5281/zenodo.22056130},"
+)
+text = text.replace(
+    r"url          = {https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.1.0}",
+    r"url          = {https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.2.0-submission-final}"
+)
 
 with open("submission_CompOptAlg_v2/references.bib", "w") as f:
-    f.writelines(new_lines)
+    f.write(text)

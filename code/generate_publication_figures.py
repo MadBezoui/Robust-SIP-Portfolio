@@ -94,19 +94,19 @@ def plot_bounds():
     final_k = iters[-1]
     
     box_text = (
-        r"$\mathbf{Exchange\ Convergence\ Summary:}$" + "\n"
-        rf"$\bullet\ \text{{Master Lower Bound: }} \eta^* = {final_lb:.4f}\%$" + "\n"
-        rf"$\bullet\ \text{{Grid Worst-Case: }} \widehat{{G}}^* = {final_ub:.4f}\%$" + "\n"
-        rf"$\bullet\ \text{{Final Residual Gap: }} {final_gap:.4f}\% \leq 10^{{-4}}$" + "\n"
-        rf"$\bullet\ \text{{Active Stress States: }} |\mathcal{{U}}^*| = {final_active}$" + "\n"
-        rf"$\bullet\ \text{{Total Iterations: }} k = {final_k}$"
+        r"$\mathbf{Exchange\ Convergence\ Summary}$" + "\n"
+        rf"$\bullet$ Master Lower Bound: $\eta^* = {final_lb:.4f}\%$" + "\n"
+        rf"$\bullet$ Grid Worst-Case: $G^* = {final_ub:.4f}\%$" + "\n"
+        rf"$\bullet$ Final Residual Gap: ${final_gap:.4f}\% \leq 0.01$ percentage points" + "\n"
+        rf"$\bullet$ Active Stress States: $|U^*| = {final_active}$" + "\n"
+        rf"$\bullet$ Total Master solves: $k = {final_k}$"
     )
     ax.text(
-        0.54, 0.72, box_text, transform=ax.transAxes, fontsize=8.5,
+        0.48, 0.40, box_text, transform=ax.transAxes, fontsize=8.5,
         verticalalignment='top', bbox=dict(boxstyle="round,pad=0.5", fc="#f8f9fa", ec="#b2bec3", lw=1.0, alpha=0.95)
     )
     
-    ax.set_xlabel('Adaptive Exchange Iteration ($k$)', fontsize=11)
+    ax.set_xlabel('Master solves ($k$)', fontsize=11)
     ax.set_ylabel('Daily CVaR at 95% Confidence (%)', fontsize=11)
     try:
         ax.set_xlim(dates.min(), dates.max())
