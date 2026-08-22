@@ -6,7 +6,7 @@ using .RobustSIP
 
 function run_gap_verification()
     println("Running Gap Verification...")
-    data_path = "data/aligned_market_data.csv"
+    data_path = "../data/aligned_market_data.csv"
     output_dir = "results"
     
     df = CSV.read(data_path, DataFrame)
@@ -41,7 +41,7 @@ function run_gap_verification()
     )
     
     for (i, d) in enumerate(target_dates)
-        idx = findfirst(x -> year(x) == year(d) && month(x) == month(d), dates)
+        idx = findlast(x -> x <= d, dates)
         if isnothing(idx) || idx <= L
             println("Skipping $d")
             continue
@@ -59,7 +59,7 @@ function run_gap_verification()
         v_margin = 0.1 * (v_max - v_min)
         d_margin = 0.1 * (d_max - d_min)
         bounds_v = (v_min - v_margin, v_max + v_margin)
-        bounds_d = (d_min - d_margin, d_max + d_margin)
+        bounds_d = (max(0.0, d_min - d_margin), min(1.0, d_max + d_margin))
         
         # bandwidth
         std_v = std(Y_train[:,1])
@@ -68,7 +68,7 @@ function run_gap_verification()
         H = [ (c * std_v)^2 0.0 ; 0.0 (c * std_d)^2 ]
         
         mu_train = vec(mean(X_train, dims=1))
-        target_return = max(minimum(mu_train), 0.001)
+        target_return = median(mu_train)
         
         # Solve with 21x21
         v_grid = range(bounds_v[1], bounds_v[2], length=n_v)
