@@ -1,7 +1,0 @@
-Research Highlights:
-
-- Formulates state-robust portfolio selection over a continuous family of kernel-weighted conditional return distributions.
-- Solves a finite grid-restricted approximation using adaptive constraint generation, achieving a ~20x speedup on representative windows while retaining an average of 3.66 active states out of 441.
-- Provides a continuous-optimality error bound and a posteriori verification, establishing that the finite grid supremum matches the continuous supremum to $10^{-4}$ precision.
-- Reports competitive long-run wealth, though studentized bootstrap inference shows no statistically significant Sharpe-ratio advantage over standard benchmarks.
-- Ensures full transparency with an open-source, reproducible codebase under an MIT License.
