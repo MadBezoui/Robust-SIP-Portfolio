@@ -77,7 +77,7 @@ for bench in ["NominalCVaR", "1/N", "MinVar", "FiniteRegime"]
     )
     push!(boot_res_df, (bench, diff, se, ci_l, ci_u, p_val))
     if bench == "NominalCVaR"
-        global main_boot_dist = boot_dist
+        main_boot_dist = boot_dist
     end
 end
 CSV.write(joinpath(output_dir, "bootstrap_inference.csv"), boot_res_df)
@@ -99,4 +99,8 @@ CSV.write(joinpath(output_dir, "block_length_sensitivity.csv"), boot_sens_df)
 println("Saved block_length_sensitivity.csv")
 display(boot_sens_df)
 
+end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    run_statistical_inference()
 end

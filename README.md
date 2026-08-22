@@ -24,12 +24,14 @@ Portfolio risk depends heavily on prevailing financial-market conditions, yet st
 ## Release Information
 
 The exact code and results corresponding to the manuscript are archived
-under the GitHub release and annotated tag `v1.5.0-submission-final`.
+under the GitHub release and annotated tag `v1.6.0-submission-final`.
 
 - Release:
-  https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.5.0-submission-final
+  https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.6.0-submission-final
+- Zenodo DOI:
+  https://doi.org/10.5281/zenodo.22056130
 - Tag:
-  https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.5.0-submission-final
+  https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.6.0-submission-final
 
 ## Software Environment
 Computations were validated on an Apple M1 Pro using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1.
