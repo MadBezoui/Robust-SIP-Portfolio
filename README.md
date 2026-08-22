@@ -19,11 +19,11 @@ Portfolio risk depends heavily on prevailing financial-market conditions, yet st
   - `crisis_performance.csv`: Sub-sample return and drawdown metrics across Dot-Com, GFC, COVID-19, and 2022 inflation periods.
   - `bootstrap_inference.csv`: Unstudentized paired circular block bootstrap Sharpe ratio difference inference.
   - `grid_sensitivity.csv`, `bandwidth_sensitivity.csv`, `ess_sensitivity.csv`, `ess_full_backtest.csv`, `block_length_sensitivity.csv`: Output data for all sensitivity experiments.
-  - 10 analytical PDF plots (wealth trajectory, drawdowns, weights, turnover, active states, bounds, efficient frontier, kernel density map, and bootstrap distribution).
+  - 13 analytical PDF plots (wealth trajectory, drawdowns, weights, turnover, active states, bounds, efficient frontier, kernel density map, and bootstrap distribution).
 
 ## Release Information
-The exact code and results corresponding to this manuscript are available under the versioned GitHub tag **v1.1.0** (commit `4a73dcb1b9e2c827f3f3f2eaf79ed5b2a58eea74`). A matching Zenodo archive will be cited upon availability.
-- **GitHub Tag:** [v1.1.0](https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.1.0)
+The exact code and results corresponding to this manuscript are available under the versioned GitHub tag **v1.2.0-submission-final** (commit `bd9c810`). A matching Zenodo archive will be cited upon availability.
+- **GitHub Tag:** [v1.2.0-submission-final](https://github.com/MadBezoui/Robust-SIP-Portfolio/tree/v1.2.0-submission-final)
 
 ## Software Environment
 Computations were validated on an Apple M1 Pro using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1.
