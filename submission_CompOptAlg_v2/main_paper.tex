@@ -365,21 +365,21 @@ The overall adaptive exchange algorithm is depicted in Figure \ref{fig:schema2}.
 We first recall the convergence guarantee obtained under exact continuous separation and then state the scope of the finite grid-restricted implementation.
 
 \begin{proposition}[Convergence under exact separation]
-Assume that each master problem is solved to exact LP optimality and the separation oracle identifies the worst-case state $\theta^* = \arg\max_{\theta \in \mathcal{U}} \Phi_\tau(w^k, \theta)$ with exact value $G(w_k) = \Phi_\tau(w^k, \theta^*)$. Then:
+Assume that each master problem is solved to exact LP optimality and the separation oracle identifies the worst-case state $\theta^* = \arg\max_{\theta \in \mathcal{U}} \Phi_\tau(w^k, \theta)$ with exact value $G(w^k) = \Phi_\tau(w^k, \theta^*)$. Then:
 \begin{enumerate}
     \item The master lower bounds form a non-decreasing sequence: $\text{LB}_1 \le \text{LB}_2 \le \dots \le v^\star$.
     \item The oracle values satisfy $G(w_k) \ge v^\star$ for all $k \ge 1$.
     \item For any convergence tolerance $\epsilon > 0$, the exchange algorithm terminates in a finite number of iterations with an $\epsilon$-optimal portfolio $w^k \in W$ satisfying:
     \begin{equation}
-        0 \le G(w_k) - v^\star \le \epsilon, \qquad \sup_{\theta \in \mathcal{U}} \bigl[\Phi_\tau(w^k, \theta) - \text{LB}_k\bigr] \le \epsilon
+        0 \le G(w^k) - v^\star \le \epsilon, \qquad \sup_{\theta \in \mathcal{U}} \bigl[\Phi_\tau(w^k, \theta) - \text{LB}_k\bigr] \le \epsilon
     \end{equation}
 \end{enumerate}
 \end{proposition}
 
 \begin{proof}
-Because $U_k \subseteq U_{k+1} \subseteq \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\text{LB}_k \le \text{LB}_{k+1} \le v^\star$. For Item 2, $G(w_k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w^k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
+Because $\widehat{\mathcal{U}}_k \subseteq \widehat{\mathcal{U}}_{k+1} \subseteq \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\text{LB}_k \le \text{LB}_{k+1} \le v^\star$. For Item 2, $G(w^k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w^k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
 
-For Item 3, upon termination with $G(w_k) - \text{LB}_k \le \epsilon$, we have $0 \le G(w_k) - v^\star \le G(w_k) - \text{LB}_k \le \epsilon$, and the portfolio $w_k$ satisfies all finite constraints in $W$ while the epigraph pair $(w^k, \text{LB}_k+\varepsilon)$ is feasible for the continuous constraint set.
+For Item 3, upon termination with $G(w^k) - \text{LB}_k \le \epsilon$, we have $0 \le G(w^k) - v^\star \le G(w^k) - \text{LB}_k \le \epsilon$, and the portfolio $w^k$ satisfies all finite constraints in $W$ while the epigraph pair $(w^k, \text{LB}_k+\varepsilon)$ is feasible for the continuous constraint set.
 
 To establish finite termination, suppose for contradiction that the algorithm does not terminate. Then it generates an infinite sequence of states $\{\theta_k\}_{k=1}^\infty \subset \mathcal{U}$ such that $\Phi_\tau(w^k, \theta_k) - \text{LB}_k > \epsilon$ for all $k$. For any $j < k$, the constraint for $\theta_j$ was included in master problem $k$, so $\Phi_\tau(w^k, \theta_j) \le \text{LB}_k$. Thus $\Phi_\tau(w^k, \theta_k) - \Phi_\tau(w^k, \theta_j) > \epsilon$. Since $\Phi_\tau$ is continuous on the compact set $W\times \mathcal{U}$, it is uniformly continuous. Hence, for every $\varepsilon>0$, there exists $\delta_\varepsilon>0$ such that $\|\theta-\theta'\|<\delta_\varepsilon \implies |\Phi_\tau(w,\theta)-\Phi_\tau(w,\theta')|<\varepsilon$ uniformly for all $w\in W$. Therefore, $\|\theta_k - \theta_j\| \ge \delta_\epsilon$ for all $j < k$. A compact metric space is totally bounded and therefore cannot contain an infinite $\delta_\epsilon$-separated sequence, which contradicts the compactness of $\mathcal{U}$ \citep{hettich1993semi, lopez2007semi}. This exact-oracle convergence is a classical consequence of standard SIP exchange methods.
 \end{proof}
@@ -411,7 +411,7 @@ While the adaptive algorithm operates on the finite grid $\widehat{\mathcal{U}}$
 \nabla_\theta \Phi_\tau(w,\theta) = \frac{1}{\tau}\sum_{t=1}^T \nabla_\theta p_t(\theta)\,[\ell_t(w) - z^*(\theta)]_+ ,
 \end{equation}
 where $\nabla_\theta p_t(\theta) = p_t(\theta) H^{-1}(y_{t-1} - \bar{y}(\theta))$ with $\bar{y}(\theta) = \sum_{s=1}^T p_s(\theta) y_{s-1}$. This permits the derivation of a computable uniform Lipschitz constant $L_\Phi \le \frac{4 R M_L}{\tau \lambda_{\min}(H)}$, where $R = \sup_{\theta, t}\|y_{t-1} - \theta\|$ is the maximum state distance and $M_L$ bounds the portfolio loss. 
-Consequently, the grid separation acts as an \emph{inexact oracle with additive inexactness} $\delta = L_\Phi \rho$ (where $\rho$ is the grid dispersion). The grid oracle thus constitutes an inexact separation oracle with additive, one-sided inexactness $\delta \le L_\Phi \rho$. We state the consequence directly: since the master lower bounds satisfy $\mathrm{LB}_k \le v^\star$ for every $\widehat{\mathcal{U}}_k \subseteq \mathcal{U}$, and since at termination $\max_{\theta \in \widehat{\mathcal{U}}} \Phi_\tau(w^k,\theta) - \mathrm{LB}_k \le \varepsilon$, the incumbent satisfies
+The grid oracle thus constitutes an inexact separation oracle with additive, one-sided inexactness $\delta \le L_\Phi \rho$. We state the consequence directly: since the master lower bounds satisfy $\mathrm{LB}_k \le v^\star$ for every $\widehat{\mathcal{U}}_k \subseteq \mathcal{U}$, and since at termination $\max_{\theta \in \widehat{\mathcal{U}}} \Phi_\tau(w^k,\theta) - \mathrm{LB}_k \le \varepsilon$, the incumbent satisfies
 \begin{equation}
 \sup_{\theta \in \mathcal{U}} \Phi_\tau(w^k,\theta) - v^\star \;\le\; \varepsilon + \sup_{w \in W}\Bigl[\sup_{\theta\in\mathcal{U}} \Phi_\tau(w,\theta) - \max_{\theta\in\widehat{\mathcal{U}}} \Phi_\tau(w,\theta)\Bigr] \;\le\; \varepsilon + L_\Phi \rho .
 \end{equation}
