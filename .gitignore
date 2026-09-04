@@ -1,0 +1,48 @@
+# ==============================================================================
+# Git Ignore for Continuous-State Robust SIP Portfolio Repository
+# ==============================================================================
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+.pytest_cache/
+
+# Julia artifacts
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+
+# Temporary runtime and log files
+*.tmp
+*.log
+scratch/
+
+# Local submission and archive materials (kept locally on disk, not published to code repo)
+Soumission/
+Archive/
+Archives/
+Livrable_for_submission/
+*.zip
+*.tar.gz
+*.aux
+*.bbl
+*.blg
+*.out
+autoreview.md
+guidlines_COmpOptAlg.md

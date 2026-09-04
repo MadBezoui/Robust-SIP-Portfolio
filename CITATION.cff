@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Bezoui"
+    given-names: "Madani"
+    orcid: "https://orcid.org/0000-0002-8342-7039"
+    affiliation: "CESI LINEACT, UR 7527, Nancy, France"
+  - family-names: "Sifaoui"
+    given-names: "Thiziri"
+    orcid: "https://orcid.org/0009-0007-6884-0611"
+    affiliation: "University of Amine Elokkal El Hadj Moussa Eg Akhamouk, Tamanghasset, Algeria"
+title: "Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation"
+version: 1.7.0
+date-released: 2026-09-04
+license: MIT
+repository-code: "https://github.com/MadBezoui/Robust-SIP-Portfolio"
+url: "https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.7.0-submission-final"
+# Concept DOI: always resolves to the most recent Zenodo version of this
+# software. Swap in the version DOI minted for v1.7.0 once that release is
+# published, if you prefer to cite the immutable snapshot.
+doi: "10.5281/zenodo.21957758"

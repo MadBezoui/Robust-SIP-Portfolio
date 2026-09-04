@@ -1,0 +1,7 @@
+=== Robust SIP Computational and Empirical Validation Summary ===
+
+Representative Window Benchmark:
+  Adaptive SIP solve time: 4.4851 s (Active States: 5)
+  Dense Grid 21x21 solve time: 72.7093 s, L1 dist to Adaptive: 0.001564
+  Dense Grid 41x41 solve time: 632.2475 s, L1 dist to Adaptive: missing
+  Spatial Dispersion Radius rho (21x21): 0.0319
