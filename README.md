@@ -158,7 +158,7 @@ If you use this code, data, or algorithm in your research, please cite:
               grid-restricted constraint generation: code, data and numerical outputs},
   author   = {Bezoui, Madani and Sifaoui, Thiziri},
   year     = {2026},
-  version  = {v1.8.0},
+  version  = {v1.8.2},
   publisher= {Zenodo},
   doi      = {10.5281/zenodo.22309074},
   url      = {https://doi.org/10.5281/zenodo.22309074}
@@ -169,7 +169,7 @@ This entry cites the **software archive**, not the manuscript.
 
 | | |
 | --- | --- |
-| Version DOI (immutable `v1.7.0-submission-final` snapshot) | `10.5281/zenodo.22309074` |
+| Version DOI (immutable `v1.8.2` snapshot) | `10.5281/zenodo.22309074` |
 | Concept DOI (resolves to the newest version) | `10.5281/zenodo.21957758` |
 
 The manuscript cites the version DOI, so that its Data Availability statement
@@ -188,4 +188,4 @@ Or reference `CITATION.cff`.
 ## License
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.
-Version v1.8.0, Commit SHA: bb587e5292ec26aaec3414e9a667718e579698b4, Julia version: 1.11.6, Python version: 3.9
+Version v1.8.2, Commit SHA: bb587e5292ec26aaec3414e9a667718e579698b4, Julia version: 1.11.6, Python version: 3.9
