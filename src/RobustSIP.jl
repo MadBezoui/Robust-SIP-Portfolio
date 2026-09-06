@@ -2,11 +2,12 @@ module RobustSIP
 
 using JuMP
 using HiGHS
+using Clarabel
 using LinearAlgebra
 using Statistics
 using Distributions
 
-export get_kernel_weights, effective_sample_size, empirical_cvar, grad_cvar_theta, lipschitz_certificate, verify_continuous_cvar, solve_master_cvar_regularized, filter_grid_to_hull,
+export get_kernel_weights, tail_specific_ess, is_in_convex_hull, effective_sample_size, empirical_cvar, grad_cvar_theta, lipschitz_certificate, verify_continuous_cvar, solve_master_cvar_regularized, filter_grid_to_hull,
        max_feasible_return, min_feasible_return,
        solve_master_cvar, solve_oracle, solve_robust_sip,
        solve_nominal_cvar, solve_min_variance, solve_finite_regime_cvar,
@@ -136,6 +137,18 @@ function solve_nominal_cvar(X::Matrix{Float64}, mu::Vector{Float64}, tau::Float6
     @variable(model, u[1:T] >= 0.0)
     
     @constraint(model, sum(w) == 1.0)
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
     @constraint(model, dot(mu, w) >= t_ret)
     
     for t in 1:T
@@ -201,6 +214,18 @@ function solve_finite_regime_cvar(X::Matrix{Float64}, P_matrix::Matrix{Float64},
     @variable(model, u[1:K, 1:T] >= 0.0)
     
     @constraint(model, sum(w) == 1.0)
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
     @constraint(model, dot(mu, w) >= t_ret)
     
     for k in 1:K
@@ -251,7 +276,7 @@ end
 """
 Solve Target-Constrained Minimum Variance with Weight Cap and PSD Ridge
 """
-function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, target_return::Float64, max_weight::Float64=1.0)
+function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, target_return::Float64, max_weight::Float64=1.0, w_prev::Union{Vector{Float64}, Nothing}=nothing, turnover_limit::Float64=2.0; optimizer=HiGHS.Optimizer)
     N = size(cov_mat, 1)
     cov_psd = cov_mat + 1e-5 * Matrix(I, N, N) # Numerical PSD regularization
     
@@ -272,6 +297,18 @@ function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, targe
 
         @variable(model, 0.0 <= w[1:N] <= max_weight)
         @constraint(model, sum(w) == 1.0)
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
         @constraint(model, dot(mu, w) >= t_ret)
         @objective(model, Min, scale * dot(w, cov_psd * w))
 
@@ -315,7 +352,7 @@ end
 """
 Master LP for Robust CVaR over active subset of states U_k
 """
-function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64=1.0)
+function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas::Vector{Vector{Float64}}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64=1.0, w_prev::Union{Vector{Float64}, Nothing}=nothing, turnover_limit::Float64=2.0)
     T, N = size(X)
     K = length(active_thetas)
     
@@ -338,6 +375,18 @@ function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas
     @variable(model, u[1:K, 1:T] >= 0.0)
     
     @constraint(model, sum(w) == 1.0)
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
     @constraint(model, dot(mu, w) >= t_ret)
     
     for k in 1:K
@@ -709,6 +758,18 @@ function solve_master_cvar_regularized(X::Matrix{Float64}, Y::Matrix{Float64}, a
     @variable(model, u[1:K, 1:T] >= 0.0)
     
     @constraint(model, sum(w) == 1.0)
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
+if w_prev !== nothing
+    @variable(model, d[1:N] >= 0)
+    @constraint(model, w .- w_prev .<= d)
+    @constraint(model, w_prev .- w .<= d)
+    @constraint(model, sum(d) <= turnover_limit)
+end
     @constraint(model, dot(mu, w) >= t_ret)
     
     for k in 1:K
@@ -769,6 +830,39 @@ function filter_grid_to_hull(grid::Vector{Vector{Float64}}, Y_obs::Matrix{Float6
         end
     end
     return filtered_grid
+end
+
+function tail_specific_ess(w::Vector{Float64}, X::Matrix{Float64}, p::Vector{Float64}, tau::Float64)
+    losses = -(X * w)
+    idx = sortperm(losses, rev=true)
+    sorted_p = p[idx]
+    
+    cum_p = 0.0
+    tail_weights = Float64[]
+    for i in 1:length(p)
+        if cum_p + sorted_p[i] <= tau
+            push!(tail_weights, sorted_p[i] / tau)
+            cum_p += sorted_p[i]
+        else
+            rem = tau - cum_p
+            if rem > 0
+                push!(tail_weights, rem / tau)
+            end
+            break
+        end
+    end
+    return effective_sample_size(tail_weights)
+end
+
+function is_in_convex_hull(y::Vector{Float64}, Y::Matrix{Float64})
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    T = size(Y, 1)
+    @variable(model, lambda[1:T] >= 0)
+    @constraint(model, sum(lambda) == 1.0)
+    @constraint(model, Y' * lambda .== y)
+    optimize!(model)
+    return termination_status(model) == MOI.OPTIMAL
 end
 
 end # module
