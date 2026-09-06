@@ -42,7 +42,7 @@ Portfolio risk depends heavily on prevailing financial-market conditions. Standa
 \keywords{Robust Portfolio Optimization \and Conditional Value-at-Risk \and Semi-Infinite Programming \and Kernel-Weighted Conditional Distributions \and Constraint Generation}
 \end{abstract}
 
-\section{Introduction and motivation}
+\section{Introduction}
 The classical mean-variance framework introduced by \citet{markowitz1952portfolio} established the quantitative foundation of modern portfolio theory. However, the practical implementation of mean-variance optimization has long been hindered by its extreme sensitivity to parameter estimation errors. Small perturbations in expected returns or covariance estimates often produce erratic allocations, excessive portfolio turnover, and severe out-of-sample disappointment. To address these vulnerabilities, researchers have developed robust portfolio optimization techniques that optimize allocations against the worst-case parameters within prespecified uncertainty sets \citep{goldfarb2003robust, fabozzi2007robust}. Concurrently, various exact, iterative, and metaheuristic methods have been developed to handle complex real-world constraints in portfolio selection \citep{bezoui2019iterative, regaigui2025memetic}, as well as in broader multi-objective manufacturing and supply chain contexts \citep{bezoui2024hybrid}.
 
 Traditional robust portfolio models predominantly focus on unconditional uncertainty sets constructed around historical sample moments or empirical distributions \citep{delage2010distributionally, esfahani2018data}. While these models effectively mitigate sensitivity to estimation noise, they typically treat market dynamics as stationary and homogeneous across time. In reality, financial markets exhibit pronounced state-dependent behavior. During tranquil market environments, asset correlations remain moderate and return dispersions offer meaningful diversification benefits. In contrast, during periods of acute financial distress, volatility spikes, asset correlations tend to increase, and tail risks materialize simultaneously across sectors.
@@ -74,7 +74,7 @@ To facilitate open science, reproducibility and independent verification of all 
 
 The remainder of this manuscript is structured as follows. Section 2 reviews related literature across robust optimization, conditional stochastic programming, and semi-infinite algorithms. Section 3 develops the continuous-state modeling framework, kernel weighting mechanics, and theoretical existence theorems. Section 4 presents the adaptive exchange algorithm and distinguishes exact continuous separation from the grid-restricted separation used in the numerical implementation. Section 5 details the rolling-window backtesting protocol and reports empirical results across approximately 31.5 years. Section 6 presents model-specification sensitivity analysis, and Section 7 provides discussion, practical limitations, and concluding remarks.
 
-\section{Related literature and research positioning}
+\section{Related work}
 Our methodology intersects three active streams of quantitative operations research: robust portfolio selection, conditional stochastic programming with side information, and semi-infinite optimization algorithms.
 
 \subsection{Classical and distributionally robust portfolio selection}
@@ -128,7 +128,7 @@ Present model & Continuous covariate states & Fixed kernel-weighted empirical di
 
 
 
-\section{Continuous-state robust CVaR framework}
+\section{Model}
 We consider an investment universe consisting of $N$ risky financial assets over a discrete time horizon $t = 1, \dots, T$. Let $x_t = (x_{1,t}, \dots, x_{N,t})^\top \in \mathbb{R}^N$ denote the vector of realized asset returns from trading day $t-1$ to day $t$. The joint conditional distribution of asset returns is modulated by prevailing financial-market state variables observable at time $t-1$, denoted by the vector $y_{t-1} \in \mathbb{R}^M$.
 
 \subsection{State variable selection and compact state space}
@@ -227,7 +227,7 @@ When weights are uniformly distributed ($p_t(\theta) = 1/T$), the ESS reaches it
 \label{fig:schema1}
 \end{figure}
 
-\subsection{Semi-infinite programming formulation and theoretical properties}
+\section{Theory}
 Let $w = (w_1, \dots, w_N)^\top \in \mathbb{R}^N$ denote the portfolio weight vector. The portfolio loss under realized return vector $x_t$ is $-x_t^\top w$. We define the feasible portfolio set $W \subset \mathbb{R}^N$ under standard institutional long-only constraints with an individual weight cap $\bar{w} = 0.15$ and a target expected return constraint:
 \begin{equation}
     W = \left\{ w \in \mathbb{R}^N : \sum_{i=1}^N w_i = 1, \quad 0 \le w_i \le \bar{w} \quad \forall i=1,\dots,N, \quad \hat{\mu}^\top w \ge \mu_{\text{target}} \right\}
@@ -238,17 +238,8 @@ where $\hat{\mu} = \frac{1}{T} \sum_{t=1}^T x_t$ is the unconditional sample mea
 Let $S_{\bar w}=\{w \in \mathbb{R}^N : \mathbf{1}^\top w=1,\ 0\leq w_i\leq\bar w\}$. Then $S_{\bar w}\neq\emptyset$ if and only if $N\bar w\geq 1$. Conditional on this, let $\hat{\mu}_{(1)} \ge \dots \ge \hat{\mu}_{(N)}$ be the components of $\hat{\mu}$ sorted in descending order, and $\hat{\mu}_{[1]} \le \dots \le \hat{\mu}_{[N]}$ be sorted in ascending order. Define $q = \lfloor 1/\bar{w} \rfloor$ and the residual weight $r = 1 - q \bar{w}$. The maximum and minimum expected returns attainable in $S_{\bar w}$ are respectively $\mu_{\max} = \bar{w} \sum_{i=1}^q \hat{\mu}_{(i)} + (r > 0 ? r \hat{\mu}_{(q+1)} : 0)$ and $\mu_{\min} = \bar{w} \sum_{i=1}^q \hat{\mu}_{[i]} + (r > 0 ? r \hat{\mu}_{[q+1]} : 0)$, with the residual term omitted when $r=0$. The attainable expected-return set is $[\mu_{\min}, \mu_{\max}]$. Then $W\neq\emptyset$ if and only if $\mu_{\mathrm{target}}\leq\mu_{\max}$. Moreover, there exists $w\in S_{\bar w}$ satisfying $\hat\mu^\top w>\mu_{\mathrm{target}}$ if and only if $\mu_{\mathrm{target}}<\mu_{\max}$.
 \end{proposition}
 
-\begin{proof}
-If $N\bar w<1$, then
-\begin{equation}
-\sum_{i=1}^{N}w_i\leq N\bar w<1,
-\end{equation}
-so the capped simplex is empty. If $N\bar w\geq1$, a feasible fully invested allocation exists. The continuous knapsack problem
-\begin{equation}
-\max\{\hat\mu^\top w:\mathbf 1^\top w=1,\ 0\leq w_i\leq\bar w\}
-\end{equation}
-is solved by allocating $\bar w$ to the assets with the largest sample means and assigning the residual weight $r$ to the next asset, which yields $\mu_{\max}$. Analogously, allocating weight first to the assets with the smallest sample means yields $\mu_{\min}$. Since the capped simplex is convex and $w\mapsto\hat\mu^\top w$ is continuous and linear, its image is the interval $[\mu_{\min},\mu_{\max}]$. Therefore, $W\neq\varnothing$ if and only if $\mu_{\mathrm{target}}\leq\mu_{\max}$, and strict feasibility of the return constraint holds if and only if $\mu_{\mathrm{target}}<\mu_{\max}$. Finally, $W$ is a closed convex subset of the compact capped simplex and is therefore compact and convex.
-\end{proof}
+\textit{Proof is provided in Appendix A.1.}
+
 
 Following \citet{rockafellar2000optimization}, the conditional CVaR evaluated at state $\theta$ at confidence level $\alpha = 1 - \tau$ (with $\tau = 0.05$) is:
 \begin{equation}
@@ -279,35 +270,17 @@ Assume that $H \succ 0$, $N\bar{w} \ge 1$, and $\mu_{\text{target}} \le \mu_{\ma
 \end{enumerate}
 \end{proposition}
 
-\begin{proof}
-Item 1 follows from Proposition 1 and the closed bounding box construction of $\mathcal{U}$. For Item 2, the Gaussian kernel $K_H(u)$ is smooth and strictly positive on $\mathbb{R}^2$. The normalization denominator $\sum_{s=1}^T K_H(y_{s-1} - \theta)$ is strictly positive on compact $\mathcal{U}$. Thus $p_t(\theta)$ is a ratio of smooth, positive functions with a non-vanishing denominator, making it smooth and strictly positive.
+\textit{Proof is provided in Appendix A.2.}
 
-For Item 3, define
-\begin{equation}
-F(w,z,\theta) = z+\frac{1}{\tau}\sum_{t=1}^{T} p_t(\theta)\big[-x_t^\top w-z\big]_+.
-\end{equation}
-Since $p_t(\theta)$ and $(w,z)\mapsto[-x_t^\top w-z]_+$ are continuous, $F$ is jointly continuous on $\mathbb R^N\times\mathbb R\times\mathcal{U}$. For every $w\in W$, a weighted empirical VaR minimizer can be selected in
-\begin{equation}
-\left[\min_t\{-x_t^\top w\},\max_t\{-x_t^\top w\}\right].
-\end{equation}
-Since $W$ is compact and the return sample is finite, all such minimizers lie in the common compact interval $[-M_L,M_L]$, where
-\begin{equation}
-M_L=\max_{w\in W,\;t}|x_t^\top w|<\infty.
-\end{equation}
-By Berge's Maximum Theorem, the partial minimum $\Phi_\tau(w, \theta) = \min_{z \in [-M_L, M_L]} F(w, z, \theta)$ is continuous on $W \times \mathcal{U}$.
-
-For Item 4, since $F(w, z, \theta)$ is jointly convex in $(w, z)$ for each fixed $\theta$, the partial minimization over convex $z$ preserves convexity in $w$. Hence, $w \mapsto \Phi_\tau(w, \theta)$ is convex on $W$ for each $\theta \in \mathcal{U}$.
-\end{proof}
 
 \begin{theorem}[Existence of optimal robust allocation]
 Under the assumptions of Proposition 2, the robust objective function $G(w) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta)$ is continuous and convex on $W$. Furthermore, the supremum is attained for every $w \in W$, and the continuous-state robust portfolio optimization problem admits an optimal solution $w^* \in W$.
 \end{theorem}
 
-\begin{proof}
-Because $\mathcal{U}$ is compact and $\Phi_\tau(w, \cdot)$ is continuous on $\mathcal{U}$ for every $w \in W$, the Extreme Value Theorem guarantees that the supremum is achieved at some $\theta^*(w) \in \mathcal{U}$, so $G(w) = \max_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta)$. As the pointwise maximum of a family of convex functions $\{w \mapsto \Phi_\tau(w, \theta)\}_{\theta \in \mathcal{U}}$, $G(w)$ is convex on $W$. Joint continuity of $\Phi_\tau(w, \theta)$ on compact $W \times \mathcal{U}$ implies by Berge's Maximum Theorem that $G(w)$ is continuous on $W$. Finally, minimizing the continuous function $G(w)$ over the non-empty compact set $W$ guarantees the existence of an optimal solution $w^* \in W$ by the Weierstrass Theorem.
-\end{proof}
+\textit{Proof is provided in Appendix A.3.}
 
-\section{Grid-restricted adaptive constraint generation}
+
+\section{Algorithms}
 A full Cartesian-grid approximation of the continuous state space $\mathcal{U}$ yields a large-scale linear program with one CVaR state block for every candidate grid point. We design an adaptive exchange algorithm that iteratively generates only the binding stress states.
 
 \subsection{Master problem and separation oracle}
@@ -383,13 +356,8 @@ Assume that each master problem is solved to exact LP optimality and the separat
 \end{enumerate}
 \end{proposition}
 
-\begin{proof}
-Because $\widehat{\mathcal{U}}_k \subseteq \widehat{\mathcal{U}}_{k+1} \subseteq \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\mathrm{LB}_k \le \mathrm{LB}_{k+1} \le v^\star$. For Item 2, $G(w^k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w^k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
+\textit{Proof is provided in Appendix A.4.}
 
-For Item 3, upon termination with $G(w^k) - \mathrm{LB}_k \le \epsilon$, we have $0 \le G(w^k) - v^\star \le G(w^k) - \mathrm{LB}_k \le \epsilon$, and the portfolio $w^k$ satisfies all finite constraints in $W$ while the epigraph pair $(w^k, \mathrm{LB}_k+\varepsilon)$ is feasible for the continuous constraint set.
-
-To establish finite termination, suppose for contradiction that the algorithm does not terminate. Then it generates an infinite sequence of states $\{\theta_k\}_{k=1}^\infty \subset \mathcal{U}$ such that $\Phi_\tau(w^k, \theta_k) - \mathrm{LB}_k > \epsilon$ for all $k$. For any $j < k$, the constraint for $\theta_j$ was included in master problem $k$, so $\Phi_\tau(w^k, \theta_j) \le \mathrm{LB}_k$. Thus $\Phi_\tau(w^k, \theta_k) - \Phi_\tau(w^k, \theta_j) > \epsilon$. Since $\Phi_\tau$ is continuous on the compact set $W\times \mathcal{U}$, it is uniformly continuous. Hence, for every $\varepsilon>0$, there exists $\delta_\varepsilon>0$ such that $\|\theta-\theta'\|<\delta_\varepsilon \implies |\Phi_\tau(w,\theta)-\Phi_\tau(w,\theta')|<\varepsilon$ uniformly for all $w\in W$. Therefore, $\|\theta_k - \theta_j\| \ge \delta_\epsilon$ for all $j < k$. A compact metric space is totally bounded and therefore cannot contain an infinite $\delta_\epsilon$-separated sequence, which contradicts the compactness of $\mathcal{U}$ \citep{hettich1993semi, lopez2007semi}. This exact-oracle convergence is a classical consequence of standard SIP exchange methods.
-\end{proof}
 
 \begin{remark}[Monotonicity of bounds]
 While the master lower bounds $\mathrm{LB}_k$ are guaranteed to be monotonically non-decreasing, the separation oracle worst-case values $\widehat{G}(w^k)$ are not guaranteed to decrease monotonically at every iteration because the portfolio $w^k$ changes. However, the best incumbent worst-case value $\overline{G}_k = \min_{1 \le j \le k} \widehat{G}(w^j)$ is monotonically non-increasing by construction.
@@ -441,7 +409,7 @@ This additive-oracle propagation complements the analysis of \citet{oustry2025co
 \end{tabular}
 \end{table}
 
-\section{Empirical framework and multi-decade results}
+\section{Experimental design}
 We evaluate the out-of-sample performance, turnover efficiency, downside capital preservation, and computational scalability of the continuous-state robust portfolio framework.
 
 \subsection{Data and rolling-window backtesting protocol}
@@ -531,6 +499,7 @@ and
 \end{equation}
 where $r_t^{\mathrm{pre-cost}}$ is the portfolio's simple holding-period return before transaction costs.
 
+\section{Main empirical results}
 \subsection{Long-term cumulative wealth and risk-adjusted performance}
 Figure \ref{fig:wealth} displays the cumulative wealth trajectories of all five investment strategies net of 10 bps transaction costs on an initial \$1 investment. The naive $1/N$ portfolio delivers the highest final cumulative wealth of \$29.25, followed by the Finite-Regime CVaR portfolio (\$25.68), the continuous Robust SIP strategy (\$25.04), the Nominal CVaR portfolio (\$22.92), and the TC-MinVar portfolio (\$22.16).
 
@@ -691,7 +660,7 @@ Finite-Regime & 26.53 & 26.10 & 25.68 & 24.85 & 22.52 \\
 
 Table \ref{tab:tc_sensitivity} examines transaction cost sensitivity across 0, 5, 10, 20, and 50 bps. Finite-Regime CVaR records the highest point-estimate Sharpe ratio across all reported transaction-cost levels, maintaining a Sharpe ratio above 0.867 even at 50 bps. Robust SIP remains competitive in absolute wealth generation: at 50 bps, its final wealth of \$21.74 exceeds Nominal CVaR (\$20.26) and TC-MinVar (\$19.97), though it trails Finite-Regime (\$22.52). The $1/N$ portfolio is least sensitive to transaction costs due to its minimal turnover, retaining \$28.52 at 50 bps.
 
-\subsection{Computational scalability, state density, and bootstrap inference}
+\section{Computational results}
 Figure \ref{fig:active_states} illustrates the number of active stress states retained by the master problem across all 377 rolling backtest windows. Across the entire 31-year backtest, the algorithm consistently converges while retaining between 1 and 9 active market states (average 3.66) out of the 441 candidate states in $\widehat{\mathcal{U}}$. Under the implemented initialization and one-state-per-iteration update rule, the reported number of active states coincides with the recorded number of master-problem solves (average 3.66 iterations).
 
 \begin{figure}[H]
@@ -838,7 +807,7 @@ The repository provides the complete pipeline structured into four main componen
 
 Computations were performed on an Apple M1 Pro with 8 CPU cores and 16 GB RAM, using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1. Reported solve times encompass model construction and solver execution.
 
-\section{Model-specification sensitivity}
+\section{Model sensitivity}
 \label{sec:sensitivity}
 To ensure the robustness of our findings to methodological hyperparameters, we conduct sensitivity analyses across key design choices: grid resolution, kernel bandwidth, Effective Sample Size (ESS) regularization, and bootstrap block length. The grid resolution and bandwidth analyses (Tables \ref{tab:sens_grid} and \ref{tab:sens_bw}) report averages over a representative subset of 20 evenly spaced rolling out-of-sample windows spanning the full evaluation period from 28 December 1994 to 17 June 2026. This uniform sampling guarantees that the analyses span multiple market regimes, including crisis periods, while remaining computationally tractable for the dense grid benchmarks. The ESS threshold and bootstrap block length sensitivities are evaluated over the entire sequence of 377 rolling windows.
 
@@ -945,7 +914,7 @@ Finally, Table \ref{tab:sens_block} verifies the robustness of our statistical i
 A notable property of the continuous-state robust formulation is the near-flatness of the worst-case objective surface around the optimum. Because multiple asset combinations can achieve nearly identical worst-case CVaR, the optimal allocation $w^*$ may exhibit instability across adjacent rolling windows. The grid-refinement analysis of Table \ref{tab:sens_grid} provides indirect evidence of this flatness: refining the separation grid from $21\times21$ to $81\times81$ changes the worst-case CVaR by less than $0.02$ percentage points while displacing the optimal allocation by $\|w_{21}-w_{81}\|_1 \approx 0.063$. Objective stability therefore coexists with non-trivial allocation instability, which is consistent with the elevated average holding-period turnover of 9.48\% reported in Table \ref{tab:performance} (11.37 bps approximate annual transaction-cost drag). While the focus of this paper is unconstrained risk minimization, practical implementations could penalize this instability, for instance by incorporating an $\ell_1$ proximity regularizer $\lambda \|w - w_{\mathrm{prev}}\|_1$ into the master LP.
 
 
-\section{Discussion, limitations, and concluding remarks}
+\section{Discussion and conclusion}
 The proposed state-robust CVaR framework provides a principled and interpretable method for incorporating continuous market covariates into portfolio optimization without imposing artificial discrete regime boundaries. In the reported approximately 31.5-year empirical experiment on US industry portfolios, the continuous-state strategy achieved greater terminal wealth (\$25.04) than TC-MinVar (\$22.16) and nominal CVaR (\$22.92), but lower wealth than naive $1/N$ (\$29.25) and finite-regime CVaR (\$25.68). It also exhibited lower Sharpe ratios and deeper maximum drawdowns than the nominal and finite-regime CVaR benchmarks, and paired circular block percentile bootstrap testing does not provide sufficient evidence to distinguish these Sharpe-ratio differences from zero at conventional significance levels. Thus, the empirical findings do not establish superior risk-adjusted or crisis performance.
 
 The principal contribution of this work is methodological and computational: a kernel-weighted family of conditional return distributions indexed by continuous financial indicators can be incorporated into a continuous-state robust optimization model whose finite grid-restricted approximation can be solved efficiently through adaptive constraint generation. Because the operational implementation uses finite-grid separation ($21\times21 = 441$ states), its numerical convergence guarantees apply directly to the grid-restricted robust problem, achieving approximately a $20.7\times$ speedup on the representative benchmark window (single-threaded HiGHS 1.24.1 \cite{huangfu2018parallelizing}, tolerance $10^{-4}$) over dense LP discretization while retaining an average of only 3.66 active state blocks (and requiring an average of 3.66 exchange iterations under the implementation's counting convention).
@@ -965,8 +934,59 @@ Several methodological considerations and future extensions warrant discussion. 
 
 \textbf{Data Availability:} The Kenneth French 30 Industry Portfolio returns \cite{french2026data} and CBOE VIX observations \cite{cboe2026vix} used in this study were obtained from their publicly accessible source pages. Source URLs, retrieval information, preprocessing code, and the aligned research dataset are documented in the accompanying repository, subject to the original providers' terms of use. All reported results correspond to Zenodo version DOI 10.5281/zenodo.22309074, archived from Git commit 416b0a339040178906642df61a94c25910c11e99. The GitHub repository may contain later development versions \cite{bezoui2026robust}.
 
-\textbf{Author Contributions:} Madani Bezoui: Conceptualization, Methodology, Software, Writing - original draft. Thiziri Sifaoui: Formal analysis, Validation, Writing - review and editing.
+\textbf{Author Contributions:} Madani Bezoui: Conceptualization, Methodology, Software, Writing - original draft. Thiziri Sifaoui: Formal analysis, Validation, Writing - review and editing. Ahcene Bounceur: Supervision, Writing - review and editing.
 
 \bibliography{references}
+
+
+\section*{Appendix: Extended Proofs}\label{app:proofs}
+
+\subsection*{A.1 Proof of corresponding theorem/lemma}
+\begin{proof}
+If $N\bar w<1$, then
+\begin{equation}
+\sum_{i=1}^{N}w_i\leq N\bar w<1,
+\end{equation}
+so the capped simplex is empty. If $N\bar w\geq1$, a feasible fully invested allocation exists. The continuous knapsack problem
+\begin{equation}
+\max\{\hat\mu^\top w:\mathbf 1^\top w=1,\ 0\leq w_i\leq\bar w\}
+\end{equation}
+is solved by allocating $\bar w$ to the assets with the largest sample means and assigning the residual weight $r$ to the next asset, which yields $\mu_{\max}$. Analogously, allocating weight first to the assets with the smallest sample means yields $\mu_{\min}$. Since the capped simplex is convex and $w\mapsto\hat\mu^\top w$ is continuous and linear, its image is the interval $[\mu_{\min},\mu_{\max}]$. Therefore, $W\neq\varnothing$ if and only if $\mu_{\mathrm{target}}\leq\mu_{\max}$, and strict feasibility of the return constraint holds if and only if $\mu_{\mathrm{target}}<\mu_{\max}$. Finally, $W$ is a closed convex subset of the compact capped simplex and is therefore compact and convex.
+\end{proof}
+
+\subsection*{A.2 Proof of corresponding theorem/lemma}
+\begin{proof}
+Item 1 follows from Proposition 1 and the closed bounding box construction of $\mathcal{U}$. For Item 2, the Gaussian kernel $K_H(u)$ is smooth and strictly positive on $\mathbb{R}^2$. The normalization denominator $\sum_{s=1}^T K_H(y_{s-1} - \theta)$ is strictly positive on compact $\mathcal{U}$. Thus $p_t(\theta)$ is a ratio of smooth, positive functions with a non-vanishing denominator, making it smooth and strictly positive.
+
+For Item 3, define
+\begin{equation}
+F(w,z,\theta) = z+\frac{1}{\tau}\sum_{t=1}^{T} p_t(\theta)\big[-x_t^\top w-z\big]_+.
+\end{equation}
+Since $p_t(\theta)$ and $(w,z)\mapsto[-x_t^\top w-z]_+$ are continuous, $F$ is jointly continuous on $\mathbb R^N\times\mathbb R\times\mathcal{U}$. For every $w\in W$, a weighted empirical VaR minimizer can be selected in
+\begin{equation}
+\left[\min_t\{-x_t^\top w\},\max_t\{-x_t^\top w\}\right].
+\end{equation}
+Since $W$ is compact and the return sample is finite, all such minimizers lie in the common compact interval $[-M_L,M_L]$, where
+\begin{equation}
+M_L=\max_{w\in W,\;t}|x_t^\top w|<\infty.
+\end{equation}
+By Berge's Maximum Theorem, the partial minimum $\Phi_\tau(w, \theta) = \min_{z \in [-M_L, M_L]} F(w, z, \theta)$ is continuous on $W \times \mathcal{U}$.
+
+For Item 4, since $F(w, z, \theta)$ is jointly convex in $(w, z)$ for each fixed $\theta$, the partial minimization over convex $z$ preserves convexity in $w$. Hence, $w \mapsto \Phi_\tau(w, \theta)$ is convex on $W$ for each $\theta \in \mathcal{U}$.
+\end{proof}
+
+\subsection*{A.3 Proof of corresponding theorem/lemma}
+\begin{proof}
+Because $\mathcal{U}$ is compact and $\Phi_\tau(w, \cdot)$ is continuous on $\mathcal{U}$ for every $w \in W$, the Extreme Value Theorem guarantees that the supremum is achieved at some $\theta^*(w) \in \mathcal{U}$, so $G(w) = \max_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta)$. As the pointwise maximum of a family of convex functions $\{w \mapsto \Phi_\tau(w, \theta)\}_{\theta \in \mathcal{U}}$, $G(w)$ is convex on $W$. Joint continuity of $\Phi_\tau(w, \theta)$ on compact $W \times \mathcal{U}$ implies by Berge's Maximum Theorem that $G(w)$ is continuous on $W$. Finally, minimizing the continuous function $G(w)$ over the non-empty compact set $W$ guarantees the existence of an optimal solution $w^* \in W$ by the Weierstrass Theorem.
+\end{proof}
+
+\subsection*{A.4 Proof of corresponding theorem/lemma}
+\begin{proof}
+Because $\widehat{\mathcal{U}}_k \subseteq \widehat{\mathcal{U}}_{k+1} \subseteq \mathcal{U}$, the feasible region of the master LP shrinks monotonically, implying $\mathrm{LB}_k \le \mathrm{LB}_{k+1} \le v^\star$. For Item 2, $G(w^k) = \sup_{\theta \in \mathcal{U}} \Phi_\tau(w^k, \theta) \ge \min_{w \in W} \sup_{\theta \in \mathcal{U}} \Phi_\tau(w, \theta) = v^\star$.
+
+For Item 3, upon termination with $G(w^k) - \mathrm{LB}_k \le \epsilon$, we have $0 \le G(w^k) - v^\star \le G(w^k) - \mathrm{LB}_k \le \epsilon$, and the portfolio $w^k$ satisfies all finite constraints in $W$ while the epigraph pair $(w^k, \mathrm{LB}_k+\varepsilon)$ is feasible for the continuous constraint set.
+
+To establish finite termination, suppose for contradiction that the algorithm does not terminate. Then it generates an infinite sequence of states $\{\theta_k\}_{k=1}^\infty \subset \mathcal{U}$ such that $\Phi_\tau(w^k, \theta_k) - \mathrm{LB}_k > \epsilon$ for all $k$. For any $j < k$, the constraint for $\theta_j$ was included in master problem $k$, so $\Phi_\tau(w^k, \theta_j) \le \mathrm{LB}_k$. Thus $\Phi_\tau(w^k, \theta_k) - \Phi_\tau(w^k, \theta_j) > \epsilon$. Since $\Phi_\tau$ is continuous on the compact set $W\times \mathcal{U}$, it is uniformly continuous. Hence, for every $\varepsilon>0$, there exists $\delta_\varepsilon>0$ such that $\|\theta-\theta'\|<\delta_\varepsilon \implies |\Phi_\tau(w,\theta)-\Phi_\tau(w,\theta')|<\varepsilon$ uniformly for all $w\in W$. Therefore, $\|\theta_k - \theta_j\| \ge \delta_\epsilon$ for all $j < k$. A compact metric space is totally bounded and therefore cannot contain an infinite $\delta_\epsilon$-separated sequence, which contradicts the compactness of $\mathcal{U}$ \citep{hettich1993semi, lopez2007semi}. This exact-oracle convergence is a classical consequence of standard SIP exchange methods.
+\end{proof}
 
 \end{document}
