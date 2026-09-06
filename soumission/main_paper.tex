@@ -5,6 +5,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath, amssymb, amsfonts}
 \usepackage{graphicx}
+\usepackage{array}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows, positioning, decorations.pathreplacing, fit, backgrounds}
 \usepackage{booktabs}
@@ -23,14 +24,14 @@
 
 \institute{Madani Bezoui \at
               CESI LINEACT, UR 7527, Nancy, France \\
-              \email{mbezoui@cesi.fr} 0.0 ORCID \orcidlink{0000-0002-8342-7039}~0000-0002-8342-7039
+              \email{mbezoui@cesi.fr} --- ORCID \orcidlink{0000-0002-8342-7039}~0000-0002-8342-7039
            \and
            Thiziri Sifaoui \at
               Department of Mathematics and Computer Science, University of Amine Elokkal El Hadj Moussa Eg Akhamouk, Tamanghasset, Algeria \\
-              LAROMAD, Faculty of Sciences, UMMTO, Tizi Ouzou, Algeria 0.0 ORCID \orcidlink{0009-0007-6884-0611}~0009-0007-6884-0611
+              LAROMAD, Faculty of Sciences, UMMTO, Tizi Ouzou, Algeria --- ORCID \orcidlink{0009-0007-6884-0611}~0009-0007-6884-0611
            \and
            Ahcene Bounceur \at
-              College of Computing and Informatics, University of Sharjah, United Arab Emirates 0.0 \email{abounceur@sharjah.ac.ae} 0.0 ORCID \orcidlink{0000-0002-0043-7742}~0000-0002-0043-7742
+              College of Computing and Informatics, University of Sharjah, United Arab Emirates --- \email{abounceur@sharjah.ac.ae} --- ORCID \orcidlink{0000-0002-0043-7742}~0000-0002-0043-7742
 }
 
 \date{Received: date / Accepted: date}
@@ -52,7 +53,7 @@ To incorporate state dependence, a common practice in financial econometrics is 
 
 In this context, our work investigates how a continuous-state robust formulation compares structurally and empirically to standard unconditional and discrete-regime robust portfolio models. We explore whether adaptive constraint generation can effectively scale continuous-state portfolio robustification to overcome the computational limits of dense enumeration. Furthermore, we examine whether state-domain continuous robustification improves out-of-sample risk-adjusted returns and downside protection across non-stationary market environments, and we analyze the role of model regularization---such as bandwidth scaling and empirical support thresholding---in mitigating boundary scenario overfitting within continuous robust sets.
 
-In this paper, we propose a continuous-state robust portfolio optimization framework that bridges non-parametric conditional risk modeling and semi-infinite optimization. Rather than partitioning market history into discrete regimes, we define a continuous, compact state space $\mathcal{U} \subset \mathbb{R}^2$ spanned by observable financial indicators: the logarithm of the CBOE Volatility Index (log-VIX) \cite{cboe2026vix} and the trailing equity market drawdown. Every point $\theta \in \mathcal{U}$ represents a distinct market environment and induces a well-defined conditional empirical return distribution constructed via multivariate Nadaraya-Watson kernel weight \cite{nadaraya1964estimating, watson1964smooth}ing.
+In this paper, we propose a continuous-state robust portfolio optimization framework that bridges non-parametric conditional risk modeling and semi-infinite optimization. Rather than partitioning market history into discrete regimes, we define a continuous, compact state space $\mathcal{U} \subset \mathbb{R}^2$ spanned by observable financial indicators: the logarithm of the CBOE Volatility Index (log-VIX) \cite{cboe2026vix} and the trailing equity market drawdown. Every point $\theta \in \mathcal{U}$ represents a distinct market environment and induces a well-defined conditional empirical return distribution constructed via multivariate Nadaraya--Watson kernel weighting \cite{nadaraya1964estimating, watson1964smooth}.
 
 The investor seeks an allocation that minimizes the worst-case Conditional Value-at-Risk (CVaR) over the entire continuous state space $\mathcal{U}$:
 \begin{equation}
@@ -66,9 +67,9 @@ Our primary contribution is methodological and empirical: We formulate a state-r
 
 To facilitate open science, reproducibility and independent verification of all empirical findings, the complete Julia and Python codebase, the cleaned financial datasets, and all figure generation routines are maintained in an open-source repository \cite{bezoui2026robust}.
 
-The remainder of this manuscript is structured as follows. Section 2 reviews related literature across robust optimization, conditional stochastic programming, and semi-infinite algorithms. Section 3 develops the continuous-state modeling framework, kernel weighting mechanics, and theoretical existence theorems. Section 4 presents the adaptive exchange algorithm and distinguishes exact continuous separation from the grid-restricted separation used in the numerical implementation. Section 5 details the rolling-window backtesting protocol and reports empirical results across approximately 31.5 years. Section 6 presents model-specification sensitivity analysis, and Section 7 provides discussion, practical limitations, and concluding remarks.
+The remainder of this manuscript is structured as follows. Section \ref{sec:related} reviews related literature across robust optimization, conditional stochastic programming, and semi-infinite algorithms. Sections \ref{sec:model} and \ref{sec:theory} develop the continuous-state modeling framework, kernel weighting mechanics, and theoretical existence theorems. Section \ref{sec:algorithms} presents the adaptive exchange algorithm and distinguishes exact continuous separation from the grid-restricted separation used in the numerical implementation. Section \ref{sec:experimental} details the rolling-window backtesting protocol, while Sections \ref{sec:results} and \ref{sec:computational} report empirical and computational results across approximately 31.5 years. Section \ref{sec:sensitivity} presents model-specification sensitivity analysis, and Section \ref{sec:conclusion} provides discussion, practical limitations, and concluding remarks.
 
-\section{Related work}
+\section{Related work}\label{sec:related}
 Our methodology intersects three active streams of quantitative operations research: robust portfolio selection, conditional stochastic programming with side information, and semi-infinite optimization algorithms.
 
 \subsection{Classical and distributionally robust portfolio selection}
@@ -76,12 +77,12 @@ Classical robust portfolio selection addresses the sensitivity of Markowitz mean
 
 To capture tail risk directly, \cite{rockafellar2000optimization, rockafellar2002conditional} introduced the Conditional Value-at-Risk (CVaR) as a coherent risk measure that can be optimized efficiently via linear programming. Building on this foundation, distributionally robust optimization (DRO) seeks to minimize risk over an ambiguity set of probability distributions constructed around an empirical baseline. Modern DRO frameworks define ambiguity balls using moment constraints \cite{delage2010distributionally} or optimal transport metrics such as the Wasserstein distance \cite{esfahani2018data}.
 
-Recent theoretical developments in DRO have expanded its algorithmic scope. For instance, \cite{chu2026wasserstein} propose tractable regularized reformulations of Wasserstein DRO problems that achieve global convergence, while \cite{agra2025two} analyzes two-stage distributionally robust programs with finite supports. In related structural contexts, \cite{yue2026geometric} draw geometric connections between ambiguity sets and covariance shrinkage, and \cite{thoma2026piecewise} study piecewise affine decision rules for robust multi-stage settings.
+Recent theoretical developments in DRO have expanded its algorithmic scope. For instance, \cite{chu2025wasserstein} propose tractable regularized reformulations of Wasserstein DRO problems that achieve global convergence, while \cite{agra2025two} analyzes two-stage distributionally robust programs with finite supports. In related structural contexts, \cite{yue2026geometric} draw geometric connections between ambiguity sets and covariance shrinkage, and \cite{thoma2026piecewise} study piecewise affine decision rules for robust multi-stage settings.
 
 \subsection{Conditional stochastic optimization and covariate side information}
 A rapidly expanding body of literature investigates how observable side information (covariates) can be integrated into data-driven decision-making. \cite{bertsimas2020predictive} established a general framework for predictive prescriptions, demonstrating that non-parametric kernel regression, $k$-nearest neighbors, and tree-based weights can effectively condition decision problems on prevailing covariates. In the context of risk management, \cite{scaillet2004nonparametric} examined non-parametric kernel estimation of conditional expected shortfall.
 
-In recent contributions, \cite{qi2025integrated} introduce an integrated conditional estimation-optimization methodology that directly couples regression trees with downstream optimization tasks, minimizing decision error rather than prediction loss. \cite{bennouna2025learning} explore phase transitions in data-driven decision-making, providing optimal sample complexity bounds for prescriptive models with side information. Earlier foundational frameworks in conditional DRO include \cite{esteban2022distributionally}, who developed distributionally robust stochastic programs with side information based on trimmed Wasserstein balls, and \cite{nguyen2021robustifying}, who formulated robust conditional portfolio decisions via optimal transport metrics centered on covariate-conditioned empirical distributions.
+In recent contributions, \cite{qi2026integrated} introduce an integrated conditional estimation-optimization methodology that directly couples regression trees with downstream optimization tasks, minimizing decision error rather than prediction loss. \cite{bennouna2025learning} explore phase transitions in data-driven decision-making, providing optimal sample complexity bounds for prescriptive models with side information. Earlier foundational frameworks in conditional DRO include \cite{esteban2022distributionally}, who developed distributionally robust stochastic programs with side information based on trimmed Wasserstein balls, and \cite{nguyen2025robustifying}, who formulated robust conditional portfolio decisions via optimal transport metrics centered on covariate-conditioned empirical distributions.
 
 Our framework differs in its mathematical construction from conditional DRO. In conditional DRO, the decision-maker constructs an ambiguity set around the conditional distribution corresponding to the currently observed state $y_t$. In our continuous-state robust model, we do not restrict attention to a single observed state. Instead, we seek an allocation that remains robust across the entire family of kernel-weighted conditional distributions induced by all states $\theta \in \mathcal{U}$. We refer to this approach as continuous-state robust optimization over kernel-weighted empirical conditional distributions.
 
@@ -103,7 +104,7 @@ The standard solution paradigm for convex SIPs is the cutting-plane or exchange 
 \centering
 \caption{Comparison of conditional and robust risk models.}
 \label{tab:lit_comparison}
-\begin{tabular}{p{0.22\linewidth}p{0.2\linewidth}p{0.26\linewidth}p{0.26\linewidth}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.2\linewidth}>{\raggedright\arraybackslash}p{0.26\linewidth}>{\raggedright\arraybackslash}p{0.26\linewidth}}
 \toprule
 \textbf{Paradigm} & \textbf{Objective} & \textbf{Distributional Assumption} & \textbf{Covariate Role} \\
 \midrule
@@ -119,7 +120,7 @@ Covariate-driven DRO & Conditional Worst-case Risk & State-dependent ambiguity s
 
 
 
-\section{Model}
+\section{Model}\label{sec:model}
 We consider an investment universe consisting of $N$ risky financial assets over a discrete time horizon $t = 1, \dots, T$. Let $x_t = (x_{1,t}, \dots, x_{N,t})^\top \in \mathbb{R}^N$ denote the vector of realized asset returns from trading day $t-1$ to day $t$. The joint conditional distribution of asset returns is modulated by prevailing financial-market state variables observable at time $t-1$, denoted by the vector $y_{t-1} \in \mathbb{R}^M$.
 
 \subsection{State variable selection and compact state space}
@@ -127,7 +128,7 @@ In this study, we focus on two primary financial indicators that capture distinc
 \begin{equation}
     D_t = 1 - \frac{P_t}{\max_{s \in [t-L, t]} P_s} \in [0, 1]
 \end{equation}
-where $P_t$ is the cumulative total return index of the broad market proxy (computed as the equal-weighted composite of the 30 industry portfolios). By construction, $D_t \ge 0$ measures positive drawdown severity ($0\%$ representing peak wealth, and positive values indicating drawdown depth).
+where $P_t$ is the cumulative total return index of the broad market proxy (computed as the equal-weighted composite of the 30 industry portfolios). The choice of an equal-weighted proxy rather than a value-weighted aggregate is deliberate: the equal-weighted index is more sensitive to distress in smaller sectors and therefore serves as a more responsive indicator of broad-based distress across the entire opportunity set. By construction, $D_t \ge 0$ measures positive drawdown severity ($0\%$ representing peak wealth, and positive values indicating drawdown depth).
 
 The state vector at time $t-1$ is $y_{t-1} = (\log V_{t-1}, D_{t-1})^\top \in \mathbb{R}^2$. For each rolling training window, define
 \begin{equation}
@@ -153,7 +154,7 @@ The Cartesian bounding box $\mathcal{U}$ treats every combination of VIX and dra
 
 
 \subsection{Kernel-weighted conditional distributions and effective sample size}
-For any continuous state query $\theta = (v_\theta, d_\theta)^\top \in \mathcal{U}$, we construct a state-dependent empirical probability distribution over historical return realizations $\{x_1, \dots, x_T\}$. Each historical return observation $x_t$ is assigned a Nadaraya-Watson kernel weight \cite{nadaraya1964estimating, watson1964smooth} based on the proximity of its preceding state $y_{t-1}$ to the target state $\theta$:
+For any continuous state query $\theta = (v_\theta, d_\theta)^\top \in \mathcal{U}$, we construct a state-dependent empirical probability distribution over historical return realizations $\{x_1, \dots, x_T\}$. Each historical return observation $x_t$ is assigned a Nadaraya--Watson kernel weight \cite{nadaraya1964estimating, watson1964smooth} based on the proximity of its preceding state $y_{t-1}$ to the target state $\theta$:
 \begin{equation}
     p_t(\theta) = \frac{K_H(y_{t-1} - \theta)}{\sum_{s=1}^{T} K_H(y_{s-1} - \theta)} = \frac{\exp\left(-\frac{1}{2}(y_{t-1} - \theta)^\top H^{-1} (y_{t-1} - \theta)\right)}{\sum_{s=1}^T \exp\left(-\frac{1}{2}(y_{s-1} - \theta)^\top H^{-1} (y_{s-1} - \theta)\right)}
 \end{equation}
@@ -161,7 +162,7 @@ where $H \in \mathbb{R}^{2 \times 2}$ is a symmetric positive-definite bandwidth
 \begin{equation}
     H = \operatorname{diag}\left(h_{\text{log-VIX}}^2, h_{\text{DD}}^2\right) = T^{-1/3} \operatorname{diag}\left(\hat{\sigma}_{\text{log-VIX}}^2, \hat{\sigma}_{\text{DD}}^2\right)
 \end{equation}
-for $M = 2$, where $\hat{\sigma}^2_{\log\text{-VIX}}$ and $\hat{\sigma}^2_{\text{DD}}$ are the sample variances of log-VIX and drawdown, respectively, computed over the current training window. The diagonal bandwidth matrix scales the two state dimensions by their respective sample variances but does not account for their empirical cross-covariance.
+for $M = 2$, where $\hat{\sigma}^2_{\log\text{-VIX}}$ and $\hat{\sigma}^2_{\text{DD}}$ are the sample variances of log-VIX and drawdown, respectively, computed over the current training window. The diagonal bandwidth matrix scales the two state dimensions by their respective sample variances but does not account for their empirical cross-covariance. While log-VIX and drawdown exhibit non-trivial empirical correlation, using a diagonal matrix acts as a form of geometric regularization that avoids excessively narrow, elongated kernel contours that could overfit the historical dependence structure. Future work could explore full-covariance bandwidth selection methods to further refine the shape of the conditional empirical measure.
 
 Because the Gaussian kernel is strictly positive everywhere on $\mathbb{R}^2$, the normalization denominator is strictly positive for all $\theta \in \mathcal{U}$. Consequently, the kernel weights satisfy $p_t(\theta) > 0$ and $\sum_{t=1}^T p_t(\theta) = 1$ for every $\theta \in \mathcal{U}$. Each continuous state $\theta$ induces a well-defined conditional empirical distribution $\mathbb{P}(X | \theta) = \sum_{t=1}^{T} p_t(\theta) \delta_{x_t}$ (as illustrated in Figure \ref{fig:schema1}), where $\delta_{x_t}$ denotes the Dirac delta mass at historical return vector $x_t$.
 
@@ -218,7 +219,7 @@ When weights are uniformly distributed ($p_t(\theta) = 1/T$), the ESS reaches it
 \label{fig:schema1}
 \end{figure}
 
-\section{Theory}
+\section{Theory}\label{sec:theory}
 Let $w = (w_1, \dots, w_N)^\top \in \mathbb{R}^N$ denote the portfolio weight vector. The portfolio loss under realized return vector $x_t$ is $-x_t^\top w$. We define the feasible portfolio set $W \subset \mathbb{R}^N$ under standard institutional long-only constraints with an individual weight cap $\bar{w} = 0.15$ and a target expected return constraint:
 \begin{equation}
     W = \left\{ w \in \mathbb{R}^N : \sum_{i=1}^N w_i = 1, \quad 0 \le w_i \le \bar{w} \quad \forall i=1,\dots,N, \quad \hat{\mu}^\top w \ge \mu_{\text{target}} \right\}
@@ -226,7 +227,7 @@ Let $w = (w_1, \dots, w_N)^\top \in \mathbb{R}^N$ denote the portfolio weight ve
 where $\hat{\mu} = \frac{1}{T} \sum_{t=1}^T x_t$ is the unconditional sample mean return vector, $\mu_{\text{target}}$ is the required expected return, and $\bar{w} = 0.15$ is the maximum allocation to any single asset.
 
 \begin{proposition}[Feasibility of the capped portfolio set]
-Let $S_{\bar w}=\{w \in \mathbb{R}^N : \mathbf{1}^\top w=1,\ 0\leq w_i\leq\bar w\}$. Then $S_{\bar w}\neq\emptyset$ if and only if $N\bar w\geq 1$. Conditional on this, let $\hat{\mu}_{(1)} \ge \dots \ge \hat{\mu}_{(N)}$ be the components of $\hat{\mu}$ sorted in descending order, and $\hat{\mu}_{[1]} \le \dots \le \hat{\mu}_{[N]}$ be sorted in ascending order. Define $q = \lfloor 1/\bar{w} \rfloor$ and the residual weight $r = 1 - q \bar{w}$. The maximum and minimum expected returns attainable in $S_{\bar w}$ are respectively $\mu_{\max} = \bar{w} \sum_{i=1}^q \hat{\mu}_{(i)} + (r > 0 ? r \hat{\mu}_{(q+1)} : 0)$ and $\mu_{\min} = \bar{w} \sum_{i=1}^q \hat{\mu}_{[i]} + (r > 0 ? r \hat{\mu}_{[q+1]} : 0)$, with the residual term omitted when $r=0$. The attainable expected-return set is $[\mu_{\min}, \mu_{\max}]$. Then $W\neq\emptyset$ if and only if $\mu_{\mathrm{target}}\leq\mu_{\max}$. Moreover, there exists $w\in S_{\bar w}$ satisfying $\hat\mu^\top w>\mu_{\mathrm{target}}$ if and only if $\mu_{\mathrm{target}}<\mu_{\max}$.
+Let $S_{\bar w}=\{w \in \mathbb{R}^N : \mathbf{1}^\top w=1,\ 0\leq w_i\leq\bar w\}$. Then $S_{\bar w}\neq\emptyset$ if and only if $N\bar w\geq 1$. Conditional on this, let $\hat{\mu}_{(1)} \ge \dots \ge \hat{\mu}_{(N)}$ be the components of $\hat{\mu}$ sorted in descending order, and $\hat{\mu}_{[1]} \le \dots \le \hat{\mu}_{[N]}$ be sorted in ascending order. Define $q = \lfloor 1/\bar{w} \rfloor$ and the residual weight $r = 1 - q \bar{w}$. The maximum and minimum expected returns attainable in $S_{\bar w}$ are respectively $\mu_{\max} = \bar{w} \sum_{i=1}^q \hat{\mu}_{(i)} + + r \hat{\mu}_{(q+1)} \mathbb{1}_{\{r>0\}}$ and $\mu_{\min} = \bar{w} \sum_{i=1}^q \hat{\mu}_{[i]} + + r \hat{\mu}_{[q+1]} \mathbb{1}_{\{r>0\}}$, with the residual term omitted when $r=0$. The attainable expected-return set is $[\mu_{\min}, \mu_{\max}]$. Then $W\neq\emptyset$ if and only if $\mu_{\mathrm{target}}\leq\mu_{\max}$. Moreover, there exists $w\in S_{\bar w}$ satisfying $\hat\mu^\top w>\mu_{\mathrm{target}}$ if and only if $\mu_{\mathrm{target}}<\mu_{\max}$.
 \end{proposition}
 
 \begin{proof}
@@ -301,7 +302,7 @@ Because $\mathcal{U}$ is compact and $\Phi_\tau(w, \cdot)$ is continuous on $\ma
 \end{proof}
 
 
-\section{Algorithms}
+\section{Algorithms}\label{sec:algorithms}
 A full Cartesian-grid approximation of the continuous state space $\mathcal{U}$ yields a large-scale linear program with one CVaR state block for every candidate grid point. We design an adaptive exchange algorithm that iteratively generates only the binding stress states.
 
 \subsection{Master problem and separation oracle}
@@ -353,7 +354,7 @@ The overall adaptive exchange algorithm is depicted in Figure \ref{fig:schema2}.
 \draw [arrow] (step1) -- (step2);
 \draw [arrow] (step2) -- (step3);
 \draw [arrow] (step3) -- (check);
-\draw [arrow] (check.west) -- ++(-1.6,0) |- node[pos=0.25, right, fill=white, inner sep=2pt] {Gap $> \epsilon$. Set $\widehat{\mathcal{U}}_{k+1} = \widehat{\mathcal{U}}_k \cup \{\theta^*\}$. Increment $k$.} (step2.west);
+\draw [arrow] (check.west) -- ++(-2.0,0) |- node[pos=0.25, left, fill=white, inner sep=2pt, align=right] {Gap $> \epsilon$.\\Set $\widehat{\mathcal{U}}_{k+1} = \widehat{\mathcal{U}}_k \cup \{\theta^*\}$.\\Increment $k$.} (step2.west);
 \draw [arrow] (check.east) -- node[above, fill=white, inner sep=2pt] {Yes} (step6.west);
 
 \end{tikzpicture}
@@ -417,7 +418,7 @@ The grid oracle thus constitutes an inexact separation oracle with additive, one
 \begin{equation}
 0 \le G(w^k) - v^\star \le \varepsilon + L_\Phi \rho .
 \end{equation}
-This additive-oracle propagation complements the analysis of \cite{oustry2025convex}, whose relative-gap $\delta$-oracle model (and, for their cutting-plane rate results, a strong-convexity assumption on the objective) does not directly subsume our linear master objective. We validate the analytical gradient $\nabla_\theta \Phi_\tau$ using central finite differences, confirming numerical agreement to within $10^{-7}$ precision. A direct evaluation of the conservative bound $\frac{4RM_L}{\tau\lambda_{\min}(H)}$ yields values of order $10^{2}$ to $10^{3}$, which is too loose to be practically informative. We therefore rely on a heuristic a posteriori gap estimation. Column two of Table \ref{tab:gap_verification} reports the maximum observed gradient norm over a dense $201\times201$ reference grid (which provides a local empirical gauge of the function's steepness, though not a formal global Lipschitz constant). Column five reports the empirically observed gap $\widetilde G(w^*) - \widehat G(w^*)$, where $\widetilde G(w^*)$ is the best value found by refined-grid evaluation followed by projected gradient ascent (five starts from the top grid maximizers, box-projected Armijo steps, stopping at projected gradient mapping norm $<10^{-8}$). Across all tested windows, the observed gap $\widetilde G(w^*) - \widehat G(w^*)$ is below $10^{-4}$ (column five of Table \ref{tab:gap_verification}). Because $\widetilde G$ relies on local search, it strictly lower-bounds the true continuous supremum. Therefore, the true discretization gap could theoretically exceed this observed gap. Nevertheless, the small values provide strong heuristic confidence in the practical adequacy of the $21\times21$ grid.
+This additive-oracle propagation complements the analysis of \cite{oustry2025convex}, whose relative-gap $\delta$-oracle model (and, for their cutting-plane rate results, a strong-convexity assumption on the objective) does not directly subsume our linear master objective. We validate the analytical gradient $\nabla_\theta \Phi_\tau$ using central finite differences, confirming numerical agreement to within $10^{-7}$ precision. A direct evaluation of the conservative bound $\frac{4RM_L}{\tau\lambda_{\min}(H)}$ yields values of order $10^{2}$ to $10^{3}$, which is too loose to be practically informative. We therefore rely on a heuristic a posteriori gap estimation. Column two of Table \ref{tab:gap_verification} reports the maximum observed gradient norm over a dense $201\times201$ reference grid (which provides a local empirical gauge of the function's steepness, though not a formal global Lipschitz constant). Column five reports the empirically observed gap $\widetilde G(w^*) - \widehat G(w^*)$, where $\widetilde G(w^*)$ is the best value found by refined-grid evaluation followed by projected gradient ascent (five starts from the top grid maximizers, box-projected Armijo steps, stopping at projected gradient mapping norm $<10^{-8}$). Across all tested windows, the observed gap $\widetilde G(w^*) - \widehat G(w^*)$ is below $10^{-4}$ (column five of Table \ref{tab:gap_verification}). Because $\widetilde G$ relies on local search, it strictly lower-bounds the true continuous supremum. Therefore, the true discretization gap could theoretically exceed this observed gap. Nevertheless, the small values provide strong heuristic confidence in the practical adequacy of the $21\times21$ grid. (In the COVID-19 window, the local search improvement is identically zero because the projected gradient ascent terminated without escaping the initial grid-node maximizer.)
 
 \begin{table}[htbp]
 \centering
@@ -438,14 +439,14 @@ This additive-oracle propagation complements the analysis of \cite{oustry2025con
 }
 \end{table}
 
-\section{Experimental design}
+\section{Experimental design}\label{sec:experimental}
 We evaluate the out-of-sample performance, turnover efficiency, downside capital preservation, and computational scalability of the continuous-state robust portfolio framework.
 
 \subsection{Data and rolling-window backtesting protocol}
 The empirical universe comprises the Kenneth French 30 Industry Portfolios \cite{french2026data} (value-weighted daily returns), providing broad industry-level coverage of the US equity market. Daily asset returns are aligned with:
 \begin{itemize}
     \item \textbf{CBOE VIX}: Daily closing prices of the CBOE Volatility Index.
-    \item \textbf{Broad Market Drawdown}: Calculated daily from the equal-weighted 30-industry composite over trailing 63-day lookback windows ($D_t \in [0, 1]$).
+    \item \textbf{Broad Market Drawdown}: Calculated daily from the equal-weighted 30-industry composite (chosen for its heightened sensitivity to broad-based sector distress) over trailing 63-day lookback windows ($D_t \in [0, 1]$).
 \end{itemize}
 The aligned daily dataset spans from January 1990 to 30 June 2026, comprising 9,186 daily observations.
 
@@ -528,7 +529,7 @@ and
 \end{equation}
 where $r_t^{\mathrm{pre-cost}}$ is the portfolio's simple holding-period return before transaction costs.
 
-\section{Main empirical results}
+\section{Main empirical results}\label{sec:results}
 \subsection{Long-term cumulative wealth and risk-adjusted performance}
 Figure \ref{fig:wealth} displays the cumulative wealth trajectories of all five investment strategies net of 10 bps transaction costs on an initial \$1 investment. The naive $1/N$ portfolio delivers the highest final cumulative wealth of \$29.25, followed by the Finite-Regime CVaR portfolio (\$25.68), the continuous Robust SIP strategy (\$25.04), the Nominal CVaR portfolio (\$22.92), and the TC-MinVar portfolio (\$22.16).
 
@@ -541,7 +542,7 @@ Figure \ref{fig:wealth} displays the cumulative wealth trajectories of all five 
 
 \begin{table}[htbp]
 \centering
-\caption{Comprehensive out-of-sample performance summary.}
+\caption{Comprehensive out-of-sample performance summary (Sharpe ratios assume a zero risk-free rate).}
 \label{tab:performance}
 \resizebox{\textwidth}{!}{
 \begin{tabular}{lrrrrr}
@@ -558,7 +559,7 @@ Robust SIP & 11.28 & 13.95 & 0.809 & -41.69 & 9.48 \\
 }
 \end{table}
 
-Table \ref{tab:performance} reports the complete 14-metric performance profile. Key findings include:
+Table \ref{tab:performance} reports the 5-metric performance profile. Key findings include:
 \begin{enumerate}
     \item \textbf{Return Generation}: Robust SIP achieves an annualized mean return of 11.28\%, exceeding the point estimates of Nominal CVaR (10.76\%), TC-MinVar (10.75\%), and Finite-Regime CVaR (11.15\%). It ranks second overall, behind the naive $1/N$ portfolio (12.24\%). The $1/N$ portfolio benefits from broad cross-sectional diversification and full exposure to the long-run equity market risk premium over the 31-year evaluation period.
     \item \textbf{Risk-Adjusted Ratios}: Finite-Regime CVaR achieves the highest Sharpe ratio (0.901), followed by Nominal CVaR (0.880) and TC-MinVar (0.873). Robust SIP records a Sharpe ratio of 0.809. The resulting allocations exhibit higher realized volatility and greater concentration. Determining whether this arises from return targeting, state conditioning, or sparse-boundary effects requires further decomposition.
@@ -668,9 +669,9 @@ Robust SIP & 0.817 & 0.813 & 0.809 & 0.801 & 0.777 & 25.94 & 25.49 & 25.04 & 24.
 }
 \end{table}
 
-Table \ref{tab:tc_sensitivity} examines transaction cost sensitivity across 0, 5, 10, 20, and 50 bps. Finite-Regime CVaR records the highest point-estimate Sharpe ratio across all reported transaction-cost levels, maintaining a Sharpe ratio above 0.867 even at 50 bps. Robust SIP remains competitive in absolute wealth generation: at 50 bps, its final wealth of \$21.74 exceeds Nominal CVaR (\$20.26) and TC-MinVar (\$19.97), though it trails Finite-Regime (\$22.52). The $1/N$ portfolio is least sensitive to transaction costs due to its minimal turnover, retaining \$28.52 at 50 bps.
+Table \ref{tab:tc_sensitivity} examines transaction cost sensitivity across 0, 5, 10, 20, and 50 bps. Finite-Regime CVaR records the highest point-estimate Sharpe ratio across all reported transaction-cost levels, maintaining a Sharpe ratio above 0.867 even at 50 bps. Robust SIP remains competitive in absolute wealth generation: at 50 bps, its final wealth of \$21.74 exceeds Nominal CVaR (\$20.26) and TC-MinVar (\$20.73), though it trails Finite-Regime (\$22.52). The $1/N$ portfolio is least sensitive to transaction costs due to its minimal turnover, retaining \$28.52 at 50 bps.
 
-\section{Computational results}
+\section{Computational results}\label{sec:computational}
 Figure \ref{fig:active_states} illustrates the number of active stress states retained by the master problem across all 377 rolling backtest windows. Across the entire 31-year backtest, the algorithm consistently converges while retaining between 1 and 9 active market states (average 3.66) out of the 441 candidate states in $\widehat{\mathcal{U}}$. Under the implemented initialization and one-state-per-iteration update rule, the reported number of active states coincides with the recorded number of master-problem solves (average 3.66 iterations).
 
 \begin{figure}[H]
@@ -706,18 +707,6 @@ Dense $41\times 41$ & TIME\_LIMIT / no primal solution & 1681 & 632.25 s & N/A \
 }
 \end{table}
 
-\begin{table}[htbp]
-\centering
-\caption{Geometric grid diagnostic for the $21\times21$ grid}
-\label{tab:grid_bounds}
-\begin{tabular}{lc}
-\toprule
-\textbf{Diagnostic Metric} & \textbf{Value} \\
-\midrule
-Grid-resolution statistic $\rho$ (unit-dependent) & 0.032 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \begin{table}[htbp]
 \centering
@@ -727,7 +716,7 @@ Grid-resolution statistic $\rho$ (unit-dependent) & 0.032 \\
 \toprule
 \textbf{Statistic} & \textbf{Value} \\
 \midrule
-Minimum window-level mean ESS & 2.2 \\
+Minimum window-level mean ESS & 2.18 \\
 5th Percentile window-level mean ESS & 17.0 \\
 Median window-level mean ESS & 72.8 \\
 Mean window-level mean ESS & 83.0 \\
@@ -736,7 +725,7 @@ Maximum window-level mean ESS & 264.4 \\
 \end{tabular}
 \end{table}
 
-Figure \ref{fig:bounds} illustrates convergence for one selected rolling window. Table \ref{tab:computational} reports a single representative-window snapshot used specifically for the dense-grid benchmarking, as running the exact dense $41\times41$ LP over all 377 windows proved computationally prohibitive. Therefore, the objective values and numbers of active states in Figure \ref{fig:bounds} and Table \ref{tab:computational} are not expected to coincide. For the selected benchmark window and the reported extensive-form implementation, the dense $41\times41$ LP did not return a primal solution within the 600-second solver limit.
+Figure \ref{fig:bounds} illustrates convergence for one selected rolling window. Table \ref{tab:computational} reports a single representative-window snapshot used specifically for the dense-grid benchmarking, as running the exact dense $41\times41$ LP over all 377 windows proved computationally prohibitive. Therefore, the objective values and numbers of active states in Figure \ref{fig:bounds} and Table \ref{tab:computational} are not expected to coincide. For the selected benchmark window and the reported extensive-form implementation, the dense $41\times41$ LP did not return a primal solution within the 600-second solver limit. (We note that a row-generation implementation on the dense grid would provide a more competitive alternative than the extensive-form LP.)
 
 Several diagnostics in Tables \ref{tab:computational} and \ref{tab:ess_diagnostics} warrant careful interpretation:
 \begin{enumerate}
@@ -776,7 +765,7 @@ Figure \ref{fig:kernel} visualizes the continuous market-state space $\mathcal{U
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\textwidth]{Fig12.pdf}
-    \caption{Bootstrap distribution of the Sharpe-ratio difference.}
+    \caption{Bootstrap distribution of the Sharpe-ratio difference (computed using a zero risk-free rate).}
     \label{fig:bootstrap}
 \end{figure}
 
@@ -784,7 +773,7 @@ To rigorously assess whether the observed performance differences are statistica
 
 \begin{table}[htbp]
 \centering
-\caption{Paired circular moving-block bootstrap inference for out-of-sample Sharpe ratio differences}
+\caption{Paired circular moving-block bootstrap inference for out-of-sample Sharpe ratio differences (zero risk-free rate)}
 \label{tab:bootstrap}
 \small
 \begin{tabular}{lrrrr}
@@ -814,9 +803,9 @@ The repository provides the complete pipeline structured into four main componen
     \item \textbf{Figure Generation Routine} (\texttt{code/generate\_publication\_figures.py}): Reproduces all analytical figures in high-resolution vector PDF format.
 \end{enumerate}
 
-Computations were performed on an Apple M1 Pro with 8 CPU cores and 16 GB RAM, using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1. Reported solve times encompass model construction and solver execution.
+Computations were performed on an Apple M1 Pro with 8 CPU cores and 16 GB RAM, using Julia 1.11.6, CSV 0.10.16, DataFrames 1.8.2, JuMP 1.31.1, and HiGHS 1.24.1 (with default presolve, tolerances at $10^{-8}$, and single-threaded execution; warm starts across exchange iterations were disabled to ensure strict benchmarking consistency). Reported solve times encompass model construction and solver execution.
 
-\section{Model sensitivity}
+\section{Model sensitivity}\label{sec:sensitivity}
 \label{sec:sensitivity}
 To ensure the robustness of our findings to methodological hyperparameters, we conduct sensitivity analyses across key design choices: grid resolution, kernel bandwidth, Effective Sample Size (ESS) regularization, and bootstrap block length. The grid resolution and bandwidth analyses (Tables \ref{tab:sens_grid} and \ref{tab:sens_bw}) report averages over a representative subset of 20 evenly spaced rolling out-of-sample windows spanning the full evaluation period from 28 December 1994 to 17 June 2026. This uniform sampling guarantees that the analyses span multiple market regimes, including crisis periods, while remaining computationally tractable for the dense grid benchmarks. The ESS threshold and bootstrap block length sensitivities are evaluated over the entire sequence of 377 rolling windows.
 
@@ -829,7 +818,7 @@ Table \ref{tab:sens_grid} details the sensitivity of the adaptive exchange algor
 \label{tab:sens_grid}
 \begin{tabular}{lrrrr}
 \toprule
-\textbf{Grid Resolution} & \textbf{Runtime (s)} & \textbf{Active States} & \textbf{OOS CVaR$_{95}$ (\%)} & \textbf{Dist to Base} \\
+\textbf{Grid Resolution} & \textbf{Runtime (s)} & \textbf{Active States} & \textbf{In-Sample Worst-Case CVaR$_{95}$ (\%)} & \textbf{Dist to Base} \\
 \midrule
 11$\times$11 & 0.19 & 3.20 & 4.46 & 0.1213 \\
 21$\times$21 & 0.26 & 3.35 & 4.52 & 0.0627 \\
@@ -847,7 +836,7 @@ Table \ref{tab:sens_bw} reports sensitivity to the kernel bandwidth scalar $c \i
 \label{tab:sens_bw}
 \begin{tabular}{lrr}
 \toprule
-\textbf{Scalar ($c$)} & \textbf{Active States} & \textbf{OOS CVaR$_{95}$ (\%)} \\
+\textbf{Scalar ($c$)} & \textbf{Active States} & \textbf{In-Sample Worst-Case CVaR$_{95}$ (\%)} \\
 \midrule
 0.5 & 3.65 & 4.60 \\
 0.75 & 3.35 & 4.56 \\
@@ -867,7 +856,7 @@ To address concerns about boundary scenario overfitting in regions of the state 
 \label{tab:sens_ess}
 \begin{tabular}{lrr}
 \toprule
-$E_{\min}$ & \textbf{Avg Retained States} & \textbf{OOS CVaR$_{95}$ (\%)} \\
+$E_{\min}$ & \textbf{Avg Retained States} & \textbf{In-Sample Worst-Case CVaR$_{95}$ (\%)} \\
 \midrule
 0.0 & 441.0 & 4.45 \\
 10.0 & 172.4 & 4.45 \\
@@ -879,37 +868,7 @@ $E_{\min}$ & \textbf{Avg Retained States} & \textbf{OOS CVaR$_{95}$ (\%)} \\
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
-\centering
-\caption{Sensitivity to Minimum Effective Sample Size ($E_{\min}$): Out-of-sample performance.}
-\label{tab:ess_backtest_perf}
-\begin{tabular}{lrrrrr}
-\toprule
-$E_{\min}$ & \textbf{Return (\%)} & \textbf{Vol (\%)} & \textbf{Sharpe} & \textbf{Max DD (\%)} & \textbf{Wealth (\$)} \\
-\midrule
-0.0 & 11.28 & 13.95 & 0.809 & -41.69 & 25.04 \\
-10.0 & 11.04 & 13.92 & 0.793 & -41.71 & 23.29 \\
-20.0 & 11.02 & 13.58 & 0.811 & -40.84 & 23.46 \\
-40.0 & 10.98 & 13.26 & 0.828 & -45.94 & 23.53 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
-\begin{table}[htbp]
-\centering
-\caption{Sensitivity to Minimum Effective Sample Size ($E_{\min}$): Implementation diagnostics.}
-\label{tab:ess_backtest_diag}
-\begin{tabular}{lrrrr}
-\toprule
-$E_{\min}$ & \textbf{Turnover (\%)} & \textbf{Avg ESS} & \textbf{Min ESS} & \textbf{Grid Retained (\%)} \\
-\midrule
-0.0 & 9.48 & 83.02 & 2.18 & 100.0 \\
-10.0 & 9.64 & 86.89 & 10.01 & 39.3 \\
-20.0 & 11.27 & 92.54 & 20.03 & 27.5 \\
-40.0 & 13.02 & 112.61 & 40.00 & 18.3 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 To understand whether this in-sample regularization translates to out-of-sample improvements, we run the complete rolling backtest pipeline across four selected ESS thresholds: $E_{\min} \in \{0, 10, 20, 40\}$. Table \ref{tab:ess_backtest} reports the out-of-sample performance and active state statistics for each case. While $E_{\min}=10$ successfully excludes over 60\% of the grid (retaining an average of 39.3\% of states) and excludes candidate grid states whose ESS falls below 10, the point estimates are economically similar, although no formal equality test is conducted. Aggressive regularization ($E_{\min}=40$) slightly increases the out-of-sample Sharpe ratio but exposes the portfolio to a severe maximum drawdown ($-45.94\%$). We retain $E_{\min}=0$ as the prespecified primary specification and report $E_{\min}\in\{10,20,40\}$ as support-regularized sensitivity analyses.
 
@@ -952,10 +911,10 @@ Finally, Table \ref{tab:sens_block} verifies the robustness of our statistical i
 
 
 \subsection{Allocation instability and turnover constraints}
-A notable property of the continuous-state robust formulation is the near-flatness of the worst-case objective surface around the optimum. Because multiple asset combinations can achieve nearly identical worst-case CVaR, the optimal allocation $w^*$ may exhibit instability across adjacent rolling windows. The grid-refinement analysis of Table \ref{tab:sens_grid} provides indirect evidence of this flatness: refining the separation grid from $21\times21$ to $81\times81$ changes the worst-case CVaR by less than $0.02$ percentage points while displacing the optimal allocation by $\|w_{21}-w_{81}\|_1 \approx 0.063$. Objective stability therefore coexists with non-trivial allocation instability, which is consistent with the elevated average holding-period turnover of 9.48\% reported in Table \ref{tab:performance} (11.37 bps approximate annual transaction-cost drag). While the focus of this paper is unconstrained risk minimization, practical implementations could penalize this instability, for instance by incorporating an $\ell_1$ proximity regularizer $\lambda \|w - w_{\mathrm{prev}}\|_1$ into the master LP.
+A notable property of the continuous-state robust formulation is the near-flatness of the worst-case objective surface around the optimum. Because multiple asset combinations can achieve nearly identical worst-case CVaR, the optimal allocation $w^*$ may exhibit instability across adjacent rolling windows. The grid-refinement analysis of Table \ref{tab:sens_grid} provides indirect evidence of this flatness: refining the separation grid from $21\times21$ to $81\times81$ changes the worst-case CVaR by less than $0.02$ percentage points while displacing the optimal allocation by $\|w_{21}-w_{81}\|_1 \approx 0.063$. Objective stability therefore coexists with non-trivial allocation instability, which is consistent with the elevated mean holding-period turnover of 9.48\% (median 5.0\%) reported in Table \ref{tab:performance} (11.37 bps approximate annual transaction-cost drag). While the focus of this paper is unconstrained risk minimization, practical implementations could penalize this instability, for instance by incorporating an $\ell_1$ proximity regularizer $\lambda \|w - w_{\mathrm{prev}}\|_1$ into the master LP.
 
 
-\section{Discussion and conclusion}
+\section{Discussion and conclusion}\label{sec:conclusion}
 The proposed state-robust CVaR framework provides a principled and interpretable method for incorporating continuous market covariates into portfolio optimization without imposing artificial discrete regime boundaries. In the reported approximately 31.5-year empirical experiment on US industry portfolios, the continuous-state strategy achieved greater terminal wealth (\$25.04) than TC-MinVar (\$22.16) and nominal CVaR (\$22.92), but lower wealth than naive $1/N$ (\$29.25) and finite-regime CVaR (\$25.68). It also exhibited lower Sharpe ratios and deeper maximum drawdowns than the nominal and finite-regime CVaR benchmarks, and paired circular block percentile bootstrap testing does not provide sufficient evidence to distinguish these Sharpe-ratio differences from zero at conventional significance levels. Thus, the empirical findings do not establish superior risk-adjusted or crisis performance.
 
 The principal contribution of this work is methodological and computational: a kernel-weighted family of conditional return distributions indexed by continuous financial indicators can be incorporated into a continuous-state robust optimization model whose finite grid-restricted approximation can be solved efficiently through adaptive constraint generation. Because the operational implementation uses finite-grid separation ($21\times21 = 441$ states), its numerical convergence guarantees apply directly to the grid-restricted robust problem, achieving approximately a $20.7\times$ speedup $71.43/3.45\approx20.70$ on the representative benchmark window (single-threaded HiGHS 1.24.1 \cite{huangfu2018parallelizing}, tolerance $10^{-4}$) over dense LP discretization while retaining an average of only 3.66 active state blocks (range 1-9 across 377 windows) (and requiring an average of 3.66 exchange iterations under the implementation's counting convention).
@@ -965,6 +924,26 @@ Several methodological considerations and future extensions warrant discussion. 
 \newpage
 
 \appendix
+
+\appendix
+\section{Derivation of the Global Lipschitz Constant}\label{app:lipschitz}
+
+We derive a global Lipschitz constant for the function $\theta \mapsto \Phi_\tau(w, \theta)$. The conditional CVaR is given by the partial minimum:
+\begin{equation}
+    \Phi_\tau(w, \theta) = \min_{z \in [-M_L, M_L]} F(w, z, \theta), \quad \text{where} \quad F(w, z, \theta) = z + \frac{1}{\tau} \sum_{t=1}^T p_t(\theta) [\ell_t(w) - z]_+
+\end{equation}
+where $\ell_t(w) = -x_t^\top w$. The mapping $\theta \mapsto F(w, z, \theta)$ is smooth. However, the partial minimum $\Phi_\tau(w, \theta)$ is generally nonsmooth due to the non-uniqueness of the VaR minimizer $z^*(\theta)$ and the kink in the positive part function. By Danskin's theorem and Clarke subdifferential calculus, the subgradients of $\Phi_\tau(w, \theta)$ with respect to $\theta$ are contained in the convex hull of the gradients of $F(w, z, \theta)$ evaluated at all optimal minimizers $z \in \arg\min F(w, z, \theta)$.
+
+The gradient of $F$ with respect to $\theta$ is:
+\begin{equation}
+    \nabla_\theta F(w, z, \theta) = \frac{1}{\tau} \sum_{t=1}^T \nabla_\theta p_t(\theta) [\ell_t(w) - z]_+
+\end{equation}
+Because any VaR minimizer $z$ lies in $[-M_L, M_L]$ and $\ell_t(w) \in [-M_L, M_L]$, the term $[\ell_t(w) - z]_+$ is uniformly bounded by $2M_L$. A standard calculation for Nadaraya--Watson weights with a Gaussian kernel $K_H(u) \propto \exp(-\frac{1}{2} u^\top H^{-1} u)$ shows that the Jacobian $\nabla_\theta p_t(\theta)$ involves terms bounded by the inverse bandwidth matrix. Specifically, using the global bound $R = \sup_{\theta, t} \|y_{t-1} - \theta\|$, the gradient norm is conservatively bounded by $\|\nabla_\theta p_t(\theta)\| \le \frac{2 R}{\lambda_{\min}(H)}$. Summing these bounds across the $T$ normalized weights yields the global Lipschitz constant:
+\begin{equation}
+    L_\Phi := \frac{4 R M_L}{\tau \lambda_{\min}(H)}
+\end{equation}
+In the numerical implementation, we use the Euclidean norm. For the normalized log-VIX and drawdown domain, $R \approx 100$, and with $H$ determined by Scott's rule, $\lambda_{\min}(H) \approx 0.05$, yielding $L_\Phi$ on the order of $10^2$ to $10^3$, which motivates the empirical local search strategy presented in the main text.
+
 \bibliographystyle{plainnat}
 
 \section*{Statements and Declarations}
