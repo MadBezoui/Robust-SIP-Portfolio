@@ -1,0 +1,7 @@
+Research Highlights:
+
+- Formulates a state-robust portfolio model over a continuous family of kernel-weighted conditional return distributions.
+- Solves its finite-grid approximation by adaptive constraint generation, retaining an average of 3.66 state blocks out of 441 candidates.
+- Reduces the observed solve time by a factor of 16.2 relative to the dense 21x21 formulation on one representative benchmark instance.
+- Derives a conservative bound on the grid-discretization error and reports heuristic continuous-domain diagnostics; continuous optimality is not certified.
+- Finds competitive terminal wealth but no statistically significant Sharpe-ratio advantage over the considered benchmarks.

@@ -1,0 +1,31 @@
+September 4, 2026
+
+Dear Editor-in-Chief,
+Computational Optimization and Applications
+Springer
+
+We are pleased to submit our manuscript entitled "Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation" for consideration for publication as a Research Article in Computational Optimization and Applications.
+
+In this manuscript, we address a fundamental limitation in robust portfolio optimization: the reliance on either rigid, discrete market regimes or unconditional ambiguity sets. To bridge this gap, we propose a novel continuous-state robust portfolio optimization framework formulated as a Semi-Infinite Program (SIP). By defining a continuous, compact state space governed by observable financial indicators (CBOE VIX and equity market drawdown), our model optimizes Conditional Value-at-Risk (CVaR) across an infinite family of kernel-weighted empirical conditional return distributions.
+
+To solve the resulting model computationally, we develop a grid-restricted constraint-generation implementation in which a finite master linear program is iteratively enriched using a full-grid separation oracle. We establish well-posedness and convexity of the underlying continuous-state formulation and derive a conservative Lipschitz-based bound on the error induced by grid restriction. Because this bound is numerically loose, we carefully distinguish certified grid-restricted convergence from heuristic continuous-domain diagnostics. A 31.5-year rolling out-of-sample experiment demonstrates substantial reductions in master-problem size and observed runtime, while showing competitive wealth accumulation but no statistically significant Sharpe-ratio advantage over the considered benchmarks.
+
+This combination of continuous-state robust modeling, finite-grid constraint generation, and extensive computational evaluation relates directly to the scope of Computational Optimization and Applications.
+
+In accordance with the journal's ethical guidelines, we confirm that this manuscript is original, has not been published before, and is not currently under consideration for publication elsewhere. All authors have approved the manuscript and agree with its submission to this journal.
+
+Thank you for your time and consideration. We look forward to your response.
+
+Sincerely,
+
+Madani Bezoui (Corresponding Author)
+CESI LINEACT, UR 7527, Nancy, France
+Email: mbezoui@cesi.fr
+
+Thiziri Sifaoui
+Department of Mathematics and Computer Science, University of Amine Elokkal El Hadj Moussa Eg Akhamouk, Tamanghasset, Algeria
+LAROMAD, Faculty of Sciences, UMMTO, Tizi Ouzou, Algeria
+
+Ahcene Bounceur
+College of Computing and Informatics, University of Sharjah, United Arab Emirates
+Email: abounceur@sharjah.ac.ae

@@ -33,16 +33,11 @@ ENV/
 *.log
 scratch/
 
-# Local submission and archive materials (kept locally on disk, not published to code repo)
-Soumission/
-Archive/
-Archives/
-Livrable_for_submission/
+# Local submission and archive materials
 *.zip
 *.tar.gz
 *.aux
 *.bbl
 *.blg
 *.out
-autoreview.md
-guidlines_COmpOptAlg.md
+archive/
