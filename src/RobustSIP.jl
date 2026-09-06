@@ -143,12 +143,6 @@ if w_prev !== nothing
     @constraint(model, w_prev .- w .<= d)
     @constraint(model, sum(d) <= turnover_limit)
 end
-if w_prev !== nothing
-    @variable(model, d[1:N] >= 0)
-    @constraint(model, w .- w_prev .<= d)
-    @constraint(model, w_prev .- w .<= d)
-    @constraint(model, sum(d) <= turnover_limit)
-end
     @constraint(model, dot(mu, w) >= t_ret)
     
     for t in 1:T
@@ -220,12 +214,6 @@ if w_prev !== nothing
     @constraint(model, w_prev .- w .<= d)
     @constraint(model, sum(d) <= turnover_limit)
 end
-if w_prev !== nothing
-    @variable(model, d[1:N] >= 0)
-    @constraint(model, w .- w_prev .<= d)
-    @constraint(model, w_prev .- w .<= d)
-    @constraint(model, sum(d) <= turnover_limit)
-end
     @constraint(model, dot(mu, w) >= t_ret)
     
     for k in 1:K
@@ -291,18 +279,11 @@ function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, targe
     local model, w
     obj_scale = 1.0
     for scale in (1.0, 1.0e2)
-        model = Model(HiGHS.Optimizer)
+        model = Model(optimizer)
         set_silent(model)
-        set_attribute(model, "time_limit", 600.0)
 
         @variable(model, 0.0 <= w[1:N] <= max_weight)
         @constraint(model, sum(w) == 1.0)
-if w_prev !== nothing
-    @variable(model, d[1:N] >= 0)
-    @constraint(model, w .- w_prev .<= d)
-    @constraint(model, w_prev .- w .<= d)
-    @constraint(model, sum(d) <= turnover_limit)
-end
 if w_prev !== nothing
     @variable(model, d[1:N] >= 0)
     @constraint(model, w .- w_prev .<= d)
@@ -375,12 +356,6 @@ function solve_master_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, active_thetas
     @variable(model, u[1:K, 1:T] >= 0.0)
     
     @constraint(model, sum(w) == 1.0)
-if w_prev !== nothing
-    @variable(model, d[1:N] >= 0)
-    @constraint(model, w .- w_prev .<= d)
-    @constraint(model, w_prev .- w .<= d)
-    @constraint(model, sum(d) <= turnover_limit)
-end
 if w_prev !== nothing
     @variable(model, d[1:N] >= 0)
     @constraint(model, w .- w_prev .<= d)
@@ -758,12 +733,6 @@ function solve_master_cvar_regularized(X::Matrix{Float64}, Y::Matrix{Float64}, a
     @variable(model, u[1:K, 1:T] >= 0.0)
     
     @constraint(model, sum(w) == 1.0)
-if w_prev !== nothing
-    @variable(model, d[1:N] >= 0)
-    @constraint(model, w .- w_prev .<= d)
-    @constraint(model, w_prev .- w .<= d)
-    @constraint(model, sum(d) <= turnover_limit)
-end
 if w_prev !== nothing
     @variable(model, d[1:N] >= 0)
     @constraint(model, w .- w_prev .<= d)

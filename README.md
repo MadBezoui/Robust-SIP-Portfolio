@@ -35,7 +35,7 @@ Robust-SIP-Portfolio/
 ├── LICENSE                          # MIT License
 ├── CITATION.cff                     # Citation Metadata Format (CFF)
 ├── README.md                        # Documentation and replication guide
-├── main_exp.jl                      # Master pipeline entry point
+├── reproduce_all.jl                      # Master pipeline entry point
 │
 ├── src/                             # Core library source code
 │   └── RobustSIP.jl                 # Adaptive SIP solver, master LP, separation oracle & baselines
@@ -101,7 +101,7 @@ pip install matplotlib pandas numpy
 To run the complete end-to-end pipeline (rolling backtests, 14 performance metrics, paired block bootstrap tests, and publication figure generation):
 
 ```bash
-julia --project=. main_exp.jl
+julia --project=. reproduce_all.jl
 ```
 
 All outputs (CSVs and publication PDFs) will be written directly into `results/`.
@@ -158,7 +158,7 @@ If you use this code, data, or algorithm in your research, please cite:
               grid-restricted constraint generation: code, data and numerical outputs},
   author   = {Bezoui, Madani and Sifaoui, Thiziri},
   year     = {2026},
-  version  = {v1.7.1},
+  version  = {v1.8.0},
   publisher= {Zenodo},
   doi      = {10.5281/zenodo.22309074},
   url      = {https://doi.org/10.5281/zenodo.22309074}
@@ -188,3 +188,4 @@ Or reference `CITATION.cff`.
 ## License
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.
+Version v1.8.0, Commit SHA: bb587e5292ec26aaec3414e9a667718e579698b4, Julia version: 1.11.6, Python version: 3.9

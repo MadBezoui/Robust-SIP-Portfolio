@@ -1,0 +1,6 @@
+Target_Constraint,Binding_Frequency,Realized_Return,Realized_Vol,CVaR,Concentration,Turnover,Worst_State_ESS
+None,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+Equal-weight (1/N) return,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+Cross-sectional Q(0.25),0.0,0.0,0.0,0.0,0.0,0.0,0.0
+Cross-sectional Q(0.50) (Baseline),0.0,0.0,0.0,0.0,0.0,0.0,0.0
+Cross-sectional Q(0.75),0.0,0.0,0.0,0.0,0.0,0.0,0.0

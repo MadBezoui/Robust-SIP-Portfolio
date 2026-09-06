@@ -1,0 +1,8 @@
+State_Model,State_Dimension,Candidate_States,OOS_ES95,Worst_Group_ES95,Sharpe,Max_DD,Turnover,Wealth
+Unconditional Nominal CVaR,0,0,0.0,0.0,0.0,0.0,0.0,0.0
+VIX-only state-robust CVaR,1,0,0.0,0.0,0.0,0.0,0.0,0.0
+Drawdown-only state-robust CVaR,1,0,0.0,0.0,0.0,0.0,0.0,0.0
+VIX + DD (Diagonal bandwidth),2,0,0.0,0.0,0.0,0.0,0.0,0.0
+VIX + DD (Full covariance),2,0,0.0,0.0,0.0,0.0,0.0,0.0
+Four-regime CVaR,2,0,0.0,0.0,0.0,0.0,0.0,0.0
+Support-restricted VIX + DD,2,0,0.0,0.0,0.0,0.0,0.0,0.0

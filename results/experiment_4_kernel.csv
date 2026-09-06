@@ -1,0 +1,8 @@
+Kernel,Bandwidth_Method,Mean_Worst_CVaR,Mean_Worst_State_ESS,OOS_ES95,Sharpe,Turnover,Weight_Distance
+Gaussian,K0 - Baseline diagonal,0.0,0.0,0.0,0.0,0.0,0.0
+Gaussian,K1 - Full covariance,0.0,0.0,0.0,0.0,0.0,0.0
+Gaussian,K2 - Whitened state space,0.0,0.0,0.0,0.0,0.0,0.0
+Gaussian,K3 - Cross-validated,0.0,0.0,0.0,0.0,0.0,0.0
+Gaussian,K4 - Nearest-neighbour,0.0,0.0,0.0,0.0,0.0,0.0
+Epanechnikov,K0 - Baseline diagonal,0.0,0.0,0.0,0.0,0.0,0.0
+Biweight,K0 - Baseline diagonal,0.0,0.0,0.0,0.0,0.0,0.0
