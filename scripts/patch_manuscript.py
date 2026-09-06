@@ -18,8 +18,9 @@ try:
         elif strat == "RobustSIP": s_tex = "Robust SIP"
         else: continue
         
-        pattern = re.compile(r"(" + re.escape(s_tex) + r"\s*&\s*)([\d\.\-]+)\\%(\s*&\s*)([\d\.\-]+)\\%(\s*&\s*)([\d\.\-]+)(\s*&\s*)([\d\.\-]+)\\%(\s*&\s*)([\d\.\-]+)\\%(\s*\\\\)")
-        replacement = f"\\g<1>{row['Ann_Mean']:.2f}\\%\\g<3>{row['Ann_Vol']:.2f}\\%\\g<5>{row['Sharpe']:.3f}\\g<7>{row['Max_DD']:.2f}\\%\\g<9>{row['Avg_Turnover']:.2f}\\%\\g<11>"
+        # We need to replace the line starting with s_tex
+        pattern = re.compile(r"^(" + re.escape(s_tex) + r"\s*&.*?)\\\\$", re.MULTILINE)
+        replacement = f"{s_tex} & {100*row['Ann_Mean']:.2f}\\% & {100*row['Ann_Vol']:.2f}\\% & {row['Sharpe']:.3f} & {100*row['Max_DD']:.2f}\\% & {100*row['Avg_Turnover']:.2f}\\% \\\\"
         content = pattern.sub(replacement, content)
 except Exception as e:
     print(f"Skipping Table 2 update: {e}")

@@ -23,14 +23,14 @@
 
 \institute{Madani Bezoui \at
               CESI LINEACT, UR 7527, Nancy, France \\
-              \email{mbezoui@cesi.fr} --- ORCID \orcidlink{0000-0002-8342-7039}~0000-0002-8342-7039
+              \email{mbezoui@cesi.fr} 0.0 ORCID \orcidlink{0000-0002-8342-7039}~0000-0002-8342-7039
            \and
            Thiziri Sifaoui \at
               Department of Mathematics and Computer Science, University of Amine Elokkal El Hadj Moussa Eg Akhamouk, Tamanghasset, Algeria \\
-              LAROMAD, Faculty of Sciences, UMMTO, Tizi Ouzou, Algeria --- ORCID \orcidlink{0009-0007-6884-0611}~0009-0007-6884-0611
+              LAROMAD, Faculty of Sciences, UMMTO, Tizi Ouzou, Algeria 0.0 ORCID \orcidlink{0009-0007-6884-0611}~0009-0007-6884-0611
            \and
            Ahcene Bounceur \at
-              College of Computing and Informatics, University of Sharjah, United Arab Emirates --- \email{abounceur@sharjah.ac.ae} --- ORCID \orcidlink{0000-0002-0043-7742}~0000-0002-0043-7742
+              College of Computing and Informatics, University of Sharjah, United Arab Emirates 0.0 \email{abounceur@sharjah.ac.ae} 0.0 ORCID \orcidlink{0000-0002-0043-7742}~0000-0002-0043-7742
 }
 
 \date{Received: date / Accepted: date}
@@ -55,7 +55,7 @@ In this context, we formulate the following research questions:
     \item \textbf{RQ1}: How does a continuous-state robust formulation compare structurally and empirically to standard unconditional and discrete-regime robust portfolio models?
     \item \textbf{RQ2}: Can adaptive constraint generation effectively scale continuous-state portfolio robustification, overcoming the computational limits of dense enumeration?
     \item \textbf{RQ3}: Does state-domain continuous robustification improve out-of-sample risk-adjusted returns and downside protection across non-stationary market environments?
-    \item \textbf{RQ4}: What is the role of model regularization---such as bandwidth scaling and empirical support thresholding---in mitigating boundary scenario overfitting within continuous robust sets?
+    \item \textbf{RQ4}: What is the role of model regularization0.0such as bandwidth scaling and empirical support thresholding0.0in mitigating boundary scenario overfitting within continuous robust sets?
 \end{enumerate}
 
 In this paper, we propose a continuous-state robust portfolio optimization framework that bridges non-parametric conditional risk modeling and semi-infinite optimization. Rather than partitioning market history into discrete regimes, we define a continuous, compact state space $\mathcal{U} \subset \mathbb{R}^2$ spanned by observable financial indicators: the logarithm of the CBOE Volatility Index (log-VIX) \cite{cboe2026vix} and the trailing equity market drawdown. Every point $\theta \in \mathcal{U}$ represents a distinct market environment and induces a well-defined conditional empirical return distribution constructed via multivariate Nadaraya-Watson kernel weight \cite{nadaraya1964estimating, watson1964smooth}ing.
@@ -110,16 +110,15 @@ The standard solution paradigm for convex SIPs is the cutting-plane or exchange 
 \caption{Comparison of conditional and robust risk models. For a formal structural comparison between standard Conditional DRO and the proposed continuous-state Robust SIP, see Equations \eqref{eq:dro_contrast} and \eqref{eq:sip_contrast}.}
 \label{tab:lit_comparison}
 \resizebox{\textwidth}{!}{
-\begin{tabular}{llllll}
+\begin{tabular}{llll}
 \toprule
-\textbf{Model family} & \textbf{Indexing information} & \textbf{Distributional representation} & \textbf{Decision dependence} & \textbf{Robustness dimension} & \textbf{Computational form} \\
+\textbf{Paradigm} & \textbf{Objective} & \textbf{Distributional Assumption} & \textbf{Covariate Role} \\
 \midrule
-Weighted SAA & Observed covariates & Fixed weighted empirical distribution & State-dependent & None & Finite data-driven problem \\
-Nonparametric expected shortfall & Observed covariates & Fixed kernel-weighted empirical distribution & State-dependent risk estimate & None & Finite data-driven evaluation \\
-Conditional DRO & Observed covariates & Ambiguity set around a conditional distribution & State-dependent & Probability distributions & Reformulation dependent \\
-Finite-regime CVaR & Discrete regimes & Fixed empirical distribution within each regime & State-independent robust allocation & Finite regimes & Finite LP \\
-Classical SIP & Continuous parameter set & Model-dependent & Usually state-independent & Continuous parameter values & Continuous SIP \\
-Present model & Continuous covariate states & Fixed kernel-weighted empirical distribution for each state & State-independent robust allocation & Continuous market states & Grid-restricted LP solved by constraint generation \\
+Unconditional Markowitz & Mean-Variance & Stationary Gaussian & None \\
+Nominal Conditional & Expected Shortfall & True conditional $P(Y \mid X)$ known & Directly defines the distribution \\
+Standard DRO & Worst-case Risk over $\mathcal{P}$ & Global ambiguity set $\mathcal{P}$ & Typically unconditional \\
+Covariate-driven DRO & Conditional Worst-case Risk & State-dependent ambiguity set $\mathcal{P}(x)$ & Centers the conditional ambiguity set \\
+\textbf{Robust SIP (Proposed)} & \textbf{Worst-case Risk over $\mathcal{U}$} & \textbf{Continuous kernel-weighted empirical} & \textbf{Defines a continuous geometric state space $\mathcal{U}$} \\
 \bottomrule
 \end{tabular}
 }
@@ -398,13 +397,13 @@ This additive-oracle propagation complements the analysis of \citet{oustry2025co
 \label{tab:gap_verification}
 \begin{tabular}{lrrrr}
 \toprule
-\textbf{Testing Window Ends} & \textbf{Maximum observed gradient norm} & \textbf{Grid Disp. $\rho$} & \textbf{Empirical gradient--dispersion product} & \textbf{Observed local-search improvement} \\
+\textbf{Crisis Period} & \textbf{Max Gradient Norm} & \textbf{Grid Dispersion} & \textbf{Gradient $\times$ Dispersion} & \textbf{Local Search Improvement} \\
 \midrule
-1998-08 (LTCM) & 0.084 & 0.032 & $2.68\times 10^{-3}$ & $8.4\times 10^{-6}$ \\
-2008-10 (Lehman) & 0.126 & 0.032 & $4.03\times 10^{-3}$ & $2.1\times 10^{-5}$ \\
-2013-05 (Taper Tantrum) & 0.042 & 0.032 & $1.34\times 10^{-3}$ & $1.7\times 10^{-6}$ \\
-2020-03 (COVID-19) & 0.158 & 0.032 & $5.05\times 10^{-3}$ & $4.9\times 10^{-5}$ \\
-2022-09 (Inflation Shock) & 0.091 & 0.032 & $2.91\times 10^{-3}$ & $1.1\times 10^{-5}$ \\
+1998-08 (LTCM) & 13.743 & 0.043 & 0.59 & 7.04e-04 \\
+2008-10 (Lehman) & 22.105 & 0.064 & 1.41 & 6.94e-18 \\
+2013-05 (Taper Tantrum) & 5.451 & 0.061 & 0.33 & 1.39e-17 \\
+2020-03 (COVID-19) & 96.477 & 0.067 & 6.46 & 0 \\
+2022-09 (Inflation Shock) & 13.712 & 0.067 & 0.92 & 1.39e-17 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -517,22 +516,13 @@ Figure \ref{fig:wealth} displays the cumulative wealth trajectories of all five 
 \resizebox{\textwidth}{!}{
 \begin{tabular}{lrrrrr}
 \toprule
-\textbf{Metric} & \textbf{1/N} & \textbf{TC-MinVar} & \textbf{Nominal CVaR} & \textbf{Finite-Regime} & \textbf{Robust SIP} \\
+\textbf{Strategy} & \textbf{Return (\%)} & \textbf{Vol (\%)} & \textbf{Sharpe} & \textbf{Max DD (\%)} & \textbf{Turnover (\%)} \\
 \midrule
-Annualized Mean Return (\%) & 12.24 & 10.75 & 10.76 & 11.15 & 11.28 \\
-Annualized Volatility (\%) & 17.00 & 12.31 & 12.23 & 12.38 & 13.95 \\
-Sharpe Ratio & 0.720 & 0.873 & 0.880 & 0.901 & 0.809 \\
-Sortino Ratio & 1.127 & 1.335 & 1.351 & 1.396 & 1.218 \\
-Realized 95\% CVaR (Holding-Period, \%) & 11.16 & 8.18 & 8.00 & 7.92 & 9.31 \\
-Realized 99\% CVaR (Holding-Period, \%) & 17.21 & 12.76 & 11.84 & 12.04 & 13.98 \\
-Maximum Drawdown (\%) & -55.79 & -40.18 & -35.76 & -36.76 & -41.69 \\
-CAGR (\%) & 11.34 & 10.45 & 10.48 & 10.88 & 10.79 \\
-Calmar Ratio & 0.203 & 0.260 & 0.293 & 0.296 & 0.259 \\
-Average Holding-Period Turnover (\%) & 1.69 & 7.02 & 8.23 & 8.78 & 9.48 \\
-Approximate Annual TC Drag (bps) & 2.02 & 8.42 & 9.87 & 10.54 & 11.37 \\
-Effective Number of Assets ($N_{\text{eff}}$) & 30.00 & 8.15 & 7.92 & 7.57 & 7.36 \\
-Worst Holding-Period Return (\%) & -20.41 & -15.29 & -15.42 & -15.15 & -18.99 \\
-Final Cumulative Wealth (\$) & 29.25 & 22.16 & 22.92 & 25.68 & 25.04 \\
+1/N & 12.24 & 17.00 & 0.720 & -55.79 & 1.69 \\
+TC-MinVar & 10.68 & 12.28 & 0.870 & -40.18 & 6.59 \\
+Nominal CVaR & 10.76 & 12.23 & 0.880 & -35.76 & 8.23 \\
+Finite-Regime CVaR & 11.15 & 12.38 & 0.901 & -36.76 & 8.78 \\
+Robust SIP & 11.28 & 13.95 & 0.809 & -41.69 & 9.48 \\
 \bottomrule
 \end{tabular}
 }
@@ -562,31 +552,28 @@ Figure \ref{fig:drawdown} plots the time series of out-of-sample drawdowns. The 
 \resizebox{0.88\textwidth}{!}{
 \begin{tabular}{llrr}
 \toprule
-\textbf{Crisis Period} & \textbf{Strategy} & \textbf{Cumulative Return (\%)} & \textbf{Maximum Drawdown (\%)} \\
+\textbf{Crisis Period} & \textbf{Strategy} & \textbf{Return (\%)} & \textbf{Max DD (\%)} \\
 \midrule
-\textbf{Dot-Com Crash} & 1/N & -4.75 & -24.41 \\
-(Mar 2000 to Oct 2002) & TC-MinVar & +1.36 & -20.66 \\
-& Nominal CVaR & +5.86 & -20.66 \\
-& Finite-Regime & +17.26 & -20.33 \\
-& \textbf{Robust SIP} & \textbf{+4.25} & \textbf{-24.95} \\
-\midrule
-\textbf{Global Financial Crisis} & 1/N & -53.56 & -55.79 \\
-(Oct 2007 to Mar 2009) & TC-MinVar & -34.67 & -40.18 \\
-& Nominal CVaR & -31.13 & -35.76 \\
-& Finite-Regime & -30.91 & -36.76 \\
-& \textbf{Robust SIP} & \textbf{-36.49} & \textbf{-41.69} \\
-\midrule
-\textbf{COVID-19 Shock} & 1/N & -20.18 & -20.64 \\
-(Feb 2020 to Apr 2020) & TC-MinVar & -12.25 & -15.29 \\
-& Nominal CVaR & -12.05 & -15.42 \\
-& Finite-Regime & -11.67 & -15.15 \\
-& \textbf{Robust SIP} & \textbf{-17.44} & \textbf{-18.99} \\
-\midrule
-\textbf{Inflation Tightening} & 1/N & -6.05 & -17.24 \\
-(Jan 2022 to Dec 2022) & TC-MinVar & -6.47 & -18.12 \\
-& Nominal CVaR & -4.83 & -17.92 \\
-& Finite-Regime & -7.66 & -18.88 \\
-& \textbf{Robust SIP} & \textbf{-8.59} & \textbf{-19.86} \\
+DotCom & 1/N & -4.75 & -24.41 \\
+DotCom & TC-MinVar & 1.36 & -20.66 \\
+DotCom & Nominal CVaR & 5.86 & -20.66 \\
+DotCom & Finite-Regime CVaR & 17.26 & -20.33 \\
+DotCom & Robust SIP & 4.25 & -24.95 \\
+GFC & 1/N & -53.56 & -55.79 \\
+GFC & TC-MinVar & -34.67 & -40.18 \\
+GFC & Nominal CVaR & -31.13 & -35.76 \\
+GFC & Finite-Regime CVaR & -30.91 & -36.76 \\
+GFC & Robust SIP & -36.49 & -41.69 \\
+COVID & 1/N & -20.18 & -20.64 \\
+COVID & TC-MinVar & -12.25 & -15.29 \\
+COVID & Nominal CVaR & -12.05 & -15.42 \\
+COVID & Finite-Regime CVaR & -11.67 & -15.15 \\
+COVID & Robust SIP & -17.44 & -18.99 \\
+Inflation & 1/N & -6.05 & -17.24 \\
+Inflation & TC-MinVar & -6.47 & -18.12 \\
+Inflation & Nominal CVaR & -4.83 & -17.92 \\
+Inflation & Finite-Regime CVaR & -7.66 & -18.88 \\
+Inflation & Robust SIP & -8.59 & -19.86 \\
 \bottomrule
 \end{tabular}
 }
@@ -636,23 +623,16 @@ Figure \ref{fig:turnover} confirms that the turnover distribution for Robust SIP
 \caption{Transaction cost sensitivity: out-of-sample performance under alternative cost levels}
 \label{tab:tc_sensitivity}
 \resizebox{0.92\textwidth}{!}{
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrrrrrrrr}
 \toprule
-\textbf{Strategy} & \textbf{TC = 0 bps} & \textbf{TC = 5 bps} & \textbf{TC = 10 bps} & \textbf{TC = 20 bps} & \textbf{TC = 50 bps} \\
+& \multicolumn{5}{c}{\textbf{Sharpe Ratio (net of TC)}} & \multicolumn{5}{c}{\textbf{Final Wealth (\$, net of TC)}} \\
+\cmidrule(lr){2-6} \cmidrule(lr){7-11}
+\textbf{Strategy} & \textbf{0 bps} & \textbf{5 bps} & \textbf{10 bps} & \textbf{20 bps} & \textbf{50 bps} & \textbf{0 bps} & \textbf{5 bps} & \textbf{10 bps} & \textbf{20 bps} & \textbf{50 bps} \\
 \midrule
-\textbf{Annualized Sharpe Ratio} & & & & & \\
-1/N & 0.721 & 0.720 & 0.720 & 0.719 & 0.715 \\
-TC-MinVar & 0.880 & 0.876 & 0.873 & 0.866 & 0.846 \\
-Nominal CVaR & 0.888 & 0.884 & 0.880 & 0.872 & 0.848 \\
-Finite-Regime & 0.909 & 0.905 & 0.901 & 0.892 & 0.867 \\
-\textbf{Robust SIP} & \textbf{0.817} & \textbf{0.813} & \textbf{0.809} & \textbf{0.801} & \textbf{0.777} \\
-\midrule
-\textbf{Final Cumulative Wealth (\$)} & & & & & \\
-1/N & 29.43 & 29.34 & 29.25 & 29.06 & 28.52 \\
-TC-MinVar & 22.74 & 22.45 & 22.16 & 21.59 & 19.97 \\
-Nominal CVaR & 23.63 & 23.27 & 22.92 & 22.22 & 20.26 \\
-Finite-Regime & 26.53 & 26.10 & 25.68 & 24.85 & 22.52 \\
-\textbf{Robust SIP} & \textbf{25.94} & \textbf{25.49} & \textbf{25.04} & \textbf{24.17} & \textbf{21.74} \\
+TC-MinVar & 0.876 & 0.873 & 0.870 & 0.863 & 0.844 & 22.80 & 22.52 & 22.25 & 21.71 & 20.17 \\
+Nominal CVaR & 0.888 & 0.884 & 0.880 & 0.872 & 0.848 & 23.63 & 23.27 & 22.92 & 22.22 & 20.26 \\
+Finite-Regime CVaR & 0.909 & 0.905 & 0.901 & 0.892 & 0.867 & 26.53 & 26.10 & 25.68 & 24.85 & 22.52 \\
+Robust SIP & 0.817 & 0.813 & 0.809 & 0.801 & 0.777 & 25.94 & 25.49 & 25.04 & 24.17 & 21.74 \\
 \bottomrule
 \end{tabular}
 }
@@ -713,16 +693,15 @@ Grid-resolution statistic $\rho$ (unit-dependent) & 0.032 \\
 \centering
 \caption{Distribution of the window-level mean ESS across active stress states}
 \label{tab:ess_diagnostics}
-\begin{tabular}{lc}
+\begin{tabular}{lr}
 \toprule
-\textbf{Diagnostic Metric} & \textbf{Value} \\
+\textbf{Statistic} & \textbf{Value} \\
 \midrule
-Minimum window-level mean ESS & 2.18 \\
-5th Percentile window-level mean ESS & 16.98 \\
-Median window-level mean ESS & 72.75 \\
-Mean window-level mean ESS & 83.02 \\
-Maximum window-level mean ESS & 264.36 \\
-Mean window-level $\tau\times \operatorname{ESS}$ tail-support proxy & 4.15 \\
+Minimum window-level mean ESS & 2.2 \\
+5th Percentile window-level mean ESS & 17.0 \\
+Median window-level mean ESS & 72.8 \\
+Mean window-level mean ESS & 83.0 \\
+Maximum window-level mean ESS & 264.4 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -780,12 +759,12 @@ To rigorously assess whether the observed performance differences are statistica
 \small
 \begin{tabular}{lrrrr}
 \toprule
-\textbf{Benchmark} & \textbf{$\Delta$SR} & \textbf{Bootstrap SE} & \textbf{95\% CI} & \textbf{$p$-Value} \\
+\textbf{Benchmark} & \textbf{$\Delta$ Sharpe} & \textbf{Std Error} & \textbf{95\% CI} & \textbf{$p$-value} \\
 \midrule
-vs.\ Nominal CVaR & -0.0713& 0.0657& [-0.1993, 0.0569]& 0.281 \\
-vs.\ 1/N & 0.0890& 0.0928& [-0.1039, 0.2584]& 0.330 \\
-vs.\ TC-MinVar & -0.0643& 0.0680& [-0.2133, 0.0552]& 0.335 \\
-vs.\ Finite-Regime & -0.0919& 0.0613& [-0.2159, 0.0261]& 0.130 \\
+Nominal CVaR & -0.0713 & 0.0657 & [-0.1990, 0.0569] & 0.281 \\
+1/N & 0.0890 & 0.0928 & [-0.1036, 0.2584] & 0.330 \\
+TC-MinVar & -0.0609 & 0.0676 & [-0.2026, 0.0629] & 0.363 \\
+Finite-Regime CVaR & -0.0919 & 0.0613 & [-0.2157, 0.0261] & 0.130 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -818,14 +797,14 @@ Table \ref{tab:sens_grid} details the sensitivity of the adaptive exchange algor
 \centering
 \caption{Grid size sensitivity: impact on solve time, active states, and objective}
 \label{tab:sens_grid}
-\begin{tabular}{rrrrr}
+\begin{tabular}{lrrrr}
 \toprule
-\textbf{Grid Size} & \textbf{Solve Time (s)} & \textbf{Active States} & \textbf{Worst CVaR (\%)} & \textbf{Mean $\ell_1$ distance to $81\times81$} \\
+\textbf{Grid Resolution} & \textbf{Runtime (s)} & \textbf{Active States} & \textbf{OOS CVaR$_{95}$ (\%)} & \textbf{Dist to Base} \\
 \midrule
-$11\times11$ & 0.20 & 3.20 & 4.46 & 0.1213 \\
-$21\times21$ & 0.26 & 3.35 & 4.52 & 0.0627 \\
-$41\times41$ & 0.47 & 3.75 & 4.53 & 0.0107 \\
-$81\times81$ & 0.76 & 3.70 & 4.53 & 0.0000 \\
+11$\times$11 & 0.23 & 3.20 & 4.46 & 0.1213 \\
+21$\times$21 & 0.33 & 3.35 & 4.52 & 0.0627 \\
+41$\times$41 & 0.61 & 3.75 & 4.53 & 0.0107 \\
+81$\times$81 & 0.98 & 3.70 & 4.53 & 0.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -836,15 +815,15 @@ Table \ref{tab:sens_bw} reports sensitivity to the kernel bandwidth scalar $c \i
 \centering
 \caption{Bandwidth scalar sensitivity: impact on active states and objective}
 \label{tab:sens_bw}
-\begin{tabular}{rrr}
+\begin{tabular}{lrr}
 \toprule
-\textbf{Bandwidth Multiplier ($c$)} & \textbf{Active States} & \textbf{Worst CVaR (\%)} \\
+\textbf{Scalar ($c$)} & \textbf{Active States} & \textbf{OOS CVaR$_{95}$ (\%)} \\
 \midrule
-0.50 & 3.65 & 4.60 \\
+0.5 & 3.65 & 4.60 \\
 0.75 & 3.35 & 4.56 \\
-1.00 & 3.35 & 4.52 \\
-1.50 & 3.45 & 4.38 \\
-2.00 & 3.30 & 4.30 \\
+1.0 & 3.35 & 4.52 \\
+1.5 & 3.45 & 4.38 \\
+2.0 & 3.30 & 4.30 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -856,16 +835,48 @@ To address concerns about boundary scenario overfitting in regions of the state 
 \centering
 \caption{Effective Sample Size (ESS) regularizer sensitivity}
 \label{tab:sens_ess}
-\begin{tabular}{rrr}
+\begin{tabular}{lrr}
 \toprule
-\textbf{ESS Minimum} & \textbf{Retained Grid States} & \textbf{Worst CVaR (\%)} \\
+$E_{\min}$ & \textbf{Avg Retained States} & \textbf{OOS CVaR$_{95}$ (\%)} \\
 \midrule
-0 & 441.0 & 4.45 \\
-10 & 172.5 & 4.45 \\
-20 & 118.8 & 3.72 \\
-40 & 78.6 & 2.69 \\
-60 & 61.4 & 2.52 \\
-100 & 42.4 & 2.26 \\
+0.0 & 441.0 & 4.45 \\
+10.0 & 172.4 & 4.45 \\
+20.0 & 118.8 & 3.72 \\
+40.0 & 78.6 & 2.69 \\
+60.0 & 61.4 & 2.52 \\
+100.0 & 42.4 & 2.26 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Sensitivity to Minimum Effective Sample Size ($E_{\min}$): Out-of-sample performance.}
+\label{tab:ess_backtest_perf}
+\begin{tabular}{lrrrrr}
+\toprule
+$E_{\min}$ & \textbf{Return (\%)} & \textbf{Vol (\%)} & \textbf{Sharpe} & \textbf{Max DD (\%)} & \textbf{Wealth (\$)} \\
+\midrule
+0.0 & 11.28 & 13.95 & 0.809 & -41.69 & 25.04 \\
+10.0 & 11.04 & 13.92 & 0.793 & -41.71 & 23.29 \\
+20.0 & 11.02 & 13.58 & 0.811 & -40.84 & 23.46 \\
+40.0 & 10.98 & 13.26 & 0.828 & -45.94 & 23.53 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Sensitivity to Minimum Effective Sample Size ($E_{\min}$): Implementation diagnostics.}
+\label{tab:ess_backtest_diag}
+\begin{tabular}{lrrrr}
+\toprule
+$E_{\min}$ & \textbf{Turnover (\%)} & \textbf{Avg ESS} & \textbf{Min ESS} & \textbf{Grid Retained (\%)} \\
+\midrule
+0.0 & 9.48 & 83.02 & 2.18 & 100.0 \\
+10.0 & 9.64 & 86.89 & 10.01 & 39.3 \\
+20.0 & 11.27 & 92.54 & 20.03 & 27.5 \\
+40.0 & 13.02 & 112.61 & 40.00 & 18.3 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -917,7 +928,7 @@ A notable property of the continuous-state robust formulation is the near-flatne
 \section{Discussion and conclusion}
 The proposed state-robust CVaR framework provides a principled and interpretable method for incorporating continuous market covariates into portfolio optimization without imposing artificial discrete regime boundaries. In the reported approximately 31.5-year empirical experiment on US industry portfolios, the continuous-state strategy achieved greater terminal wealth (\$25.04) than TC-MinVar (\$22.16) and nominal CVaR (\$22.92), but lower wealth than naive $1/N$ (\$29.25) and finite-regime CVaR (\$25.68). It also exhibited lower Sharpe ratios and deeper maximum drawdowns than the nominal and finite-regime CVaR benchmarks, and paired circular block percentile bootstrap testing does not provide sufficient evidence to distinguish these Sharpe-ratio differences from zero at conventional significance levels. Thus, the empirical findings do not establish superior risk-adjusted or crisis performance.
 
-The principal contribution of this work is methodological and computational: a kernel-weighted family of conditional return distributions indexed by continuous financial indicators can be incorporated into a continuous-state robust optimization model whose finite grid-restricted approximation can be solved efficiently through adaptive constraint generation. Because the operational implementation uses finite-grid separation ($21\times21 = 441$ states), its numerical convergence guarantees apply directly to the grid-restricted robust problem, achieving approximately a $20.7\times$ speedup on the representative benchmark window (single-threaded HiGHS 1.24.1 \cite{huangfu2018parallelizing}, tolerance $10^{-4}$) over dense LP discretization while retaining an average of only 3.66 active state blocks (and requiring an average of 3.66 exchange iterations under the implementation's counting convention).
+The principal contribution of this work is methodological and computational: a kernel-weighted family of conditional return distributions indexed by continuous financial indicators can be incorporated into a continuous-state robust optimization model whose finite grid-restricted approximation can be solved efficiently through adaptive constraint generation. Because the operational implementation uses finite-grid separation ($21\times21 = 441$ states), its numerical convergence guarantees apply directly to the grid-restricted robust problem, achieving approximately a $20.7\times$ speedup $71.43/3.45\approx20.70$ on the representative benchmark window (single-threaded HiGHS 1.24.1 \cite{huangfu2018parallelizing}, tolerance $10^{-4}$) over dense LP discretization while retaining an average of only 3.66 active state blocks (range 1-9 across 377 windows) (and requiring an average of 3.66 exchange iterations under the implementation's counting convention).
 
 Several methodological considerations and future extensions warrant discussion. First, while the two-dimensional state space (log-VIX and drawdown) remains computationally tractable, kernel density estimation and Cartesian grid search deteriorate rapidly as state dimension increases ($M \ge 3$). Future research should explore dimension-reduction techniques, such as autoencoder latent spaces or conditional generative models, to scale continuous-state robustification. Second, in two dimensions, global grid evaluation provides an efficient separation oracle, whereas in higher dimensions, certified global branch-and-bound or interval arithmetic could provide certified continuous optimality bounds. Third, our empirical tracking of Effective Sample Size revealed that the minimum, across rolling windows, of the within-window mean ESS over active states is 2.18, indicating that some windows contain collectively low-support active stress states. Incorporating explicit ESS-thresholded uncertainty domains $\mathcal{U}_{\text{supp}} = \{\theta \in \mathcal{U} : \text{ESS}(\theta) \ge E_{\min}\}$ represents a natural regularizer to prevent boundary scenario overfitting. Fourth, integrating explicit turnover regularization directly into the master LP would further suppress transaction costs in higher-friction market environments. The framework combines non-parametric conditional risk estimation with a continuous-state semi-infinite formulation, while the empirical implementation solves a finite grid-restricted approximation efficiently through adaptive constraint generation.
 
