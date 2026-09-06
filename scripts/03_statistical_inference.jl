@@ -10,11 +10,10 @@ function calc_sr(rets)
     return (mean(v) / std(v)) * sqrt(12.0)
 end
 
-function percentile(v, p)
-    sv = sort(v)
-    idx = max(1, min(length(v), round(Int, p / 100 * length(v))))
-    return sv[idx]
-end
+# Documented empirical quantile (Hyndman-Fan type 7, Julia's default) rather
+# than a rounded order statistic, so the interval matches the convention used
+# by standard statistical packages.
+percentile(v, p) = quantile(v, p / 100)
 
 """
 Paired circular block percentile bootstrap for Sharpe-ratio differences.
@@ -31,7 +30,10 @@ function paired_circular_block_percentile_bootstrap(r1_in::AbstractVector, r2_in
     r2 = Float64.(r2_in[valid_idx])
     T = length(r1)
     
-    diff_sharpe_orig = calc_sr(skipmissing(r1_in)) - calc_sr(skipmissing(r2_in))
+    # The observed statistic must come from the same aligned sample that the
+    # bootstrap resamples; using the unaligned series compared a 377-period
+    # Sharpe with a 374-period one whenever a benchmark had missing windows.
+    diff_sharpe_orig = calc_sr(r1) - calc_sr(r2)
     
     boot_diffs = Float64[]
     for b in 1:n_reps
@@ -49,8 +51,8 @@ function paired_circular_block_percentile_bootstrap(r1_in::AbstractVector, r2_in
         push!(boot_diffs, ds_ann)
     end
     
-    ci_lower = percentile(boot_diffs, 2.5)
-    ci_upper = percentile(boot_diffs, 97.5)
+    ci_lower = quantile(boot_diffs, 0.025)
+    ci_upper = quantile(boot_diffs, 0.975)
     boot_se = std(boot_diffs)
     
     # Centered percentile bootstrap p-value

@@ -2,11 +2,15 @@
 
 [![Julia](https://img.shields.io/badge/Julia-1.11+-9558B2?logo=julia&logoColor=white)](https://julialang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21957758.svg)](https://doi.org/10.5281/zenodo.21957758)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22309074.svg)](https://doi.org/10.5281/zenodo.22309074)
 
 Official open-source reproducibility repository for the paper:  
 **"Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation"**  
-by **Madani Bezoui** and **Thiziri Sifaoui** (*Computational Optimization and Applications*, 2026).
+by **Madani Bezoui**, **Thiziri Sifaoui** and **Ahcene Bounceur**.
+
+> Manuscript **submitted** to *Computational Optimization and Applications*. It has
+> not been accepted or published; this repository archives the code, data and
+> numerical outputs behind the submitted version.
 
 ---
 
@@ -149,15 +153,33 @@ Each script can also be executed independently from the repository root:
 If you use this code, data, or algorithm in your research, please cite:
 
 ```bibtex
-@article{bezoui2026robust,
-  title   = {Continuous-state robust {CVaR} portfolio optimization via grid-restricted constraint generation},
-  author  = {Bezoui, Madani and Sifaoui, Thiziri},
-  journal = {Computational Optimization and Applications},
-  year    = {2026},
-  doi     = {10.5281/zenodo.21957758},
-  url     = {https://github.com/MadBezoui/Robust-SIP-Portfolio}
+@software{bezoui2026robust,
+  title    = {Continuous-state robust {CVaR} portfolio optimization via
+              grid-restricted constraint generation: code, data and numerical outputs},
+  author   = {Bezoui, Madani and Sifaoui, Thiziri},
+  year     = {2026},
+  version  = {v1.7.1},
+  publisher= {Zenodo},
+  doi      = {10.5281/zenodo.22309074},
+  url      = {https://doi.org/10.5281/zenodo.22309074}
 }
 ```
+
+This entry cites the **software archive**, not the manuscript.
+
+| | |
+| --- | --- |
+| Version DOI (immutable `v1.7.0-submission-final` snapshot) | `10.5281/zenodo.22309074` |
+| Concept DOI (resolves to the newest version) | `10.5281/zenodo.21957758` |
+
+The manuscript cites the version DOI, so that its Data Availability statement
+points at exactly the snapshot behind the reported numbers.
+
+**Software authorship differs from manuscript authorship.** The archived
+software is authored by Madani Bezoui and Thiziri Sifaoui; the associated
+manuscript is authored by Madani Bezoui, Thiziri Sifaoui and Ahcene Bounceur.
+The manuscript is under review; once it receives a journal DOI, cite the
+article separately.
 
 Or reference `CITATION.cff`.
 

@@ -10,12 +10,14 @@ authors:
     orcid: "https://orcid.org/0009-0007-6884-0611"
     affiliation: "University of Amine Elokkal El Hadj Moussa Eg Akhamouk, Tamanghasset, Algeria"
 title: "Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation"
-version: 1.7.0
-date-released: 2026-09-04
+version: 1.7.1
+date-released: 2026-09-06
 license: MIT
 repository-code: "https://github.com/MadBezoui/Robust-SIP-Portfolio"
-url: "https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.7.0-submission-final"
-# Concept DOI: always resolves to the most recent Zenodo version of this
-# software. Swap in the version DOI minted for v1.7.0 once that release is
-# published, if you prefer to cite the immutable snapshot.
-doi: "10.5281/zenodo.21957758"
+url: "https://github.com/MadBezoui/Robust-SIP-Portfolio/releases/tag/v1.7.1"
+# Version DOI of the frozen v1.7.0 release archived for the submitted
+# manuscript. Concept DOI 10.5281/zenodo.21957758 always resolves to the
+# newest version.
+# These are the authors of the software archive; the associated manuscript is
+# authored by Bezoui, Sifaoui and Bounceur.
+doi: "10.5281/zenodo.22309074"

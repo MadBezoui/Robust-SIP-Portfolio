@@ -8,10 +8,10 @@ guidelines require.  Series are separated by colour *and* by line style or
 marker so that the panels survive greyscale printing and the common forms
 of colour vision deficiency.
 
-Run from ``Code/code``:
+Run from ``scripts/``:
 
-    python generate_publication_figures.py            # writes ../results
-    python generate_publication_figures.py --submission ../../Soumission
+    python3 generate_publication_figures.py            # writes ../results
+    python3 generate_publication_figures.py --submission ../Soumission
 
 The optional second form additionally copies each PDF to ``FigN.pdf`` in
 the submission directory, using the figure numbering of the manuscript.

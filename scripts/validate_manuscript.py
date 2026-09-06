@@ -3,13 +3,18 @@
 Manual transcription between the result files and the LaTeX tables is the main
 way inconsistencies creep in, so this script parses the tables straight out of
 ``main_paper.tex`` and compares each cell with the corresponding value in
-``Code/results``.  It also checks the cross-table identities that must hold
-between different views of the same backtest.
+``results/``.  It also checks the cross-table identities that must hold between
+different views of the same backtest.
 
-Run from ``Code/code``:
+The manuscript sources are not part of this repository, so in a fresh clone of
+the tagged release the script runs the CSV-only identity checks and says so.
+Point it at a manuscript with ``--tex`` to run the full table-by-table pass.
 
-    python3 validate_manuscript.py            # exits non-zero on any mismatch
-    python3 validate_manuscript.py -v         # also list the checks that pass
+Run from ``scripts/``:
+
+    python3 validate_manuscript.py                    # CSV identities
+    python3 validate_manuscript.py --tex ../Soumission/main_paper.tex
+    python3 validate_manuscript.py -v                 # also list passing checks
 """
 
 import argparse
@@ -382,9 +387,14 @@ def check_prose(tex):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-v", "--verbose", action="store_true")
+    ap.add_argument("--tex", default=TEX,
+                    help="manuscript source to cross-check (default: %(default)s)")
     args = ap.parse_args()
-    if not os.path.exists(TEX):
-        print(f"Notice: Manuscript source ({TEX}) is not present in code repository.")
+    tex_path = args.tex
+    if not os.path.exists(tex_path):
+        print(f"Notice: manuscript source not found at {tex_path}.")
+        print("The manuscript is not distributed with the code repository; "
+              "pass --tex to cross-check it.")
         print("Validating internal CSV consistency and identity checks...")
         check_identities()
         print(f"\n{len(passes)} checks passed, {len(failures)} failed.")
@@ -393,7 +403,7 @@ def main():
         print("All result CSV identity and integrity checks passed.")
         return
 
-    tex = open(TEX).read()
+    tex = open(tex_path).read()
 
     check_gap(tex)
     check_performance(tex)

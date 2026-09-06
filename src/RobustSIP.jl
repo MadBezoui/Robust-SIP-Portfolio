@@ -259,28 +259,38 @@ function solve_min_variance(cov_mat::Matrix{Float64}, mu::Vector{Float64}, targe
     mu_min = min_feasible_return(mu, max_weight)
     t_ret = clamp(target_return, mu_min, mu_max - 1e-6)
     
-    model = Model(HiGHS.Optimizer)
-    set_silent(model)
-    set_attribute(model, "time_limit", 600.0)
-    
-    @variable(model, 0.0 <= w[1:N] <= max_weight)
-    @constraint(model, sum(w) == 1.0)
-    @constraint(model, dot(mu, w) >= t_ret)
-    @objective(model, Min, dot(w, cov_psd * w))
-    
-    optimize!(model)
+    # HiGHS' QP solver returns OTHER_ERROR on a few otherwise well-conditioned
+    # instances. Rescaling the objective by a positive constant leaves the
+    # argmin unchanged, so we retry on that scale only when the first solve
+    # returns no primal point; windows that solve first time are untouched.
+    local model, w
+    obj_scale = 1.0
+    for scale in (1.0, 1.0e2)
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
+        set_attribute(model, "time_limit", 600.0)
+
+        @variable(model, 0.0 <= w[1:N] <= max_weight)
+        @constraint(model, sum(w) == 1.0)
+        @constraint(model, dot(mu, w) >= t_ret)
+        @objective(model, Min, scale * dot(w, cov_psd * w))
+
+        optimize!(model)
+        obj_scale = scale
+        has_values(model) && break
+    end
     has_primal = has_values(model)
     is_optimal = termination_status(model) == MOI.OPTIMAL
     if has_primal && !any(isnan.(value.(w)))
         return (
             weights = value.(w),
-            objective = objective_value(model),
+            objective = objective_value(model) / obj_scale,
             termination_status = termination_status(model),
             primal_status = primal_status(model),
             dual_status = dual_status(model),
             has_primal = true,
             is_optimal = is_optimal,
-            objective_bound = try objective_bound(model) catch; missing end,
+            objective_bound = try objective_bound(model) / obj_scale catch; missing end,
             target_req = target_return,
             target_impl = t_ret,
             gmv_fallback_used = false
