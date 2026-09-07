@@ -7,7 +7,7 @@ using LinearAlgebra
 using Statistics
 using Distributions
 
-export get_kernel_weights, tail_specific_ess, is_in_convex_hull, effective_sample_size, empirical_cvar, grad_cvar_theta, lipschitz_certificate, verify_continuous_cvar, solve_master_cvar_regularized, filter_grid_to_hull,
+export get_kernel_weights, tail_specific_ess, is_in_convex_hull, effective_sample_size, empirical_cvar, grad_cvar_theta, lipschitz_certificate, verify_continuous_cvar, solve_master_cvar_regularized, filter_grid_to_hull, solve_conditional_cvar,
        max_feasible_return, min_feasible_return,
        solve_master_cvar, solve_oracle, solve_robust_sip,
        solve_nominal_cvar, solve_min_variance, solve_finite_regime_cvar,
@@ -809,4 +809,44 @@ function is_in_convex_hull(y::Vector{Float64}, Y::Matrix{Float64})
     return termination_status(model) == MOI.OPTIMAL
 end
 
+
+
+function solve_conditional_cvar(X::Matrix{Float64}, Y::Matrix{Float64}, theta::Vector{Float64}, H::Matrix{Float64}, mu::Vector{Float64}, tau::Float64, target_return::Float64, max_weight::Float64)
+    T, N = size(X)
+    
+    mu_max = max_feasible_return(mu, max_weight)
+    mu_min = min_feasible_return(mu, max_weight)
+    t_ret = clamp(target_return, mu_min, mu_max - 1e-6)
+    
+    P_matrix = get_kernel_weights(Y, theta, H)
+    
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    
+    @variable(model, t_var)
+    @variable(model, 0.0 <= w[1:N] <= max_weight)
+    @variable(model, z)
+    @variable(model, u[1:T] >= 0.0)
+    
+    @constraint(model, sum(w) == 1.0)
+    @constraint(model, dot(mu, w) >= t_ret)
+    
+    @constraint(model, z + (1.0/tau) * sum(P_matrix[i] * u[i] for i in 1:T) <= t_var)
+    for i in 1:T
+        @constraint(model, u[i] >= -dot(X[i, :], w) - z)
+    end
+    
+    @objective(model, Min, t_var)
+    
+    optimize!(model)
+    
+    term_status = termination_status(model)
+    if term_status == MOI.OPTIMAL || term_status == MOI.LOCALLY_SOLVED
+        return value.(w), objective_value(model), term_status
+    else
+        return missing, missing, term_status
+    end
+end
+
 end # module
+

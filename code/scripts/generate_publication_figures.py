@@ -773,6 +773,8 @@ FIGURE_MAP = [
     ("frontier_plot.pdf",      "Fig10.pdf"),
     ("kernel_map_plot.pdf",    "Fig11.pdf"),
     ("bootstrap_plot.pdf",     "Fig12.pdf"),
+    ("referee_wealth_plot.pdf", "Fig13.pdf"),
+    ("hull_restriction_plot.pdf", "Fig14.pdf"),
 ]
 
 
@@ -785,6 +787,112 @@ def copy_to_submission(dest):
             print(f"  {src_name} -> {dst_name}")
         else:
             print(f"  MISSING {src_name}")
+
+
+# ==============================================================================
+# Referee benchmarks: wealth comparison and the hull-restricted domain
+# ==============================================================================
+def plot_referee_wealth():
+    """Cumulative wealth of the two benchmarks the referee asked for."""
+    main_f = os.path.join(output_dir, "strategy_holding_period_returns.csv")
+    ref_f = os.path.join(output_dir, "referee_benchmarks_returns.csv")
+    if not (os.path.exists(main_f) and os.path.exists(ref_f)):
+        print("Skipping referee_wealth_plot.pdf (inputs not found)")
+        return
+    m = pd.read_csv(main_f)
+    r = pd.read_csv(ref_f)
+    dates = pd.to_datetime(m["Date"])
+
+    fig, ax = plt.subplots(figsize=(TEXT_W, 3.05))
+    series = [
+        ("RobustSIP", m["RobustSIP_Ret"], COLORS["RobustSIP"], "-", 1.5,
+         "Robust SIP"),
+        ("Hull", r["RobustSIP_Hull_Ret"], "#8c564b", (0, (4, 1.2, 1, 1.2)), 1.1,
+         "Robust SIP, hull-restricted"),
+        ("Cond", r["CondCVaR_Ret"], "#7f3f98", (0, (1.4, 1.4)), 1.1,
+         "State-conditioned CVaR"),
+        ("NominalCVaR", m["NominalCVaR_Ret"], COLORS["NominalCVaR"],
+         (0, (5, 1.6)), 1.0, "Nominal CVaR"),
+    ]
+    for _, ret, col, ls, lw, lab in series:
+        v = pd.to_numeric(ret, errors="coerce").values
+        w = np.cumprod(1.0 + np.nan_to_num(v, nan=0.0))
+        ax.plot(dates, w, color=col, linestyle=ls, linewidth=lw, label=lab)
+        ax.annotate(f"{w[-1]:.1f}", xy=(dates.iloc[-1], w[-1]),
+                    xytext=(3, 0), textcoords="offset points",
+                    fontsize=6.2, va="center", color=col)
+
+    ax.set_yscale("log")
+    ax.yaxis.set_major_locator(FixedLocator([1, 2, 5, 10, 20, 30]))
+    ax.yaxis.set_minor_locator(FixedLocator([3, 4, 6, 7, 8, 9, 15, 25]))
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"\\${v:g}"))
+    ax.yaxis.set_minor_formatter(NullFormatter())
+    ax.set_ylim(0.8, 40)
+    _decade_axis(ax)
+    ax.set_xlim(dates.min(), dates.max())
+    ax.margins(x=0.06)
+    ax.set_xlabel("Out-of-sample date")
+    ax.set_ylabel("Cumulative net wealth (log scale, \\$1 initial)")
+    ax.legend(loc="upper left", fontsize=6.6)
+    _finish(ax)
+    _save(fig, "referee_wealth_plot.pdf")
+
+
+def plot_hull_restriction():
+    """Which candidate states survive the empirical convex hull."""
+    try:
+        from scipy.spatial import ConvexHull, Delaunay
+    except ImportError:
+        print("Skipping hull_restriction_plot.pdf (scipy.spatial unavailable)")
+        return
+    df = pd.read_csv(data_path)
+    Y = df[["logVIX", "Drawdown"]].values[:-1]
+    # a representative training window, matching the backtest geometry
+    t_end = 1260 + 21 * 250
+    Ytr = Y[t_end - 1260:t_end]
+
+    v_lo, v_hi = Ytr[:, 0].min(), Ytr[:, 0].max()
+    d_lo, d_hi = Ytr[:, 1].min(), Ytr[:, 1].max()
+    dv, dd = 0.10 * (v_hi - v_lo), 0.10 * (d_hi - d_lo)
+    vg = np.linspace(v_lo - dv, v_hi + dv, 21)
+    dg = np.linspace(max(0.0, d_lo - dd), min(1.0, d_hi + dd), 21)
+    grid = np.array([[v, d] for v in vg for d in dg])
+
+    hull = ConvexHull(Ytr)
+    inside = Delaunay(Ytr[hull.vertices]).find_simplex(grid) >= 0
+
+    fig, ax = plt.subplots(figsize=(TEXT_W, 3.0))
+    ax.scatter(Ytr[:, 0], Ytr[:, 1] * 100, s=1.5, color="#37474f", alpha=0.18,
+               linewidth=0, rasterized=True, zorder=1)
+    poly = Ytr[hull.vertices]
+    poly = np.vstack([poly, poly[:1]])
+    ax.plot(poly[:, 0], poly[:, 1] * 100, color="#1a1a1a", linewidth=1.0,
+            zorder=4)
+    ax.scatter(grid[~inside, 0], grid[~inside, 1] * 100, s=11, marker="x",
+               color=COLORS["RobustSIP"], linewidth=0.8, zorder=5)
+    ax.scatter(grid[inside, 0], grid[inside, 1] * 100, s=13, marker="o",
+               facecolor="white", edgecolor=COLORS["NominalCVaR"],
+               linewidth=0.8, zorder=6)
+
+    ax.legend(handles=[
+        Line2D([], [], marker="o", linestyle="none", markersize=3.4,
+               markerfacecolor="white", markeredgecolor=COLORS["NominalCVaR"],
+               label=f"retained ({inside.sum()} of {len(grid)})"),
+        Line2D([], [], marker="x", linestyle="none", markersize=3.6,
+               color=COLORS["RobustSIP"], label="outside the empirical hull"),
+        Line2D([], [], color="#1a1a1a", linewidth=1.0,
+               label="convex hull of the training states"),
+        Line2D([], [], marker="o", linestyle="none", markersize=2.4,
+               color="#37474f", alpha=0.5, label="training states")],
+        loc="upper left", fontsize=6.2)
+
+    ticks = [10, 15, 20, 30, 45, 65]
+    ax.set_xticks(np.log(ticks))
+    ax.set_xticklabels([str(v) for v in ticks])
+    ax.set_xlabel("CBOE volatility index (VIX level, log spacing)")
+    ax.set_ylabel("Trailing equity market drawdown $D_t$ (%)")
+    _finish(ax)
+    _save(fig, "hull_restriction_plot.pdf")
 
 
 if __name__ == "__main__":
@@ -806,6 +914,8 @@ if __name__ == "__main__":
     plot_kernel_map()
     plot_bootstrap()
     plot_market_trajectory()
+    plot_referee_wealth()
+    plot_hull_restriction()
 
     if args.submission:
         print(f"Copying figures into {args.submission}...")

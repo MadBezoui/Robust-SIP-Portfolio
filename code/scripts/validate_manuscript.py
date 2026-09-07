@@ -179,33 +179,40 @@ TC_LEVELS = [0.0, 5.0, 10.0, 20.0, 50.0]
 
 
 def check_tc(tex):
+    """Table 6: one row per strategy, five Sharpe columns then five wealth."""
     df = csv("tc_sensitivity.csv")
     rows = table_rows(tex, "tab:tc_sensitivity")
-    block = None
+    if not rows:
+        failures.append("Table 6: table not found")
+        return
+    compared = 0
+    seen = set()
     for r in rows:
         head = label_of(r)
-        if "Sharpe" in head:
-            block = "Sharpe"
-            continue
-        if "Wealth" in head:
-            block = "Final_Wealth"
-            continue
-        if block is None:
-            continue
         for csv_name, tex_name in CSV_TO_TEX.items():
             if head != tex_name:
                 continue
-            for col, tc in enumerate(TC_LEVELS, start=1):
+            seen.add(csv_name)
+            for k, tc in enumerate(TC_LEVELS):
                 sel = df[(df.Strategy == csv_name) & (df.TC_bps == tc)]
                 if sel.empty:
                     failures.append(f"Table 6 [{tex_name}, {tc:g} bps]: "
                                     "no matching CSV row")
                     continue
-                want = sel[block].iloc[0]
-                tol = 5e-4 if block == "Sharpe" else 5e-3
-                check(f"Table 6 [{tex_name}, {tc:g} bps] "
-                      f"{'Sharpe' if block == 'Sharpe' else 'wealth'}",
-                      num(r[col]), want, tol)
+                if 1 + k < len(r):
+                    check(f"Table 6 [{tex_name}, {tc:g} bps] Sharpe",
+                          num(r[1 + k]), sel["Sharpe"].iloc[0], 5e-4)
+                    compared += 1
+                if 6 + k < len(r):
+                    check(f"Table 6 [{tex_name}, {tc:g} bps] wealth",
+                          num(r[6 + k]), sel["Final_Wealth"].iloc[0], 5e-3)
+                    compared += 1
+    missing = set(CSV_TO_TEX) - seen
+    if missing:
+        failures.append("Table 6: strategies absent from the table: "
+                        + ", ".join(sorted(CSV_TO_TEX[m] for m in missing)))
+    if compared == 0:
+        failures.append("Table 6: layout not recognised, nothing was compared")
 
 
 # ---------------------------------------------------------------------------
@@ -283,35 +290,63 @@ def check_simple(tex, label, file, key_col, cols, tag, keyfmt=lambda v: v):
 # Tables 14 and 15 -- ESS-thresholded backtest
 # ---------------------------------------------------------------------------
 def check_ess_backtest(tex):
+    """Tables 12/13 were merged into a single ESS-threshold table."""
     df = csv("ess_full_backtest.csv")
-    perf = table_rows(tex, "tab:ess_backtest_perf")
-    diag = table_rows(tex, "tab:ess_backtest_diag")
-    if len(perf) != len(df) or len(diag) != len(df):
-        failures.append("Tables 14/15: row count differs from "
+    rows = table_rows(tex, "tab:ess_backtest")
+    if not rows:
+        return
+    if len(rows) != len(df):
+        failures.append("ESS-threshold table: row count differs from "
                         "ess_full_backtest.csv")
         return
-    for r, (_, s) in zip(perf, df.iterrows()):
-        tag = f"Table 14 [Emin={s['ESS_Min']:g}]"
-        check(f"{tag} annualized return", num(r[1]),
-              s["Ann_Return_Decimal"] * 100, 5e-3)
-        check(f"{tag} annualized volatility", num(r[2]),
-              s["Ann_Vol_Decimal"] * 100, 5e-3)
-        check(f"{tag} Sharpe", num(r[3]), s["Sharpe"], 5e-3)
-        check(f"{tag} maximum drawdown", num(r[4]),
-              s["Max_DD_Decimal"] * 100, 5e-3)
-        check(f"{tag} wealth", num(r[5]), s["Wealth"], 5e-3)
-    for r, (_, s) in zip(diag, df.iterrows()):
-        tag = f"Table 15 [Emin={s['ESS_Min']:g}]"
-        check(f"{tag} turnover", num(r[1]), s["Turnover_Decimal"] * 100, 5e-3)
-        check(f"{tag} mean active-state ESS", num(r[2]), s["Avg_ESS"], 5e-3)
-        check(f"{tag} minimum active-state ESS", num(r[3]), s["Min_ESS"], 5e-3)
-        check(f"{tag} retained-grid fraction", num(r[4]),
-              s["Retained_Frac_Decimal"] * 100, 5e-2)
+    cols = [("Ann_Return_Decimal", 100, 5e-3, "annualized return"),
+            ("Ann_Vol_Decimal", 100, 5e-3, "annualized volatility"),
+            ("Sharpe", 1, 5e-3, "Sharpe"),
+            ("Max_DD_Decimal", 100, 5e-3, "maximum drawdown"),
+            ("Wealth", 1, 5e-3, "wealth"),
+            ("Turnover_Decimal", 100, 5e-2, "turnover"),
+            ("Avg_ESS", 1, 5e-2, "mean active-state ESS"),
+            ("Min_ESS", 1, 5e-2, "minimum active-state ESS"),
+            ("Retained_Frac_Decimal", 100, 5e-2, "retained-grid fraction")]
+    for r, (_, s) in zip(rows, df.iterrows()):
+        tag = f"ESS table [Emin={s['ESS_Min']:g}]"
+        for idx, (col, scale, tol, name) in enumerate(cols, start=1):
+            if idx < len(r):
+                check(f"{tag} {name}", num(r[idx]), s[col] * scale, tol)
 
 
 # ---------------------------------------------------------------------------
 # Cross-table identities
 # ---------------------------------------------------------------------------
+def check_referee_benchmarks(tex):
+    """The hull-restricted and state-conditioned specifications."""
+    f = os.path.join(RESULTS, "referee_benchmarks_summary.csv")
+    if not os.path.exists(f):
+        return
+    df = pd.read_csv(f).set_index("Strategy")
+    perf = csv("performance_table.csv").set_index("Strategy")
+    rows = {label_of(r): r for r in table_rows(tex, "tab:referee_benchmarks")}
+    if not rows:
+        failures.append("Referee-benchmark table: not found in the manuscript")
+        return
+    spec = [("Robust SIP (baseline)", perf.loc["RobustSIP"], "Ann_Mean",
+             "Ann_Vol", "Sharpe", "Avg_Turnover", "Final_Wealth"),
+            ("Robust SIP, hull-restricted", df.loc["RobustSIP_Hull"], "Ann_Mean",
+             "Ann_Vol", "Sharpe", "Avg_Turnover", "Final_Wealth"),
+            ("State-conditioned CVaR", df.loc["CondCVaR"], "Ann_Mean",
+             "Ann_Vol", "Sharpe", "Avg_Turnover", "Final_Wealth")]
+    for name, s, c_ret, c_vol, c_sr, c_to, c_w in spec:
+        r = rows.get(name)
+        if r is None:
+            failures.append(f"Referee-benchmark table [{name}]: row missing")
+            continue
+        check(f"Referee table [{name}] return", num(r[1]), s[c_ret] * 100, 5e-3)
+        check(f"Referee table [{name}] volatility", num(r[2]), s[c_vol] * 100, 5e-3)
+        check(f"Referee table [{name}] Sharpe", num(r[3]), s[c_sr], 5e-4)
+        check(f"Referee table [{name}] turnover", num(r[4]), s[c_to] * 100, 5e-3)
+        check(f"Referee table [{name}] wealth", num(r[5]), s[c_w], 5e-3)
+
+
 def check_identities():
     perf = csv("performance_table.csv").set_index("Strategy")
     tc = csv("tc_sensitivity.csv")
@@ -431,6 +466,7 @@ def main():
                  [("SE", 1, 5e-5, "bootstrap SE"),
                   ("P_Value", 1, 5e-4, "p-value")],
                  "Table 16")
+    check_referee_benchmarks(tex)
     check_identities()
     check_prose(tex)
 
