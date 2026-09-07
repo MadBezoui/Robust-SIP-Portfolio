@@ -10,7 +10,7 @@
 \begin{itemize}[leftmargin=*]
     \item Formulates a state-robust portfolio model over a continuous family of kernel-weighted conditional return distributions.
     \item Solves its finite-grid approximation by adaptive constraint generation, retaining an average of 3.66 state blocks out of 441 candidates.
-    \item Reduces the observed solve time by a factor of $16.2$ relative to the dense $21\times21$ formulation on one representative benchmark instance.
+    \item Shows, in a matched comparison against the extensive-form dense linear program over 40 rolling windows, that the number of active state blocks stays between 3.3 and 3.4 as the candidate grid grows from 121 to 961 states.
     \item Derives a conservative bound on the grid-discretization error and reports heuristic continuous-domain diagnostics; continuous optimality is not certified.
     \item Finds competitive terminal wealth but no statistically significant Sharpe-ratio advantage over the considered benchmarks.
 \end{itemize}

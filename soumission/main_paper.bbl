@@ -1,4 +1,4 @@
-\begin{thebibliography}{31}
+\begin{thebibliography}{35}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -33,6 +33,13 @@ Dimitris Bertsimas and Nathan Kallus.
   2020.
 \newblock \doi{10.1287/mnsc.2018.3253}.
 
+\bibitem[Bezanson et~al.(2017)Bezanson, Edelman, Karpinski, and
+  Shah]{bezanson2017julia}
+Jeff Bezanson, Alan Edelman, Stefan Karpinski, and Viral~B Shah.
+\newblock Julia: A fresh approach to numerical computing.
+\newblock \emph{SIAM review}, 59\penalty0 (1):\penalty0 65--98, 2017.
+\newblock \doi{10.1137/141000671}.
+
 \bibitem[Bezoui et~al.(2019)Bezoui, Moula{\"\i}, Bounceur, and
   Euler]{bezoui2019iterative}
 Madani Bezoui, Mustapha Moula{\"\i}, Ahc{\`e}ne Bounceur, and Reinhardt Euler.
@@ -57,8 +64,9 @@ Madani Bezoui, Thiziri Sifaoui, and Ahc{\`e}ne Bounceur.
 \newblock {Continuous-state robust CVaR portfolio optimization via
   grid-restricted constraint generation: code, data and numerical outputs}.
 \newblock Zenodo, 2026.
-\newblock URL \url{https://doi.org/10.5281/zenodo.22309074}.
-\newblock Software archive, release \texttt{v1.8.0},
+\newblock URL \url{https://doi.org/10.5281/zenodo.21957758}.
+\newblock Software archive. Concept DOI, resolving to the latest release.
+  Development repository:
   \url{https://github.com/MadBezoui/Robust-SIP-Portfolio}.
 
 \bibitem[{Cboe Global Markets, Inc.}(2026)]{cboe2026vix}
@@ -70,7 +78,14 @@ Madani Bezoui, Thiziri Sifaoui, and Ahc{\`e}ne Bounceur.
   2026.
 \newblock Accessed 21 August 2026.
 
-\bibitem[Chu et~al.(2026)Chu, Lin, and Toh]{chu2026wasserstein}
+\bibitem[Chenreddy et~al.(2022)Chenreddy, Bandi, and
+  Delage]{chenreddy2022conditional}
+Abhilash Chenreddy, Nymisha Bandi, and Erick Delage.
+\newblock Data-driven conditional robust optimization.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~35, pages 9525--9537, 2022.
+
+\bibitem[Chu et~al.(2026)Chu, Lin, and Toh]{chu2025wasserstein}
 Hong T.~M. Chu, Meixia Lin, and Kim-Chuan Toh.
 \newblock Wasserstein distributionally robust optimization and its tractable
   regularization formulation.
@@ -84,6 +99,12 @@ Erick Delage and Yinyu Ye.
   application to data-driven problems.
 \newblock \emph{Operations Research}, 58\penalty0 (3):\penalty0 595--612, 2010.
 \newblock \doi{10.1287/opre.1090.0741}.
+
+\bibitem[Dunning et~al.(2017)Dunning, Huchette, and Lubin]{dunning2017jump}
+Iain Dunning, Joey Huchette, and Miles Lubin.
+\newblock Jump: A modeling language for mathematical optimization.
+\newblock \emph{SIAM Review}, 59\penalty0 (2):\penalty0 295--320, 2017.
+\newblock \doi{10.1137/15m1020575}.
 
 \bibitem[Esteban-P{\'e}rez and Morales(2022)]{esteban2022distributionally}
 Adri{\'a}n Esteban-P{\'e}rez and Juan~M. Morales.
@@ -160,7 +181,7 @@ Elizbar~A. Nadaraya.
 \newblock \doi{10.1137/1109020}.
 
 \bibitem[Nguyen et~al.(2025)Nguyen, Zhang, Wang, Blanchet, Delage, and
-  Ye]{nguyen2021robustifying}
+  Ye]{nguyen2025robustifying}
 Viet~Anh Nguyen, Fan Zhang, Shanshan Wang, Jos{\'e} Blanchet, Erick Delage, and
   Yinyu Ye.
 \newblock Robustifying conditional portfolio decisions via optimal transport.
@@ -176,7 +197,13 @@ Antoine Oustry and Martina Cerulli.
   2025.
 \newblock \doi{10.1007/s11590-024-02148-3}.
 
-\bibitem[Qi et~al.(2026)Qi, Grigas, and Shen]{qi2025integrated}
+\bibitem[Politis and Romano(1991)]{politis1991circular}
+Dimitris~N. Politis and Joseph~P. Romano.
+\newblock A circular block-resampling procedure for stationary data.
+\newblock Technical report, Department of Statistics, Purdue University, West
+  Lafayette, IN, 1991.
+
+\bibitem[Qi et~al.(2026)Qi, Grigas, and Shen]{qi2026integrated}
 Meng Qi, Paul Grigas, and Zuo-Jun~Max Shen.
 \newblock Integrated conditional estimation-optimization.
 \newblock \emph{Operations Research}, 74\penalty0 (3):\penalty0 1604--1625,

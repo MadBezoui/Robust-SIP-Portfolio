@@ -39,6 +39,14 @@ from scipy.stats import gaussian_kde
 # Journal text block is 338 pt = 4.70 in = 119 mm.  Author at that width and
 # include with width=\textwidth so no downscaling shrinks the lettering.
 TEXT_W = 4.70
+# Vertical compression applied to every figure. Width, and therefore the
+# on-page size of all lettering, is unchanged; only the plotting box is
+# shorter, which is what the page budget is sensitive to.
+H = lambda h: round(h * 0.78, 2)
+# Half-column authoring width, for the two figures typeset side by side.
+# Authoring them at their printed size keeps their lettering at the same
+# physical size as in the full-width figures, instead of halving it.
+HALF_W = 2.28
 
 plt.rcParams.update({
     'font.family': 'sans-serif',
@@ -47,9 +55,9 @@ plt.rcParams.update({
     'axes.labelsize': 8.5,
     'axes.titlesize': 8.5,
     'axes.titleweight': 'normal',
-    'xtick.labelsize': 7.5,
-    'ytick.labelsize': 7.5,
-    'legend.fontsize': 7,
+    'xtick.labelsize': 8,
+    'ytick.labelsize': 8,
+    'legend.fontsize': 7.5,
     'legend.frameon': True,
     'legend.framealpha': 0.92,
     'legend.edgecolor': '#9e9e9e',
@@ -162,7 +170,7 @@ def plot_wealth():
         print("Skipping wealth_plot.pdf (returns file not found)")
         return
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 3.05))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(3.05)))
 
     finals = {}
     for s in STRATEGIES:
@@ -200,7 +208,7 @@ def plot_drawdowns():
     if df_ts is None:
         return
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.85))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(2.85)))
 
     curves = {}
     for s in STRATEGIES:
@@ -242,21 +250,30 @@ def _industry_colors(n):
 
 
 def _stack_panel(df_w, fname, gap_note=None):
+    """Industry allocations over time, with the concentration path overlaid.
+
+    The stacked areas are the actual portfolio weights, which is what the
+    caption and the surrounding text describe; the black line is the effective
+    number of assets, read on the right-hand axis, so the figure carries both
+    the allocation composition and its concentration.
+    """
     dates = pd.to_datetime(df_w['Date'])
     cols = [c for c in df_w.columns if c != 'Date']
     W = df_w[cols].apply(pd.to_numeric, errors='coerce').values
     missing = np.isnan(W).any(axis=1)
     W_plot = np.nan_to_num(W, nan=0.0)
-    
-    # Calculate Effective Number of Assets (ENA)
-    ena = np.zeros(len(W_plot))
-    for i in range(len(W_plot)):
-        sq_sum = np.sum(W_plot[i]**2)
-        if sq_sum > 0:
-            ena[i] = 1.0 / sq_sum
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.75))
-    ax.plot(dates, ena, color='#2c3e50', linewidth=1.2, label='Effective Number of Assets (ENA)')
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(3.35)))
+    colors = _industry_colors(len(cols))
+    ax.stackplot(dates, W_plot.T, colors=colors, linewidth=0.0)
+
+    sq = np.sum(W_plot ** 2, axis=1)
+    ena = np.divide(1.0, sq, out=np.zeros_like(sq), where=sq > 0)
+    ax2 = ax.twinx()
+    ax2.plot(dates, ena, color='#111111', linewidth=1.0, zorder=7)
+    ax2.set_ylabel('Effective number of assets')
+    ax2.set_ylim(0, len(cols))
+    ax2.grid(False)
 
     if missing.any():
         for d in np.asarray(dates)[missing]:
@@ -265,14 +282,22 @@ def _stack_panel(df_w, fname, gap_note=None):
                     xycoords='axes fraction', ha='right', va='bottom',
                     fontsize=6.3, color=GREY_TEXT)
 
-    ax.set_ylim(1, len(cols))
+    ax.set_ylim(0, 1)
     ax.set_xlim(dates.min(), dates.max())
     _decade_axis(ax)
     ax.set_xlabel('Rebalancing date')
-    ax.set_ylabel('Effective Number of Assets')
-    ax.grid(True, alpha=0.3, ls=':')
-    
-    _finish(ax)
+    ax.set_ylabel('Portfolio allocation weight')
+    ax.grid(False)
+
+    handles = [patches.Patch(facecolor=colors[i], edgecolor='none', label=c)
+               for i, c in enumerate(cols)]
+    handles.append(Line2D([], [], color='#111111', linewidth=1.0,
+                          label='effective number of assets (right axis)'))
+    ax.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, -0.20),
+              ncol=6, fontsize=6.4, handlelength=1.0, handleheight=0.9,
+              handletextpad=0.4, columnspacing=0.9, labelspacing=0.38,
+              borderpad=0.35, frameon=False)
+    _finish(ax, despine=False)
     _save(fig, fname)
 
 
@@ -305,7 +330,7 @@ def plot_turnover():
         series.append(v)
         counts.append(len(v))
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.95))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(2.95)))
     bp = ax.boxplot(series, patch_artist=True, widths=0.55, showmeans=True,
                     medianprops=dict(color='#1a1a1a', linewidth=1.1),
                     whiskerprops=dict(color='#4d4d4d', linewidth=0.7),
@@ -361,7 +386,7 @@ def plot_cumulative_tc_drag():
         return
 
     tc_rate = 0.0010  # 10 bps
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.85))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(2.85)))
 
     for s in STRATEGIES:
         to = pd.to_numeric(df_ts[f"{s}_TO"], errors='coerce').values
@@ -399,7 +424,7 @@ def plot_active_states():
     if not use_dates:
         x = df['Window'].values
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.55))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(2.55)))
     ax.bar(x, states, color='#7fb3d5', edgecolor='none', alpha=0.9,
            width=30 if use_dates else 1.0,
            label='active stress states per window')
@@ -439,7 +464,7 @@ def plot_bounds():
     lb = df['Master_LB'].values
     ub = df['Oracle_UB'].values
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.75))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(2.75)))
 
     ax.fill_between(it, lb, ub, color='#bdbdbd', alpha=0.40, linewidth=0,
                     label=r'grid-restricted gap $\widehat{G}_k-\mathrm{LB}_k$')
@@ -483,7 +508,7 @@ def plot_ess_over_time():
     if not use_dates:
         x = df['Window'].values
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.55))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(2.55)))
     ax.plot(x, ess, color='#6a51a3', linewidth=0.9,
             label='window mean ESS over active states')
     mean_val = float(np.mean(ess))
@@ -529,7 +554,7 @@ def plot_frontier():
         np.mean((-X[:, i])[(-X[:, i]) >= np.percentile(-X[:, i], 95)]) * 100.0
         for i in range(X.shape[1])])
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 3.15))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(3.15)))
     ax.scatter(cvar_ind, mu, s=13, color='#b0b0b0', edgecolors='white',
                linewidth=0.4, zorder=2,
                label=f'industry portfolios ($N={X.shape[1]}$)')
@@ -594,7 +619,7 @@ def plot_kernel_map():
     lv = df_mkt['logVIX'].values
     dd = df_mkt['Drawdown'].values
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 3.25))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(3.25)))
 
     kde = gaussian_kde(np.vstack([lv, dd]))
     lv_grid = np.linspace(lv.min() - 0.15, lv.max() + 0.15, 160)
@@ -690,7 +715,7 @@ def plot_bootstrap():
     d_sr, se = row['Sharpe_Diff'], row['Std_Error']
     ci_lo, ci_hi, p_val = row['CI_Lower_95'], row['CI_Upper_95'], row['P_Value']
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.85))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(2.85)))
 
     ax.hist(diffs, bins=48, density=True, color='#c6dbef',
             edgecolor='#6baed6', linewidth=0.35,
@@ -735,7 +760,7 @@ def plot_market_trajectory():
     df_mkt = pd.read_csv(data_path, parse_dates=['Date'])
     dates = df_mkt['Date']
 
-    fig, ax1 = plt.subplots(figsize=(TEXT_W, 2.75))
+    fig, ax1 = plt.subplots(figsize=(TEXT_W, H(2.75)))
     ax1.plot(dates, df_mkt['VIX'], color=COLORS['RobustSIP'], linewidth=0.6)
     ax1.set_ylabel('CBOE VIX index', color=COLORS['RobustSIP'])
     ax1.tick_params(axis='y', labelcolor=COLORS['RobustSIP'])
@@ -803,7 +828,7 @@ def plot_referee_wealth():
     r = pd.read_csv(ref_f)
     dates = pd.to_datetime(m["Date"])
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 3.05))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(3.05)))
     series = [
         ("RobustSIP", m["RobustSIP_Ret"], COLORS["RobustSIP"], "-", 1.5,
          "Robust SIP"),
@@ -861,7 +886,7 @@ def plot_hull_restriction():
     hull = ConvexHull(Ytr)
     inside = Delaunay(Ytr[hull.vertices]).find_simplex(grid) >= 0
 
-    fig, ax = plt.subplots(figsize=(TEXT_W, 3.0))
+    fig, ax = plt.subplots(figsize=(TEXT_W, H(3.0)))
     ax.scatter(Ytr[:, 0], Ytr[:, 1] * 100, s=1.5, color="#37474f", alpha=0.18,
                linewidth=0, rasterized=True, zorder=1)
     poly = Ytr[hull.vertices]

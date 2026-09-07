@@ -2,7 +2,7 @@
 
 [![Julia](https://img.shields.io/badge/Julia-1.11+-9558B2?logo=julia&logoColor=white)](https://julialang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22309074.svg)](https://doi.org/10.5281/zenodo.22309074)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21957758.svg)](https://doi.org/10.5281/zenodo.21957758)
 
 Official open-source reproducibility repository for the paper:  
 **"Continuous-state robust CVaR portfolio optimization via grid-restricted constraint generation"**  
@@ -160,8 +160,8 @@ If you use this code, data, or algorithm in your research, please cite:
   year     = {2026},
   version  = {v1.8.2},
   publisher= {Zenodo},
-  doi      = {10.5281/zenodo.22309074},
-  url      = {https://doi.org/10.5281/zenodo.22309074}
+  doi      = {10.5281/zenodo.21957758},
+  url      = {https://doi.org/10.5281/zenodo.21957758}
 }
 ```
 
@@ -169,11 +169,13 @@ This entry cites the **software archive**, not the manuscript.
 
 | | |
 | --- | --- |
-| Version DOI (immutable `v1.8.2` snapshot) | `10.5281/zenodo.22309074` |
-| Concept DOI (resolves to the newest version) | `10.5281/zenodo.21957758` |
+| Concept DOI (cite this; always resolves to the newest version) | `10.5281/zenodo.21957758` |
+| Version DOI (immutable snapshot of one release) | assigned by Zenodo at each release |
 
-The manuscript cites the version DOI, so that its Data Availability statement
-points at exactly the snapshot behind the reported numbers.
+The manuscript and `CITATION.cff` both cite the **concept DOI**, so neither has
+to be edited when a new release is published. Zenodo still mints a
+version-specific DOI for each release; use it when you need to pin an exact
+snapshot.
 
 **Software authorship differs from manuscript authorship.** The archived
 software is authored by Madani Bezoui and Thiziri Sifaoui; the associated
